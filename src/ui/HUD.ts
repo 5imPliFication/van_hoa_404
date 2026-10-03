@@ -26,7 +26,12 @@ export class HUD {
   private killsText: Phaser.GameObjects.Text;
   private pillarsText: Phaser.GameObjects.Text;
 
-  constructor(scene: Phaser.Scene, player: Player, communityMeter: CommunityMeterManager) {
+  constructor(
+    scene: Phaser.Scene,
+    player: Player,
+    communityMeter: CommunityMeterManager,
+    onOpenGuide?: () => void
+  ) {
     this.scene = scene;
     this.player = player;
     this.communityMeter = communityMeter;
@@ -50,6 +55,7 @@ export class HUD {
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#0f172a',
+      resolution: 2,
     }).setOrigin(0.5);
 
     this.shieldText = scene.add.text(245, 24, '🛡️ 0', {
@@ -57,6 +63,7 @@ export class HUD {
       fontSize: '12px',
       fontStyle: 'bold',
       color: '#0284c7',
+      resolution: 2,
     }).setOrigin(0, 0.5);
 
     this.container.add([hpBg, this.hpBarFill, this.hpText, this.shieldText]);
@@ -69,6 +76,7 @@ export class HUD {
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#0284c7',
+      resolution: 2,
     }).setOrigin(0, 0.5);
 
     this.container.add([xpBg, this.xpBarFill, this.levelText]);
@@ -83,6 +91,7 @@ export class HUD {
       fontSize: '10px',
       fontStyle: 'bold',
       color: '#0f172a',
+      resolution: 2,
     }).setOrigin(0.5);
 
     this.crisisWarningText = scene.add.text(commX, 39, '⚠️ KHỦNG HOẢNG VĂN HÓA SỐ (-25% SỨC MẠNH)', {
@@ -90,26 +99,49 @@ export class HUD {
       fontSize: '10px',
       fontStyle: 'bold',
       color: '#dc2626',
+      resolution: 2,
     }).setOrigin(0.5).setVisible(false);
 
     this.container.add([commBg, this.communityBarFill, this.communityText, this.crisisWarningText]);
 
     // 4. Timer & Wave Info (Top Center)
-    this.timerText = scene.add.text(width / 2, 18, '00:00', {
+    this.timerText = scene.add.text(width / 2 - 30, 18, '00:00', {
       fontFamily: 'monospace',
       fontSize: '19px',
       fontStyle: 'bold',
       color: '#0f172a',
+      resolution: 2,
     }).setOrigin(0.5);
 
-    this.waveText = scene.add.text(width / 2, 37, 'WAVE 1', {
+    this.waveText = scene.add.text(width / 2 - 30, 37, 'WAVE 1', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#64748b',
+      resolution: 2,
     }).setOrigin(0.5);
 
-    this.container.add([this.timerText, this.waveText]);
+    // Help Button (Open Guide anytime)
+    const helpX = width / 2 + 65;
+    const helpBg = scene.add.rectangle(helpX, 24, 88, 26, 0xf1f5f9, 1);
+    helpBg.setStrokeStyle(1, 0xcbd5e1);
+    const helpText = scene.add.text(helpX, 24, '❓ Trợ giúp', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#0369a1',
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    if (onOpenGuide) {
+      scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (Math.abs(pointer.x - helpX) < 45 && Math.abs(pointer.y - 24) < 14) {
+          onOpenGuide();
+        }
+      });
+    }
+
+    this.container.add([this.timerText, this.waveText, helpBg, helpText]);
 
     // 5. Bottom Status Bar (Kills counter & 8 Cultural Pillars)
     const bottomBg = scene.add.rectangle(width / 2, height - 22, width - 40, 34, 0xffffff, 0.92);
@@ -121,6 +153,7 @@ export class HUD {
       fontSize: '12px',
       fontStyle: 'bold',
       color: '#334155',
+      resolution: 2,
     }).setOrigin(0, 0.5);
 
     this.pillarsText = scene.add.text(width - 35, height - 22, '', {
@@ -128,6 +161,7 @@ export class HUD {
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#0284c7',
+      resolution: 2,
     }).setOrigin(1, 0.5);
 
     this.container.add([this.killsText, this.pillarsText]);

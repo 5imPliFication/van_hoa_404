@@ -54,6 +54,7 @@ export class ResultScene extends Phaser.Scene {
       fontSize: '32px',
       fontStyle: 'bold',
       color: headerColor,
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Archetype calculation (Neutral perspective per GDD rules)
@@ -67,12 +68,14 @@ export class ResultScene extends Phaser.Scene {
       fontSize: '19px',
       fontStyle: 'bold',
       color: '#0369a1',
+      resolution: 2,
     }).setOrigin(0.5);
 
     this.add.text(width / 2, height * 0.25, archetype.description, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       color: '#475569',
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Run Stats Card
@@ -90,6 +93,7 @@ export class ResultScene extends Phaser.Scene {
         fontSize: '15px',
         fontStyle: 'bold',
         color: '#0f172a',
+        resolution: 2,
       }
     ).setOrigin(0.5);
 
@@ -100,6 +104,7 @@ export class ResultScene extends Phaser.Scene {
         fontSize: '14px',
         fontStyle: 'bold',
         color: this.resultData.communityMeter > 30 ? '#059669' : '#d97706',
+        resolution: 2,
       }
     ).setOrigin(0.5);
 
@@ -112,6 +117,7 @@ export class ResultScene extends Phaser.Scene {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#0369a1',
+      resolution: 2,
     }).setOrigin(0.5);
 
     const vals = this.resultData.values;
@@ -119,30 +125,45 @@ export class ResultScene extends Phaser.Scene {
     const row2 = `Chân: ${vals.chan}    •    Thiện: ${vals.thien}    •    Mỹ: ${vals.my}`;
     const row3 = `Kiến tạo (Xây): ${vals.build}    •    Đấu tranh (Chống): ${vals.fight}`;
 
-    this.add.text(width / 2, height * 0.60, row1, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b' }).setOrigin(0.5);
-    this.add.text(width / 2, height * 0.65, row2, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b' }).setOrigin(0.5);
-    this.add.text(width / 2, height * 0.70, row3, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#0284c7' }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.60, row1, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b', resolution: 2 }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.65, row2, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b', resolution: 2 }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.70, row3, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#0284c7', resolution: 2 }).setOrigin(0.5);
 
     // Replay Button
-    const replayContainer = this.add.container(width / 2, height * 0.85);
+    const replayY = height * 0.85;
+    const replayContainer = this.add.container(width / 2, replayY);
     const replayBg = this.add.rectangle(0, 0, 240, 52, 0x0284c7);
     replayBg.setStrokeStyle(2, 0x0369a1);
 
-    const replayText = this.add.text(0, 0, 'CHƠI LẠI', {
+    const replayText = this.add.text(0, 0, 'CHƠI LẠI (Enter)', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '17px',
       fontStyle: 'bold',
       color: '#ffffff',
+      resolution: 2,
     }).setOrigin(0.5);
 
     replayContainer.add([replayBg, replayText]);
+
+    const restartGame = () => {
+      this.scene.start('GameScene');
+    };
+
     replayBg.setInteractive({ useHandCursor: true });
+    replayBg.on('pointerdown', restartGame);
+
+    // Screen-space pointer listener for replay button
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (Math.abs(pointer.x - width / 2) < 125 && Math.abs(pointer.y - replayY) < 30) {
+        restartGame();
+      }
+    });
+
+    this.input.keyboard?.once('keydown-SPACE', restartGame);
+    this.input.keyboard?.once('keydown-ENTER', restartGame);
 
     replayBg.on('pointerover', () => replayBg.setFillStyle(0x0369a1));
     replayBg.on('pointerout', () => replayBg.setFillStyle(0x0284c7));
-    replayBg.on('pointerdown', () => {
-      this.scene.start('GameScene');
-    });
   }
 
   private computeArchetype(v: CulturalValues): { title: string; description: string } {

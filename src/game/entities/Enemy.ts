@@ -184,6 +184,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         fontSize: isCrit ? '16px' : '12px',
         fontStyle: isCrit ? 'bold' : 'normal',
         color: isCrit ? '#facc15' : '#ffffff',
+        stroke: '#0f172a',
+        strokeThickness: 2,
+        resolution: 2,
       }
     ).setOrigin(0.5);
 

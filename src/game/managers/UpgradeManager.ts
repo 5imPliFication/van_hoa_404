@@ -11,6 +11,7 @@ export class UpgradeManager {
   private overlayContainer?: Phaser.GameObjects.Container;
   private isShowing: boolean = false;
   private onSelectResumeCallback: () => void;
+  private cleanupListeners?: () => void;
 
   constructor(scene: Phaser.Scene, player: Player, onSelectResume: () => void) {
     this.scene = scene;
@@ -35,7 +36,6 @@ export class UpgradeManager {
 
     // Soft dim backdrop
     const bg = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x0f172a, 0.45);
-    bg.setInteractive(); // block game inputs below
     this.overlayContainer.add(bg);
 
     // Modal Card Window
@@ -51,12 +51,14 @@ export class UpgradeManager {
       fontSize: '24px',
       fontStyle: 'bold',
       color: '#0369a1',
+      resolution: 2,
     }).setOrigin(0.5);
 
-    const sub = this.scene.add.text(width / 2, height / 2 - winHeight / 2 + 75, 'Lựa chọn 1 định hướng giá trị để nâng cấp sức mạnh chiến đấu và kiến tạo:', {
+    const sub = this.scene.add.text(width / 2, height / 2 - winHeight / 2 + 75, 'Lựa chọn 1 định hướng giá trị để nâng cấp sức mạnh chiến đấu và kiến tạo (Bấm thẻ hoặc bấm phím 1, 2, 3):', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       color: '#475569',
+      resolution: 2,
     }).setOrigin(0.5);
 
     this.overlayContainer.add([title, sub]);
@@ -71,9 +73,43 @@ export class UpgradeManager {
       const cardX = startX + index * (cardWidth + gap) + cardWidth / 2;
       const cardY = height / 2 + 35;
 
-      const card = this.createUpgradeCard(cardX, cardY, cardWidth, cardHeight, upgrade);
+      const card = this.createUpgradeCard(cardX, cardY, cardWidth, cardHeight, upgrade, index + 1);
       this.overlayContainer?.add(card);
     });
+
+    // Screen-space pointer listener (Bypasses Phaser camera scroll container hit-test bug)
+    const onScreenPointerDown = (pointer: Phaser.Input.Pointer) => {
+      if (!this.isShowing) return;
+      for (let index = 0; index < choices.length; index++) {
+        const cardX = startX + index * (cardWidth + gap) + cardWidth / 2;
+        const cardY = height / 2 + 35;
+        if (
+          Math.abs(pointer.x - cardX) < cardWidth / 2 &&
+          Math.abs(pointer.y - cardY) < cardHeight / 2
+        ) {
+          this.selectUpgrade(choices[index]);
+          return;
+        }
+      }
+    };
+
+    this.scene.input.on('pointerdown', onScreenPointerDown);
+
+    // Keyboard shortcuts: 1, 2, 3
+    const onKey1 = () => { if (this.isShowing && choices[0]) this.selectUpgrade(choices[0]); };
+    const onKey2 = () => { if (this.isShowing && choices[1]) this.selectUpgrade(choices[1]); };
+    const onKey3 = () => { if (this.isShowing && choices[2]) this.selectUpgrade(choices[2]); };
+
+    this.scene.input.keyboard?.once('keydown-ONE', onKey1);
+    this.scene.input.keyboard?.once('keydown-TWO', onKey2);
+    this.scene.input.keyboard?.once('keydown-THREE', onKey3);
+
+    this.cleanupListeners = () => {
+      this.scene.input.off('pointerdown', onScreenPointerDown);
+      this.scene.input.keyboard?.off('keydown-ONE', onKey1);
+      this.scene.input.keyboard?.off('keydown-TWO', onKey2);
+      this.scene.input.keyboard?.off('keydown-THREE', onKey3);
+    };
   }
 
   private createUpgradeCard(
@@ -81,14 +117,14 @@ export class UpgradeManager {
     y: number,
     w: number,
     h: number,
-    upgrade: UpgradeConfig
+    upgrade: UpgradeConfig,
+    keyNumber: number
   ): Phaser.GameObjects.Container {
     const container = this.scene.add.container(x, y);
 
     // Card background (Elevated white card with crisp shadow border)
     const bg = this.scene.add.rectangle(0, 0, w, h, 0xffffff, 1);
     bg.setStrokeStyle(1.5, 0xcbd5e1);
-    bg.setInteractive({ useHandCursor: true });
 
     // Category banner colors
     const catColors: Record<string, { bg: number; text: string }> = {
@@ -113,6 +149,7 @@ export class UpgradeManager {
       fontSize: '11px',
       fontStyle: 'bold',
       color: colorConfig.text,
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Upgrade Name
@@ -123,6 +160,7 @@ export class UpgradeManager {
       color: '#0f172a',
       align: 'center',
       wordWrap: { width: w - 24 },
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Description
@@ -133,41 +171,31 @@ export class UpgradeManager {
       align: 'center',
       wordWrap: { width: w - 30 },
       lineSpacing: 5,
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Select Button
     const btnBox = this.scene.add.rectangle(0, h / 2 - 42, w - 40, 42, 0x0284c7);
     btnBox.setStrokeStyle(1, 0x0369a1);
 
-    const btnText = this.scene.add.text(0, h / 2 - 42, 'TIẾP NHẬN', {
+    const btnText = this.scene.add.text(0, h / 2 - 42, `TIẾP NHẬN [Phím ${keyNumber}]`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#ffffff',
+      resolution: 2,
     }).setOrigin(0.5);
 
     container.add([bg, badgeBg, catBadge, nameText, descText, btnBox, btnText]);
-
-    bg.on('pointerover', () => {
-      bg.setStrokeStyle(2.5, 0x0284c7);
-      btnBox.setFillStyle(0x0369a1);
-      container.setScale(1.03);
-    });
-
-    bg.on('pointerout', () => {
-      bg.setStrokeStyle(1.5, 0xcbd5e1);
-      btnBox.setFillStyle(0x0284c7);
-      container.setScale(1.0);
-    });
-
-    bg.on('pointerdown', () => {
-      this.selectUpgrade(upgrade);
-    });
-
     return container;
   }
 
   private selectUpgrade(upgrade: UpgradeConfig): void {
+    if (this.cleanupListeners) {
+      this.cleanupListeners();
+      this.cleanupListeners = undefined;
+    }
+    SoundSystem.playGem();
     this.player.applyUpgrade(upgrade);
     this.overlayContainer?.destroy();
     this.overlayContainer = undefined;

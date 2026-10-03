@@ -21,6 +21,7 @@ export class MenuScene extends Phaser.Scene {
       color: '#0284c7',
       stroke: '#0369a1',
       strokeThickness: 3,
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Gentle float tween
@@ -40,6 +41,7 @@ export class MenuScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#334155',
       letterSpacing: 2,
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Pillars tagline pill
@@ -51,6 +53,7 @@ export class MenuScene extends Phaser.Scene {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#0284c7',
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Quick Guide Card
@@ -62,6 +65,7 @@ export class MenuScene extends Phaser.Scene {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#0f172a',
+      resolution: 2,
     }).setOrigin(0.5);
 
     this.add.text(width / 2, height * 0.60,
@@ -72,52 +76,62 @@ export class MenuScene extends Phaser.Scene {
         color: '#475569',
         align: 'center',
         lineSpacing: 5,
+        resolution: 2,
       }
     ).setOrigin(0.5);
 
     // Start Button
-    const btnContainer = this.add.container(width / 2, height * 0.78);
-    const btnBg = this.add.rectangle(0, 0, 270, 56, 0x0284c7);
+    const btnY = height * 0.78;
+    const btnBg = this.add.rectangle(width / 2, btnY, 270, 56, 0x0284c7);
     btnBg.setStrokeStyle(2, 0x0369a1);
 
-    const btnText = this.add.text(0, 0, 'BẮT ĐẦU VÁN CHƠI', {
+    const btnText = this.add.text(width / 2, btnY, 'BẮT ĐẦU VÁN CHƠI', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       fontStyle: 'bold',
       color: '#ffffff',
+      resolution: 2,
     }).setOrigin(0.5);
 
-    btnContainer.add([btnBg, btnText]);
-    btnBg.setInteractive({ useHandCursor: true });
-
-    btnBg.on('pointerover', () => {
-      btnBg.setFillStyle(0x0369a1);
-      btnContainer.setScale(1.04);
-    });
-
-    btnBg.on('pointerout', () => {
-      btnBg.setFillStyle(0x0284c7);
-      btnContainer.setScale(1.0);
-    });
-
-    btnBg.on('pointerdown', () => {
+    const startGame = () => {
       this.cameras.main.fadeOut(300, 241, 245, 249);
       this.cameras.main.once('camerafadeoutcomplete', () => {
         this.scene.start('GameScene');
       });
+    };
+
+    btnBg.setInteractive({ useHandCursor: true });
+    btnBg.on('pointerdown', startGame);
+
+    // Screen-space pointer click check for start button
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (Math.abs(pointer.x - width / 2) < 140 && Math.abs(pointer.y - btnY) < 32) {
+        startGame();
+      }
     });
 
-    // Spacebar to quickly start
-    const spaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    spaceKey?.once('down', () => {
-      this.scene.start('GameScene');
+    btnBg.on('pointerover', () => {
+      btnBg.setFillStyle(0x0369a1);
+      btnBg.setScale(1.03);
+      btnText.setScale(1.03);
     });
+
+    btnBg.on('pointerout', () => {
+      btnBg.setFillStyle(0x0284c7);
+      btnBg.setScale(1.0);
+      btnText.setScale(1.0);
+    });
+
+    // Spacebar or Enter to quickly start
+    this.input.keyboard?.once('keydown-SPACE', startGame);
+    this.input.keyboard?.once('keydown-ENTER', startGame);
 
     // Version label
     this.add.text(width - 24, height - 18, 'v0.1.0 • Phiên bản 0.1 MVP', {
       fontFamily: 'monospace',
       fontSize: '12px',
       color: '#64748b',
+      resolution: 2,
     }).setOrigin(1, 1);
   }
 }

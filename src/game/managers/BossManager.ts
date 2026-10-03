@@ -64,6 +64,7 @@ export class BossManager {
       fontStyle: 'bold',
       color: '#dc2626',
       align: 'center',
+      resolution: 2,
     }).setOrigin(0.5).setScrollFactor(0);
 
     this.scene.tweens.add({
@@ -179,6 +180,7 @@ export class BossManager {
       fontSize: '18px',
       fontStyle: 'bold',
       color: '#b45309',
+      resolution: 2,
     }).setOrigin(0.5).setScrollFactor(0);
 
     this.scene.tweens.add({

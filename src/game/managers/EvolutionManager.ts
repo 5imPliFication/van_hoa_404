@@ -59,12 +59,14 @@ export class EvolutionManager {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#6d28d9',
+      resolution: 2,
     }).setOrigin(0.5);
 
     const desc = this.scene.add.text(0, 11, evo.description, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '12px',
       color: '#334155',
+      resolution: 2,
     }).setOrigin(0.5);
 
     banner.add([bg, title, desc]);

@@ -113,7 +113,9 @@ export class GameScene extends Phaser.Scene {
     );
 
     // 5. Fixed HUD on camera
-    this.hud = new HUD(this, this.player, this.communityMeter);
+    this.hud = new HUD(this, this.player, this.communityMeter, () => {
+      this.checkOpeningIntro(true);
+    });
 
     // 6. Virtual Joystick for Mobile/Touch
     this.setupVirtualJoystick();
@@ -122,9 +124,11 @@ export class GameScene extends Phaser.Scene {
     this.checkOpeningIntro();
   }
 
-  private checkOpeningIntro(): void {
-    const introDone = localStorage.getItem('vanhoa404_intro_done');
-    if (introDone) return;
+  public checkOpeningIntro(forceShow: boolean = false): void {
+    if (!forceShow) {
+      const introDone = localStorage.getItem('vanhoa404_intro_done');
+      if (introDone) return;
+    }
 
     this.pauseCombat();
     const { width, height } = this.scale;
@@ -135,7 +139,6 @@ export class GameScene extends Phaser.Scene {
 
     // Soft dim backdrop
     const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0f172a, 0.45);
-    bg.setInteractive();
     introContainer.add(bg);
 
     // Dialog Window
@@ -145,6 +148,19 @@ export class GameScene extends Phaser.Scene {
     winBg.setStrokeStyle(2, 0x0284c7);
     introContainer.add(winBg);
 
+    // Close 'X' Button at top-right
+    const closeX = width / 2 + winW / 2 - 32;
+    const closeY = height / 2 - winH / 2 + 32;
+    const closeBtnBg = this.add.circle(closeX, closeY, 16, 0xfee2e2);
+    closeBtnBg.setStrokeStyle(1.5, 0xef4444);
+    const closeBtnText = this.add.text(closeX, closeY, '✕', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#dc2626',
+      resolution: 2,
+    }).setOrigin(0.5);
+
     // Badge
     const badgeBg = this.add.rectangle(width / 2, height / 2 - winH / 2 + 36, 260, 28, 0xe0f2fe, 1);
     badgeBg.setStrokeStyle(1, 0xbae6fd);
@@ -153,6 +169,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '12px',
       fontStyle: 'bold',
       color: '#0369a1',
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Title
@@ -161,6 +178,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '22px',
       fontStyle: 'bold',
       color: '#0f172a',
+      resolution: 2,
     }).setOrigin(0.5);
 
     // Goal sentence
@@ -172,10 +190,11 @@ export class GameScene extends Phaser.Scene {
         color: '#475569',
         align: 'center',
         lineSpacing: 4,
+        resolution: 2,
       }
     ).setOrigin(0.5);
 
-    introContainer.add([badgeBg, badgeText, title, goal]);
+    introContainer.add([badgeBg, badgeText, title, goal, closeBtnBg, closeBtnText]);
 
     // 4 Instruction Cards
     const rules = [
@@ -194,6 +213,7 @@ export class GameScene extends Phaser.Scene {
 
       const iconText = this.add.text(rx - (winW - 60) / 2 + 25, ry, rule.icon, {
         fontSize: '20px',
+        resolution: 2,
       }).setOrigin(0.5);
 
       const titleText = this.add.text(rx - (winW - 60) / 2 + 55, ry, rule.title + ':', {
@@ -201,40 +221,91 @@ export class GameScene extends Phaser.Scene {
         fontSize: '13px',
         fontStyle: 'bold',
         color: '#0f172a',
+        resolution: 2,
       }).setOrigin(0, 0.5);
 
       const descText = this.add.text(rx - (winW - 60) / 2 + 185, ry, rule.desc, {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '12px',
         color: '#475569',
+        resolution: 2,
       }).setOrigin(0, 0.5);
 
       introContainer.add([rowBg, iconText, titleText, descText]);
     });
 
+    closeBtnBg.setInteractive({ useHandCursor: true });
+    closeBtnBg.on('pointerover', () => closeBtnBg.setFillStyle(0xfecaca));
+    closeBtnBg.on('pointerout', () => closeBtnBg.setFillStyle(0xfee2e2));
+
     // Start Button
     const btnY = height / 2 + winH / 2 - 42;
-    const btnBg = this.add.rectangle(width / 2, btnY, 260, 46, 0x0284c7);
+    const btnBg = this.add.rectangle(width / 2, btnY, 280, 46, 0x0284c7);
     btnBg.setStrokeStyle(1.5, 0x0369a1);
     btnBg.setInteractive({ useHandCursor: true });
+    btnBg.on('pointerover', () => btnBg.setFillStyle(0x0369a1));
+    btnBg.on('pointerout', () => btnBg.setFillStyle(0x0284c7));
 
-    const btnText = this.add.text(width / 2, btnY, 'BẮT ĐẦU CHIẾN ĐẤU', {
+    const btnText = this.add.text(width / 2, btnY, 'BẮT ĐẦU CHIẾN ĐẤU (Enter/Space)', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '15px',
+      fontSize: '14px',
       fontStyle: 'bold',
       color: '#ffffff',
+      resolution: 2,
     }).setOrigin(0.5);
 
     introContainer.add([btnBg, btnText]);
 
-    btnBg.on('pointerover', () => btnBg.setFillStyle(0x0369a1));
-    btnBg.on('pointerout', () => btnBg.setFillStyle(0x0284c7));
+    let isIntroClosed = false;
+    const closeIntro = () => {
+      if (isIntroClosed) return;
+      isIntroClosed = true;
 
-    btnBg.on('pointerdown', () => {
-      localStorage.setItem('vanhoa404_intro_done', 'true');
+      try {
+        localStorage.setItem('vanhoa404_intro_done', 'true');
+      } catch {}
+
+      // Remove input listeners
+      this.input.off('pointerdown', onScreenPointerDown);
+      this.input.keyboard?.off('keydown-SPACE', closeIntro);
+      this.input.keyboard?.off('keydown-ENTER', closeIntro);
+      this.input.keyboard?.off('keydown-ESC', closeIntro);
+
+      SoundSystem.playGem();
       introContainer.destroy();
       this.resumeCombat();
-    });
+    };
+
+    // Screen-space pointer listener (Guaranteed to work regardless of camera scroll)
+    const onScreenPointerDown = (pointer: Phaser.Input.Pointer) => {
+      // 1. Clicked start button
+      if (Math.abs(pointer.x - width / 2) < 140 && Math.abs(pointer.y - btnY) < 28) {
+        closeIntro();
+        return;
+      }
+      // 2. Clicked 'X' close button
+      if (Math.abs(pointer.x - closeX) < 24 && Math.abs(pointer.y - closeY) < 24) {
+        closeIntro();
+        return;
+      }
+      // 3. Clicked outside modal (dimmed background)
+      if (
+        pointer.x < width / 2 - winW / 2 ||
+        pointer.x > width / 2 + winW / 2 ||
+        pointer.y < height / 2 - winH / 2 ||
+        pointer.y > height / 2 + winH / 2
+      ) {
+        closeIntro();
+        return;
+      }
+    };
+
+    this.input.on('pointerdown', onScreenPointerDown);
+
+    // Keyboard shortcuts to proceed
+    this.input.keyboard?.once('keydown-SPACE', closeIntro);
+    this.input.keyboard?.once('keydown-ENTER', closeIntro);
+    this.input.keyboard?.once('keydown-ESC', closeIntro);
   }
 
   private setupVirtualJoystick(): void {

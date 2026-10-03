@@ -24,6 +24,13 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
+  render: {
+    pixelArt: false,
+    antialias: true,
+    antialiasGL: true,
+    roundPixels: true,
+    powerPreference: 'high-performance',
+  },
   scene: [BootScene, MenuScene, GameScene, ResultScene],
   fps: {
     target: 60,
