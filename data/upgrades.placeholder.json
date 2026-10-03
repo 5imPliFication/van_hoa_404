@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "version": "0.1.0"
+  },
+  "upgradeTemplate": {
+    "id": "upgrade_unique_id",
+    "name": "__PLACEHOLDER__",
+    "category": "__PLACEHOLDER__: danToc | khoaHoc | daiChung | chan | thien | my | build | fight",
+    "level": 1,
+    "maxLevel": 5,
+    "description": "__PLACEHOLDER__",
+    "effects": {
+      "damageAdd": 0,
+      "damageMultiplier": 1.0,
+      "attackSpeedMultiplier": 1.0,
+      "moveSpeedMultiplier": 1.0,
+      "critChanceAdd": 0,
+      "pickupRadiusAdd": 0,
+      "shieldAdd": 0,
+      "healPerInterval": 0,
+      "communityPowerAdd": 0
+    },
+    "tags": []
+  },
+  "upgrades": []
+}

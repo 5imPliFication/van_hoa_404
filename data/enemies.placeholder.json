@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "version": "0.1.0"
+  },
+  "enemyTemplate": {
+    "id": "enemy_unique_id",
+    "name": "__PLACEHOLDER__",
+    "type": "__PLACEHOLDER__: chase | ranged | dash | swarm | elite",
+    "learningTag": "__PLACEHOLDER__",
+    "stats": {
+      "hp": 10,
+      "speed": 1.0,
+      "damage": 1,
+      "xpDrop": 1
+    },
+    "behavior": {
+      "attackRange": 0,
+      "cooldown": 0,
+      "special": "__PLACEHOLDER__"
+    },
+    "weakAgainst": [
+      "__PLACEHOLDER__"
+    ]
+  },
+  "enemies": []
+}

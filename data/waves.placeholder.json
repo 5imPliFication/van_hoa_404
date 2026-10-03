@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "version": "0.1.0"
+  },
+  "waveTemplate": {
+    "id": "wave_unique_id",
+    "startSecond": 0,
+    "endSecond": 60,
+    "spawns": [
+      {
+        "enemyId": "__PLACEHOLDER__",
+        "ratePerSecond": 0.5,
+        "maxAlive": 20
+      }
+    ],
+    "eventIds": []
+  },
+  "waves": []
+}

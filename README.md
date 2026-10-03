@@ -1,32 +1,23 @@
-# React + TypeScript + Vite
+# VĂN HÓA 404 — STARTER PACK
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Bộ tài liệu khởi động cho mini survival web game 10–15 phút.
 
-Currently, two official plugins are available:
+## Thành phần
+- GDD.md
+- TECHNICAL_DESIGN.md
+- PRODUCTION_ROADMAP.md
+- CONTENT_GUIDE.md
+- data/scenarios.placeholder.json
+- data/upgrades.placeholder.json
+- data/enemies.placeholder.json
+- data/waves.placeholder.json
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Prompt khởi động cho coding agent
+Implement MVP theo GDD và TECHNICAL_DESIGN. Dùng Phaser 3 + TypeScript + Vite. Mọi enemy, upgrade, wave và scenario phải data-driven từ JSON. Không tự tạo tình huống thực tế; chỉ dùng placeholder. Ưu tiên combat prototype trước UI polish.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Quy tắc
+1. Không hard-code scenario.
+2. Không multiplayer trong MVP.
+3. Không AI phức tạp cho enemy.
+4. Không branching story.
+5. Scenario chỉ tác động bằng buff/debuff/spawn/community meter.

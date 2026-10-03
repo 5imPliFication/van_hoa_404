@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "gameId": "van-hoa-404",
+    "version": "0.1.0"
+  },
+  "scenarioTemplate": {
+    "id": "scenario_unique_id",
+    "enabled": true,
+    "trigger": {
+      "type": "time",
+      "value": "__PLACEHOLDER__"
+    },
+    "title": "__PLACEHOLDER__",
+    "prompt": "__PLACEHOLDER__",
+    "choices": [
+      {
+        "id": "choice_1",
+        "label": "__PLACEHOLDER__",
+        "effects": {
+          "player": {
+            "hp": 0,
+            "damageMultiplier": 1.0,
+            "attackSpeedMultiplier": 1.0,
+            "moveSpeedMultiplier": 1.0,
+            "shield": 0
+          },
+          "world": {
+            "communityDelta": 0,
+            "xpMultiplier": 1.0,
+            "spawnEnemyType": null,
+            "spawnCount": 0,
+            "enemySpeedMultiplier": 1.0
+          },
+          "durationSeconds": 0
+        },
+        "feedback": "__PLACEHOLDER__"
+      }
+    ],
+    "learning": {
+      "cores": [
+        "__PLACEHOLDER__: danToc | khoaHoc | daiChung"
+      ],
+      "values": [
+        "__PLACEHOLDER__: chan | thien | my"
+      ],
+      "buildFight": "__PLACEHOLDER__: build | fight | both",
+      "note": "__PLACEHOLDER__"
+    }
+  },
+  "scenarios": []
+}
