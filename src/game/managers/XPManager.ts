@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { XPOrb } from '../entities/XPOrb';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class XPManager {
   private player: Player;
@@ -47,6 +48,7 @@ export class XPManager {
       // Check direct collection
       if (dist <= 18) {
         const gainedXP = orb.collect();
+        SoundSystem.playGem();
         this.addXP(gainedXP);
       } else {
         orb.updateTowardsPlayer(px, py, dt);

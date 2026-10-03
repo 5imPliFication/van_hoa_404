@@ -5,6 +5,7 @@ import { Projectile } from '../entities/Projectile';
 import { XPManager } from './XPManager';
 import { EnemyConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class EnemyManager {
   private scene: Phaser.Scene;
@@ -15,6 +16,7 @@ export class EnemyManager {
 
   public totalKills: number = 0;
   private enemyConfigs: Map<string, EnemyConfig> = new Map();
+  private auraTickTimer: number = 0;
 
   constructor(scene: Phaser.Scene, player: Player, xpManager: XPManager) {
     this.scene = scene;
@@ -86,6 +88,42 @@ export class EnemyManager {
 
     // Check collision between enemy projectiles and player
     this.updateEnemyProjectiles(px, py);
+
+    // Aura pulse damage & slow (Đại Chúng, Thiện, Mỹ pillars)
+    this.updateAuraEffects(dt, px, py);
+  }
+
+  private updateAuraEffects(dt: number, px: number, py: number): void {
+    const v = this.player.values;
+    if (v.daiChung === 0 && v.thien === 0 && v.my === 0 && v.build === 0) return;
+
+    this.auraTickTimer += dt / 1000;
+    if (this.auraTickTimer >= 0.8) {
+      this.auraTickTimer = 0;
+
+      const auraRadius = 130 + v.daiChung * 18 + v.my * 10;
+      const auraDmg = v.daiChung * 4 + v.build * 3 + v.my * 2;
+      const activeList = this.getActiveEnemies();
+
+      for (const enemy of activeList) {
+        const d = Phaser.Math.Distance.Between(px, py, enemy.x, enemy.y);
+        if (d <= auraRadius) {
+          // Slow down
+          if (enemy.body) {
+            enemy.setVelocity(enemy.body.velocity.x * 0.7, enemy.body.velocity.y * 0.7);
+          }
+
+          if (auraDmg > 0) {
+            const isDead = enemy.takeDamage(auraDmg, false);
+            if (isDead) {
+              this.totalKills++;
+              this.spawnDeathSparks(enemy.x, enemy.y);
+              this.xpManager.dropXP(enemy.x, enemy.y, enemy.xpDrop);
+            }
+          }
+        }
+      }
+    }
   }
 
   private fireEnemyBullet(fromX: number, fromY: number, targetX: number, targetY: number): void {
@@ -135,6 +173,7 @@ export class EnemyManager {
       const hitRadius = enemy.enemyType === 'elite' ? 24 : 16;
 
       if (dist <= hitRadius) {
+        SoundSystem.playHit();
         let dmg = bullet.damage;
 
         // Weakness calculation
@@ -142,16 +181,43 @@ export class EnemyManager {
           dmg *= 1.25;
         }
 
+        // Knockback (Chống / Fight pillar strengthens knockback)
+        const angle = Phaser.Math.Angle.Between(bullet.x, bullet.y, enemy.x, enemy.y);
+        const kb = 25 + this.player.values.fight * 10;
+        enemy.x += Math.cos(angle) * kb * 0.15;
+        enemy.y += Math.sin(angle) * kb * 0.15;
+
         const isDead = enemy.takeDamage(dmg, bullet.isCrit);
         bullet.onHit();
 
         if (isDead) {
           this.totalKills++;
+          this.spawnDeathSparks(enemy.x, enemy.y);
           this.xpManager.dropXP(enemy.x, enemy.y, enemy.xpDrop);
         }
 
         if (!bullet.active) break;
       }
+    }
+  }
+
+  private spawnDeathSparks(x: number, y: number): void {
+    for (let i = 0; i < 4; i++) {
+      const spark = this.scene.add.image(x, y, 'spark');
+      spark.setDepth(13);
+      spark.setTint(Phaser.Math.RND.pick([0x00f0ff, 0x10b981, 0xfacc15, 0xa855f7]));
+      const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+      const dist = Phaser.Math.Between(15, 35);
+
+      this.scene.tweens.add({
+        targets: spark,
+        x: x + Math.cos(angle) * dist,
+        y: y + Math.sin(angle) * dist,
+        alpha: 0,
+        scale: 0.2,
+        duration: 350,
+        onComplete: () => spark.destroy(),
+      });
     }
   }
 

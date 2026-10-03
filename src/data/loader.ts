@@ -301,6 +301,111 @@ const DEFAULT_MVP_SCENARIOS: ScenarioConfig[] = [
       note: 'Luôn xác minh trước khi chia sẻ thông tin trên không gian mạng.',
     },
   },
+  {
+    id: 'scenario_sample_2',
+    enabled: true,
+    trigger: { type: 'time', value: 160 },
+    title: 'Làn Sóng Công Kích Hội Đồng',
+    prompt: 'Một tài khoản cá nhân đang bị đám đông vào trang cá nhân miệt thị, bêu riếu tập thể.',
+    choices: [
+      {
+        id: 'choice_intervene',
+        label: 'Lên tiếng bênh vực và kêu gọi ứng xử văn minh',
+        effects: {
+          player: { hp: 0, damageMultiplier: 1.1, attackSpeedMultiplier: 1.1, moveSpeedMultiplier: 1.0, shield: 15 },
+          world: { communityDelta: 20, xpMultiplier: 1.1, spawnEnemyType: null, spawnCount: 0, enemySpeedMultiplier: 0.9 },
+          durationSeconds: 20,
+        },
+        feedback: 'Lòng nhân ái (Thiện) và sự kết nối rộng khắp giúp bảo vệ nạn nhân trước bạo lực mạng.',
+      },
+      {
+        id: 'choice_join',
+        label: 'Hùa theo bình luận ác ý để giải tỏa bức xúc',
+        effects: {
+          player: { hp: -10, damageMultiplier: 1.0, attackSpeedMultiplier: 1.0, moveSpeedMultiplier: 1.0, shield: 0 },
+          world: { communityDelta: -20, xpMultiplier: 1.0, spawnEnemyType: 'baoLucNgonTu', spawnCount: 4, enemySpeedMultiplier: 1.25 },
+          durationSeconds: 15,
+        },
+        feedback: 'Tham gia công kích khiến môi trường mạng thêm độc hại và quái bạo lực bùng phát.',
+      },
+    ],
+    learning: {
+      cores: ['daiChung'],
+      values: ['thien'],
+      buildFight: 'both',
+      note: 'Từ chối tham gia bạo lực mạng và lan tỏa văn hóa ứng xử tử tế.',
+    },
+  },
+  {
+    id: 'scenario_sample_3',
+    enabled: true,
+    trigger: { type: 'time', value: 310 },
+    title: 'Xuyên Tạc Di Sản Văn Hóa',
+    prompt: 'Một video clip sử dụng trang phục cổ truyền bị cắt ghép phản cảm để câu view bất chấp.',
+    choices: [
+      {
+        id: 'choice_correct',
+        label: 'Đính chính lịch sử và cung cấp tư liệu nguồn chuẩn xác',
+        effects: {
+          player: { hp: 0, damageMultiplier: 1.25, attackSpeedMultiplier: 1.0, moveSpeedMultiplier: 1.0, shield: 20 },
+          world: { communityDelta: 25, xpMultiplier: 1.15, spawnEnemyType: null, spawnCount: 0, enemySpeedMultiplier: 1.0 },
+          durationSeconds: 25,
+        },
+        feedback: 'Bảo tồn bản sắc Dân Tộc bằng Chân lý giúp đẩy lùi sự xuyên tạc văn hóa.',
+      },
+      {
+        id: 'choice_boost',
+        label: 'Thả tương tác phẫn nộ giúp thuật toán đẩy xu hướng',
+        effects: {
+          player: { hp: -5, damageMultiplier: 1.0, attackSpeedMultiplier: 1.0, moveSpeedMultiplier: 1.0, shield: 0 },
+          world: { communityDelta: -15, xpMultiplier: 1.0, spawnEnemyType: 'xuyenTacVanHoa', spawnCount: 2, enemySpeedMultiplier: 1.1 },
+          durationSeconds: 15,
+        },
+        feedback: 'Tương tác vô tình làm lan truyền nội dung xuyên tạc nhanh hơn.',
+      },
+    ],
+    learning: {
+      cores: ['danToc'],
+      values: ['chan'],
+      buildFight: 'fight',
+      note: 'Bảo vệ giá trị văn hóa truyền thống bằng kiến thức chuẩn xác.',
+    },
+  },
+  {
+    id: 'scenario_sample_4',
+    enabled: true,
+    trigger: { type: 'time', value: 460 },
+    title: 'Đạo Nhái Trắng Trợn Sản Phẩm Sáng Tạo',
+    prompt: 'Tác phẩm thiết kế công phu của nghệ sĩ trẻ bị một trang lớn copy nguyên xi không xin phép.',
+    choices: [
+      {
+        id: 'choice_support_original',
+        label: 'Ủng hộ tác giả gốc và lên án hành vi sao chép cơ học',
+        effects: {
+          player: { hp: 0, damageMultiplier: 1.3, attackSpeedMultiplier: 1.1, moveSpeedMultiplier: 1.0, shield: 25 },
+          world: { communityDelta: 25, xpMultiplier: 1.2, spawnEnemyType: null, spawnCount: 0, enemySpeedMultiplier: 0.85 },
+          durationSeconds: 25,
+        },
+        feedback: 'Tôn trọng bản sắc và sáng tạo nghệ thuật (Mỹ) là nền tảng của văn hóa số tiến bộ.',
+      },
+      {
+        id: 'choice_ignore',
+        label: 'Xem như bình thường vì trên mạng ai cũng sao chép',
+        effects: {
+          player: { hp: 0, damageMultiplier: 0.9, attackSpeedMultiplier: 1.0, moveSpeedMultiplier: 1.0, shield: 0 },
+          world: { communityDelta: -10, xpMultiplier: 1.0, spawnEnemyType: 'clickbait', spawnCount: 5, enemySpeedMultiplier: 1.1 },
+          durationSeconds: 15,
+        },
+        feedback: 'Sự thờ ơ khiến không gian sáng tạo bị xâm lấn bởi các nội dung sao chép rác.',
+      },
+    ],
+    learning: {
+      cores: ['danToc'],
+      values: ['my'],
+      buildFight: 'build',
+      note: 'Tôn trọng quyền sở hữu trí tuệ và khuyến khích sáng tạo nguyên bản.',
+    },
+  },
 ];
 
 const DEFAULT_MVP_EVOLUTIONS: EvolutionConfig[] = [

@@ -11,6 +11,7 @@ import { EvolutionManager } from '../managers/EvolutionManager';
 import { BossManager } from '../managers/BossManager';
 import { HUD } from '../../ui/HUD';
 import { Projectile } from '../entities/Projectile';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -108,6 +109,61 @@ export class GameScene extends Phaser.Scene {
 
     // 5. Fixed HUD on camera
     this.hud = new HUD(this, this.player, this.communityMeter);
+
+    // 6. Virtual Joystick for Mobile/Touch
+    this.setupVirtualJoystick();
+  }
+
+  private joystickBase?: Phaser.GameObjects.Arc;
+  private joystickThumb?: Phaser.GameObjects.Arc;
+  private isDraggingJoystick: boolean = false;
+  private joystickOrigin: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+
+  private setupVirtualJoystick(): void {
+    this.joystickBase = this.add.circle(0, 0, 50, 0x00f0ff, 0.2)
+      .setStrokeStyle(2, 0x00f0ff, 0.6)
+      .setDepth(95)
+      .setVisible(false)
+      .setScrollFactor(0);
+
+    this.joystickThumb = this.add.circle(0, 0, 24, 0x00f0ff, 0.8)
+      .setDepth(96)
+      .setVisible(false)
+      .setScrollFactor(0);
+
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (this.isPaused || pointer.y < 70) return;
+      this.isDraggingJoystick = true;
+      this.joystickOrigin.set(pointer.x, pointer.y);
+      this.joystickBase?.setPosition(pointer.x, pointer.y).setVisible(true);
+      this.joystickThumb?.setPosition(pointer.x, pointer.y).setVisible(true);
+    });
+
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (!this.isDraggingJoystick || this.isPaused) return;
+
+      const dx = pointer.x - this.joystickOrigin.x;
+      const dy = pointer.y - this.joystickOrigin.y;
+      const dist = Math.hypot(dx, dy);
+      const maxRadius = 50;
+
+      const clampedDist = Math.min(dist, maxRadius);
+      const angle = Math.atan2(dy, dx);
+
+      const thumbX = this.joystickOrigin.x + Math.cos(angle) * clampedDist;
+      const thumbY = this.joystickOrigin.y + Math.sin(angle) * clampedDist;
+      this.joystickThumb?.setPosition(thumbX, thumbY);
+
+      const factor = clampedDist / maxRadius;
+      this.player.touchVelocity.set(Math.cos(angle) * factor, Math.sin(angle) * factor);
+    });
+
+    this.input.on('pointerup', () => {
+      this.isDraggingJoystick = false;
+      this.joystickBase?.setVisible(false);
+      this.joystickThumb?.setVisible(false);
+      this.player.touchVelocity.set(0, 0);
+    });
   }
 
   update(_time: number, delta: number): void {
@@ -204,6 +260,11 @@ export class GameScene extends Phaser.Scene {
 
   private onGameOver(isVictory: boolean): void {
     this.isPaused = true;
+    if (isVictory) {
+      SoundSystem.playLevelUp();
+    } else {
+      SoundSystem.playAlert();
+    }
 
     this.cameras.main.fadeOut(500, 7, 10, 14);
     this.cameras.main.once('camerafadeoutcomplete', () => {

@@ -3,6 +3,7 @@ import { Player } from '../entities/Player';
 import { WeaponSystem } from './WeaponSystem';
 import { EvolutionConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class EvolutionManager {
   private scene: Phaser.Scene;
@@ -35,6 +36,7 @@ export class EvolutionManager {
 
   private unlockEvolution(evo: EvolutionConfig): void {
     this.activeEvolutions.add(evo.id);
+    SoundSystem.playEvolution();
 
     if (evo.effects.projectilePierce) {
       this.weaponSystem.hasPierceEvolution = true;

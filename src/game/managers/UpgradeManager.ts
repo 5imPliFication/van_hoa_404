@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { UpgradeConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class UpgradeManager {
   private scene: Phaser.Scene;
@@ -21,6 +22,8 @@ export class UpgradeManager {
   public showUpgradeSelection(): void {
     if (this.isShowing) return;
     this.isShowing = true;
+
+    SoundSystem.playLevelUp();
 
     // Pick 3 random cards from upgrades
     const choices = this.getRandomUpgrades(3);

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Projectile } from '../entities/Projectile';
 import { Enemy } from '../entities/Enemy';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class WeaponSystem {
   private player: Player;
@@ -38,6 +39,8 @@ export class WeaponSystem {
   private autoFire(activeEnemies: Enemy[]): void {
     const target = this.findNearestEnemy(activeEnemies);
     if (!target) return;
+
+    SoundSystem.playShoot();
 
     const count = Math.max(1, this.player.stats.projectileCount);
     const baseDamage = this.player.stats.damage;

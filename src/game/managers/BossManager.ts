@@ -4,6 +4,7 @@ import { EnemyManager } from './EnemyManager';
 import { CommunityMeterManager } from './CommunityMeterManager';
 import { BossConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class BossManager {
   private scene: Phaser.Scene;
@@ -38,6 +39,7 @@ export class BossManager {
     if (this.isBossActive) return;
 
     this.isBossActive = true;
+    SoundSystem.playBossAlarm();
     this.bossMaxHp = this.bossConfig.maxHp;
     this.bossHp = this.bossConfig.maxHp;
     this.currentPhaseIndex = 0;

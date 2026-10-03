@@ -21,6 +21,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private auraRing?: Phaser.GameObjects.Image;
   private healTimer: number = 0;
   private healPerInterval: number = 0;
+  public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -97,8 +98,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (up) vy -= 1;
     if (down) vy += 1;
 
-    if (vx !== 0 && vy !== 0) {
-      // Normalize diagonal movement
+    // Merge touch/virtual joystick input
+    if (this.touchVelocity.lengthSq() > 0.01) {
+      vx = this.touchVelocity.x;
+      vy = this.touchVelocity.y;
+    } else if (vx !== 0 && vy !== 0) {
+      // Normalize diagonal keyboard movement
       const factor = Math.SQRT1_2;
       vx *= factor;
       vy *= factor;

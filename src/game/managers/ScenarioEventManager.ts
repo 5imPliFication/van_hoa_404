@@ -4,6 +4,7 @@ import { CommunityMeterManager } from './CommunityMeterManager';
 import { EnemyManager } from './EnemyManager';
 import { ScenarioConfig, ScenarioChoice } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { SoundSystem } from '../systems/SoundSystem';
 
 export class ScenarioEventManager {
   private scene: Phaser.Scene;
@@ -47,6 +48,7 @@ export class ScenarioEventManager {
   }
 
   private showScenario(scenario: ScenarioConfig): void {
+    SoundSystem.playAlert();
     const { width, height } = this.scene.scale;
 
     this.overlayContainer = this.scene.add.container(0, 0);
