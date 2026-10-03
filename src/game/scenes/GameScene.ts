@@ -115,8 +115,9 @@ export class GameScene extends Phaser.Scene {
       this.player,
       this.enemyManager,
       this.communityMeter,
-      () => {
-        this.onBossDefeated();
+      this.xpManager,
+      (isFinal: boolean) => {
+        this.onBossDefeated(isFinal);
       }
     );
 
@@ -385,24 +386,14 @@ export class GameScene extends Phaser.Scene {
 
     // 2. Bullets collision check with enemies & boss
     const bullets = this.weaponSystem.projectiles.getChildren() as Projectile[];
+    const fightBonus = this.player.stats.fightPower > 0 ? this.player.stats.fightPower * 0.015 : 0;
     for (const b of bullets) {
       if (b.active) {
         this.enemyManager.handleBulletHits(b);
 
-        // Check boss hit
+        // Check boss, clones, and swarm minion hits
         if (this.bossManager.isBossActive && b.active) {
-          const bossSprite = this.bossManager.getBossSprite();
-          if (bossSprite?.active) {
-            const distToBoss = Phaser.Math.Distance.Between(b.x, b.y, bossSprite.x, bossSprite.y);
-            if (distToBoss < 40) {
-              let bossDmg = b.damage;
-              if (this.player.stats.fightPower > 0) {
-                bossDmg *= (1 + this.player.stats.fightPower * 0.015);
-              }
-              this.bossManager.takeDamage(bossDmg);
-              b.onHit();
-            }
-          }
+          this.bossManager.handleBulletHits(b, fightBonus);
         }
       }
     }
@@ -412,10 +403,8 @@ export class GameScene extends Phaser.Scene {
     this.communityMeter.update(dt, activeEnemies.length);
     this.evolutionManager.checkEvolutions();
 
-    // 4. Boss logic or check if time reached 600s (10m) to spawn boss
-    if (this.runSeconds >= 585 && !this.bossManager.isBossActive) {
-      this.bossManager.spawnBoss();
-    }
+    // 4. Boss logic & timeline checks (3m, 5m, 7m, 10m)
+    this.bossManager.checkTimeline(this.runSeconds);
     if (this.bossManager.isBossActive) {
       this.bossManager.update(dt);
     }
@@ -460,8 +449,10 @@ export class GameScene extends Phaser.Scene {
     this.isPaused = false;
   }
 
-  private onBossDefeated(): void {
-    this.onGameOver(true);
+  private onBossDefeated(isFinal: boolean): void {
+    if (isFinal) {
+      this.onGameOver(true);
+    }
   }
 
   private onGameOver(isVictory: boolean): void {

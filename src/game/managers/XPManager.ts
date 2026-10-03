@@ -65,14 +65,29 @@ export class XPManager {
     }
   }
 
+  /**
+   * Calculates XP required to advance from current level to next level using an inverse exponential curve.
+   * Incremental requirement increases with a diminishing rate (concave downward saturation),
+   * ensuring continuous rewarding progression throughout the entire 10-minute survivor match.
+   */
+  public static calculateNextLevelXP(level: number): number {
+    const base = 10;
+    const maxAsymptotic = 70;
+    const k = 0.085;
+    const linearSlope = 3;
+    const expTerm = maxAsymptotic * (1 - Math.exp(-k * (level - 1)));
+    const linearTerm = linearSlope * (level - 1);
+    return Math.floor(base + expTerm + linearTerm);
+  }
+
   public addXP(amount: number): void {
     const finalAmount = Math.ceil(amount * this.xpMultiplier);
     this.player.currentXP += finalAmount;
 
-    if (this.player.currentXP >= this.player.nextLevelXP) {
+    while (this.player.currentXP >= this.player.nextLevelXP) {
       this.player.currentXP -= this.player.nextLevelXP;
       this.player.level += 1;
-      this.player.nextLevelXP = Math.floor(10 * Math.pow(1.32, this.player.level - 1));
+      this.player.nextLevelXP = XPManager.calculateNextLevelXP(this.player.level);
 
       // Trigger level-up
       this.onLevelUpCallback(this.player.level);

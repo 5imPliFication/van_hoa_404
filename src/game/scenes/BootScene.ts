@@ -120,18 +120,71 @@ export class BootScene extends Phaser.Scene {
     eBulletGfx.generateTexture('enemy_bullet', 12, 12);
     eBulletGfx.destroy();
 
-    // 11. Boss: Lệch Chuẩn Văn Hóa Số (Gigantic corrupted core)
+    // 11. Boss Textures for all 4 Milestones
+    // 11a. Boss 3m: Cơn Bão Tâm Lý Đám Đông (Emerald/magenta swarm queen core)
+    const b3mGfx = this.make.graphics({ x: 0, y: 0 });
+    b3mGfx.fillStyle(0xdb2777, 1);
+    b3mGfx.fillCircle(30, 30, 26);
+    b3mGfx.lineStyle(3, 0x831843, 1);
+    b3mGfx.strokeCircle(30, 30, 26);
+    b3mGfx.fillStyle(0x10b981, 1);
+    b3mGfx.fillCircle(30, 30, 14);
+    b3mGfx.generateTexture('boss_3min', 60, 60);
+    b3mGfx.destroy();
+
+    // 11b. Boss 5m: Lưới Độc Bạo Lực Mạng (Toxic crimson/acid core)
+    const b5mGfx = this.make.graphics({ x: 0, y: 0 });
+    b5mGfx.fillStyle(0x84cc16, 0.9);
+    b5mGfx.fillCircle(34, 34, 30);
+    b5mGfx.lineStyle(4, 0xdc2626, 1);
+    b5mGfx.strokeCircle(34, 34, 30);
+    b5mGfx.fillStyle(0x15803d, 1);
+    b5mGfx.fillCircle(34, 34, 16);
+    b5mGfx.generateTexture('boss_5min', 68, 68);
+    b5mGfx.destroy();
+
+    // 11c. Boss 7m: Ảo Ảnh Xuyên Tạc & Đạo Nhái (Phantom holographic core)
+    const b7mGfx = this.make.graphics({ x: 0, y: 0 });
+    b7mGfx.fillStyle(0x6366f1, 0.95);
+    b7mGfx.fillCircle(36, 36, 32);
+    b7mGfx.lineStyle(4, 0x06b6d4, 1);
+    b7mGfx.strokeCircle(36, 36, 32);
+    b7mGfx.fillStyle(0xf43f5e, 1);
+    b7mGfx.fillCircle(36, 36, 15);
+    b7mGfx.generateTexture('boss_7min', 72, 72);
+    b7mGfx.destroy();
+
+    // 11d. Boss 10m: Đại Trùm Cuối (Gigantic corrupted apex core)
     const bossGfx = this.make.graphics({ x: 0, y: 0 });
     bossGfx.fillStyle(0x3b0764, 0.95);
-    bossGfx.fillCircle(40, 40, 36);
-    bossGfx.lineStyle(5, 0x991b1b, 1);
-    bossGfx.strokeCircle(40, 40, 36);
-    bossGfx.lineStyle(3, 0x7c3aed, 1);
-    bossGfx.strokeCircle(40, 40, 24);
-    bossGfx.fillStyle(0xef4444, 1);
-    bossGfx.fillCircle(40, 40, 12);
-    bossGfx.generateTexture('boss', 80, 80);
+    bossGfx.fillCircle(42, 42, 38);
+    bossGfx.lineStyle(5, 0xef4444, 1);
+    bossGfx.strokeCircle(42, 42, 38);
+    bossGfx.lineStyle(3, 0xf59e0b, 1);
+    bossGfx.strokeCircle(42, 42, 26);
+    bossGfx.fillStyle(0xdc2626, 1);
+    bossGfx.fillCircle(42, 42, 14);
+    bossGfx.generateTexture('boss', 84, 84);
+    bossGfx.generateTexture('boss_10min', 84, 84);
     bossGfx.destroy();
+
+    // 11e. Tiny Swarm Runner (Boss 1 minions)
+    const tinyGfx = this.make.graphics({ x: 0, y: 0 });
+    tinyGfx.fillStyle(0xf43f5e, 1);
+    tinyGfx.fillCircle(5, 5, 4);
+    tinyGfx.lineStyle(1.5, 0x9f1239, 1);
+    tinyGfx.strokeCircle(5, 5, 4);
+    tinyGfx.generateTexture('tiny_swarm', 10, 10);
+    tinyGfx.destroy();
+
+    // 11f. Phantom Clone (Boss 3 illusions)
+    const cloneGfx = this.make.graphics({ x: 0, y: 0 });
+    cloneGfx.fillStyle(0x818cf8, 0.5);
+    cloneGfx.fillCircle(24, 24, 20);
+    cloneGfx.lineStyle(2, 0x38bdf8, 0.7);
+    cloneGfx.strokeCircle(24, 24, 20);
+    cloneGfx.generateTexture('boss_clone', 48, 48);
+    cloneGfx.destroy();
 
     // 12. Aura Ring (Translucent ring for build aura)
     const auraGfx = this.make.graphics({ x: 0, y: 0 });

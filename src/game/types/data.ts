@@ -145,4 +145,7 @@ export interface BossConfig {
   maxHp: number;
   speed: number;
   phases: BossPhaseConfig[];
+  timelineSecond?: number;
+  testDescription?: string;
+  mechanicType?: 'swarm' | 'dot' | 'shield_dash' | 'final';
 }

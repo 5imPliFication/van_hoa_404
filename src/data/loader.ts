@@ -216,7 +216,7 @@ const DEFAULT_MVP_WAVES: WaveConfig[] = [
   {
     id: 'wave_1',
     startSecond: 0,
-    endSecond: 135,
+    endSecond: 180, // Milestone 3:00 - Boss 1
     spawns: [
       { enemyId: 'clickbait', ratePerSecond: 1.2, maxAlive: 25 },
       { enemyId: 'tinGia', ratePerSecond: 0.8, maxAlive: 20 },
@@ -225,33 +225,33 @@ const DEFAULT_MVP_WAVES: WaveConfig[] = [
   },
   {
     id: 'wave_2',
-    startSecond: 135,
-    endSecond: 285,
+    startSecond: 180,
+    endSecond: 300, // Milestone 5:00 - Boss 2
     spawns: [
-      { enemyId: 'tamLyDamDong', ratePerSecond: 2.5, maxAlive: 50 },
-      { enemyId: 'baoLucNgonTu', ratePerSecond: 0.6, maxAlive: 15 },
+      { enemyId: 'tamLyDamDong', ratePerSecond: 2.2, maxAlive: 45 },
+      { enemyId: 'baoLucNgonTu', ratePerSecond: 0.7, maxAlive: 16 },
     ],
     eventIds: ['scenario_sample_2'],
   },
   {
     id: 'wave_3',
-    startSecond: 285,
-    endSecond: 435,
+    startSecond: 300,
+    endSecond: 420, // Milestone 7:00 - Boss 3
     spawns: [
       { enemyId: 'tinGia', ratePerSecond: 1.5, maxAlive: 35 },
-      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.25, maxAlive: 4 },
+      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.35, maxAlive: 5 },
       { enemyId: 'baoLucNgonTu', ratePerSecond: 1.0, maxAlive: 20 },
     ],
     eventIds: ['scenario_sample_3'],
   },
   {
     id: 'wave_4',
-    startSecond: 435,
-    endSecond: 585,
+    startSecond: 420,
+    endSecond: 600, // Milestone 10:00 - Final Boss
     spawns: [
       { enemyId: 'clickbait', ratePerSecond: 2.0, maxAlive: 40 },
-      { enemyId: 'tamLyDamDong', ratePerSecond: 3.0, maxAlive: 60 },
-      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.5, maxAlive: 8 },
+      { enemyId: 'tamLyDamDong', ratePerSecond: 3.0, maxAlive: 55 },
+      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.6, maxAlive: 8 },
     ],
     eventIds: ['scenario_sample_4'],
   },
@@ -455,41 +455,106 @@ const DEFAULT_MVP_EVOLUTIONS: EvolutionConfig[] = [
   },
 ];
 
-const DEFAULT_MVP_BOSS: BossConfig = {
-  id: 'lechChuanVanHoaSo',
-  name: 'LỆCH CHUẨN VĂN HÓA SỐ',
-  maxHp: 2000,
-  speed: 90,
-  phases: [
-    {
-      phaseNumber: 1,
-      name: 'Nhiễu Thông Tin',
-      hpThresholdPercent: 100,
-      attackPattern: 'projectileSpread',
-      attackCooldown: 2.2,
-      speedMultiplier: 1.0,
-      communityMeterDrainPerSecond: 0.5,
-    },
-    {
-      phaseNumber: 2,
-      name: 'Bạo Lực & Cực Hóa',
-      hpThresholdPercent: 65,
-      attackPattern: 'laserSweep',
-      attackCooldown: 1.8,
-      speedMultiplier: 1.3,
-      communityMeterDrainPerSecond: 1.0,
-    },
-    {
-      phaseNumber: 3,
-      name: 'Khủng Hoảng Giá Trị',
-      hpThresholdPercent: 30,
-      attackPattern: 'minionSpawn',
-      attackCooldown: 1.4,
-      speedMultiplier: 1.5,
-      communityMeterDrainPerSecond: 2.0,
-    },
-  ],
-};
+const DEFAULT_MVP_BOSSES: BossConfig[] = [
+  {
+    id: 'boss_3min_swarm',
+    name: 'CƠN BÃO TÂM LÝ ĐÁM ĐÔNG (SWARM & SPEED SURGE)',
+    maxHp: 650,
+    speed: 105,
+    timelineSecond: 180, // 3:00
+    testDescription: 'Thử thách: Đạn chùm (projectileCount) • Xuyên thấu (Pierce) • Tốc độ chạy (Speed)',
+    mechanicType: 'swarm',
+    phases: [
+      {
+        phaseNumber: 1,
+        name: 'Bầy Đàn Bùng Phát',
+        hpThresholdPercent: 100,
+        attackPattern: 'minionSpawn',
+        attackCooldown: 3.0,
+        speedMultiplier: 1.0,
+        communityMeterDrainPerSecond: 0.3,
+      },
+    ],
+  },
+  {
+    id: 'boss_5min_dot',
+    name: 'LƯỚI ĐỘC BẠO LỰC MẠNG & MIỆT THỊ (TOXIC ATTRITION)',
+    maxHp: 1100,
+    speed: 85,
+    timelineSecond: 300, // 5:00
+    testDescription: 'Thử thách: Khiên chắn (Shield) • Hồi máu (Heal/sustain) • Sức mạnh Xây (Build Power)',
+    mechanicType: 'dot',
+    phases: [
+      {
+        phaseNumber: 1,
+        name: 'Độc Tính Lan Tỏa',
+        hpThresholdPercent: 100,
+        attackPattern: 'slowZone',
+        attackCooldown: 2.4,
+        speedMultiplier: 1.0,
+        communityMeterDrainPerSecond: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'boss_7min_shield_dps',
+    name: 'ẢO ẢNH XUYÊN TẠC & ĐẠO NHÁI (PHANTOM SHIELD & DASH)',
+    maxHp: 1800,
+    speed: 110,
+    timelineSecond: 420, // 7:00
+    testDescription: 'Thử thách: Sát thương cao (Damage) • Bạo kích (Crit) • Sức mạnh Chống (Fight Power)',
+    mechanicType: 'shield_dash',
+    phases: [
+      {
+        phaseNumber: 1,
+        name: 'Giáp Hư Vô & Lướt',
+        hpThresholdPercent: 100,
+        attackPattern: 'laserSweep',
+        attackCooldown: 3.5,
+        speedMultiplier: 1.0,
+        communityMeterDrainPerSecond: 0.8,
+      },
+    ],
+  },
+  {
+    id: 'boss_10min_final',
+    name: 'ĐẠI TRÙM CUỐI: LỆCH CHUẨN VĂN HÓA SỐ',
+    maxHp: 2600,
+    speed: 90,
+    timelineSecond: 600, // 10:00
+    testDescription: 'Thử thách tối hậu: Cân bằng toàn diện 8 trụ cột & Kỹ năng Tiến Hóa (Evolutions)',
+    mechanicType: 'final',
+    phases: [
+      {
+        phaseNumber: 1,
+        name: 'Nhiễu Thông Tin',
+        hpThresholdPercent: 100,
+        attackPattern: 'projectileSpread',
+        attackCooldown: 2.2,
+        speedMultiplier: 1.0,
+        communityMeterDrainPerSecond: 0.5,
+      },
+      {
+        phaseNumber: 2,
+        name: 'Bạo Lực & Cực Hóa',
+        hpThresholdPercent: 65,
+        attackPattern: 'laserSweep',
+        attackCooldown: 1.8,
+        speedMultiplier: 1.3,
+        communityMeterDrainPerSecond: 1.0,
+      },
+      {
+        phaseNumber: 3,
+        name: 'Khủng Hoảng Toàn Diện',
+        hpThresholdPercent: 30,
+        attackPattern: 'minionSpawn',
+        attackCooldown: 1.4,
+        speedMultiplier: 1.5,
+        communityMeterDrainPerSecond: 2.0,
+      },
+    ],
+  },
+];
 
 export class DataLoader {
   public static getEnemies(): EnemyConfig[] {
@@ -517,8 +582,14 @@ export class DataLoader {
     return list && list.length > 0 ? list : DEFAULT_MVP_EVOLUTIONS;
   }
 
-  public static getBoss(): BossConfig {
+  public static getBosses(): BossConfig[] {
     const bossList = (bossData as { boss?: BossConfig[] }).boss;
-    return bossList && bossList.length > 0 ? bossList[0] : DEFAULT_MVP_BOSS;
+    return bossList && bossList.length > 0 ? bossList : DEFAULT_MVP_BOSSES;
+  }
+
+  public static getBoss(index: number = 0): BossConfig {
+    const bosses = DataLoader.getBosses();
+    return bosses[index] || bosses[0];
   }
 }
+
