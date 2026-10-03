@@ -53,52 +53,58 @@ export class ScenarioEventManager {
 
     this.overlayContainer = this.scene.add.container(0, 0);
     this.overlayContainer.setDepth(110);
+    this.overlayContainer.setScrollFactor(0); // PIN TO SCREEN!
 
-    // Dimmed backdrop
-    const bg = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8);
+    // Soft dim backdrop
+    const bg = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x0f172a, 0.45);
     bg.setInteractive();
     this.overlayContainer.add(bg);
 
     // Dialog card
-    const modalW = 680;
-    const modalH = 460;
-    const modal = this.scene.add.rectangle(width / 2, height / 2, modalW, modalH, 0x0b1120, 0.98);
-    modal.setStrokeStyle(2, 0xeab308); // Gold event border
+    const modalW = 700;
+    const modalH = 470;
+    const modal = this.scene.add.rectangle(width / 2, height / 2, modalW, modalH, 0xffffff, 0.98);
+    modal.setStrokeStyle(2, 0xd97706); // Warm amber event border
     this.overlayContainer.add(modal);
 
     // Header badge
+    const badgeBg = this.scene.add.rectangle(width / 2, height / 2 - modalH / 2 + 35, 240, 26, 0xfef3c7, 1);
+    badgeBg.setStrokeStyle(1, 0xfde68a);
+
     const badge = this.scene.add.text(width / 2, height / 2 - modalH / 2 + 35, '⚡ TÌNH HUỐNG VĂN HÓA SỐ', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '13px',
+      fontSize: '12px',
       fontStyle: 'bold',
-      color: '#eab308',
-      letterSpacing: 2,
+      color: '#b45309',
     }).setOrigin(0.5);
 
     // Scenario Title
-    const title = this.scene.add.text(width / 2, height / 2 - modalH / 2 + 70, scenario.title, {
+    const title = this.scene.add.text(width / 2, height / 2 - modalH / 2 + 75, scenario.title, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '22px',
       fontStyle: 'bold',
-      color: '#ffffff',
+      color: '#0f172a',
     }).setOrigin(0.5);
 
-    // Scenario Prompt (Concise 5-8s read)
-    const prompt = this.scene.add.text(width / 2, height / 2 - modalH / 2 + 125, scenario.prompt, {
+    // Prompt Card Box (Clean quote box)
+    const promptBg = this.scene.add.rectangle(width / 2, height / 2 - modalH / 2 + 135, modalW - 60, 68, 0xf8fafc, 1);
+    promptBg.setStrokeStyle(1, 0xe2e8f0);
+
+    const prompt = this.scene.add.text(width / 2, height / 2 - modalH / 2 + 135, scenario.prompt, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '15px',
-      color: '#cbd5e1',
+      fontSize: '14px',
+      color: '#334155',
       align: 'center',
-      wordWrap: { width: modalW - 60 },
-      lineSpacing: 5,
+      wordWrap: { width: modalW - 90 },
+      lineSpacing: 4,
     }).setOrigin(0.5);
 
-    this.overlayContainer.add([badge, title, prompt]);
+    this.overlayContainer.add([badgeBg, badge, title, promptBg, prompt]);
 
     // Render Choices (2 to 4 choices)
-    const choiceYStart = height / 2 - modalH / 2 + 195;
+    const choiceYStart = height / 2 - modalH / 2 + 215;
     const choiceHeight = 56;
-    const choiceGap = 14;
+    const choiceGap = 12;
 
     scenario.choices.forEach((choice, index) => {
       const cy = choiceYStart + index * (choiceHeight + choiceGap);
@@ -117,14 +123,15 @@ export class ScenarioEventManager {
   ): Phaser.GameObjects.Container {
     const container = this.scene.add.container(x, y);
 
-    const bg = this.scene.add.rectangle(0, 0, w, h, 0x1e293b, 0.95);
-    bg.setStrokeStyle(1, 0x475569);
+    const bg = this.scene.add.rectangle(0, 0, w, h, 0xf8fafc, 1);
+    bg.setStrokeStyle(1.5, 0xcbd5e1);
     bg.setInteractive({ useHandCursor: true });
 
     const label = this.scene.add.text(0, 0, choice.label, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
-      color: '#f8fafc',
+      fontStyle: 'bold',
+      color: '#1e293b',
       align: 'center',
       wordWrap: { width: w - 30 },
     }).setOrigin(0.5);
@@ -132,13 +139,15 @@ export class ScenarioEventManager {
     container.add([bg, label]);
 
     bg.on('pointerover', () => {
-      bg.setStrokeStyle(2, 0x00f0ff);
-      bg.setFillStyle(0x334155, 1);
+      bg.setStrokeStyle(2, 0x0284c7);
+      bg.setFillStyle(0xf0f9ff, 1);
+      label.setColor('#0284c7');
     });
 
     bg.on('pointerout', () => {
-      bg.setStrokeStyle(1, 0x475569);
-      bg.setFillStyle(0x1e293b, 0.95);
+      bg.setStrokeStyle(1.5, 0xcbd5e1);
+      bg.setFillStyle(0xf8fafc, 1);
+      label.setColor('#1e293b');
     });
 
     bg.on('pointerdown', () => {
@@ -184,13 +193,14 @@ export class ScenarioEventManager {
     this.overlayContainer?.removeAll(true);
 
     const { width, height } = this.scene.scale;
-    const toast = this.scene.add.rectangle(width / 2, height / 2, 600, 100, 0x0f172a, 0.95);
-    toast.setStrokeStyle(2, 0x10b981);
+    const toast = this.scene.add.rectangle(width / 2, height / 2, 620, 100, 0xffffff, 0.98);
+    toast.setStrokeStyle(2, 0x059669);
 
     const feedbackText = this.scene.add.text(width / 2, height / 2, choice.feedback, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '15px',
-      color: '#34d399',
+      fontStyle: 'bold',
+      color: '#065f46',
       align: 'center',
       wordWrap: { width: 560 },
     }).setOrigin(0.5);

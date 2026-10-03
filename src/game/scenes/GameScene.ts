@@ -31,6 +31,11 @@ export class GameScene extends Phaser.Scene {
   private arenaWidth: number = 2400;
   private arenaHeight: number = 1800;
 
+  private joystickBase?: Phaser.GameObjects.Arc;
+  private joystickThumb?: Phaser.GameObjects.Arc;
+  private isDraggingJoystick: boolean = false;
+  private joystickOrigin: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+
   constructor() {
     super('GameScene');
   }
@@ -42,8 +47,8 @@ export class GameScene extends Phaser.Scene {
     // 1. World & Arena setup
     this.physics.world.setBounds(0, 0, this.arenaWidth, this.arenaHeight);
 
-    // Dark cyberspace background with grid
-    this.add.rectangle(this.arenaWidth / 2, this.arenaHeight / 2, this.arenaWidth, this.arenaHeight, 0x070a0e);
+    // Light tech arena background with grid
+    this.add.rectangle(this.arenaWidth / 2, this.arenaHeight / 2, this.arenaWidth, this.arenaHeight, 0xe8edf3);
     const grid = this.add.grid(
       this.arenaWidth / 2,
       this.arenaHeight / 2,
@@ -51,16 +56,16 @@ export class GameScene extends Phaser.Scene {
       this.arenaHeight,
       60,
       60,
-      0x070a0e,
+      0xe8edf3,
       1,
-      0x131e32,
-      0.5
+      0xcbd5e1,
+      0.65
     );
     grid.setDepth(1);
 
     // Arena boundary lines
     const borderGfx = this.add.graphics();
-    borderGfx.lineStyle(4, 0x00f0ff, 0.4);
+    borderGfx.lineStyle(4, 0x0284c7, 0.7);
     borderGfx.strokeRect(4, 4, this.arenaWidth - 8, this.arenaHeight - 8);
     borderGfx.setDepth(2);
 
@@ -112,21 +117,134 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Virtual Joystick for Mobile/Touch
     this.setupVirtualJoystick();
+
+    // 7. Opening intro guide (Only once)
+    this.checkOpeningIntro();
   }
 
-  private joystickBase?: Phaser.GameObjects.Arc;
-  private joystickThumb?: Phaser.GameObjects.Arc;
-  private isDraggingJoystick: boolean = false;
-  private joystickOrigin: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+  private checkOpeningIntro(): void {
+    const introDone = localStorage.getItem('vanhoa404_intro_done');
+    if (introDone) return;
+
+    this.pauseCombat();
+    const { width, height } = this.scale;
+
+    const introContainer = this.add.container(0, 0);
+    introContainer.setDepth(120);
+    introContainer.setScrollFactor(0); // PIN TO SCREEN
+
+    // Soft dim backdrop
+    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0f172a, 0.45);
+    bg.setInteractive();
+    introContainer.add(bg);
+
+    // Dialog Window
+    const winW = 740;
+    const winH = 490;
+    const winBg = this.add.rectangle(width / 2, height / 2, winW, winH, 0xffffff, 0.98);
+    winBg.setStrokeStyle(2, 0x0284c7);
+    introContainer.add(winBg);
+
+    // Badge
+    const badgeBg = this.add.rectangle(width / 2, height / 2 - winH / 2 + 36, 260, 28, 0xe0f2fe, 1);
+    badgeBg.setStrokeStyle(1, 0xbae6fd);
+    const badgeText = this.add.text(width / 2, height / 2 - winH / 2 + 36, '🛡️ HƯỚNG DẪN KHỞI ĐẦU', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#0369a1',
+    }).setOrigin(0.5);
+
+    // Title
+    const title = this.add.text(width / 2, height / 2 - winH / 2 + 76, 'CHÀO MỪNG ĐẾN VỚI VĂN HÓA 404', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#0f172a',
+    }).setOrigin(0.5);
+
+    // Goal sentence
+    const goal = this.add.text(width / 2, height / 2 - winH / 2 + 120,
+      'Sứ mệnh của bạn là kiến tạo không gian mạng tích cực và kiên quyết đẩy lùi\ncác hiện tượng lệch chuẩn: Tin Giả, Bạo Lực Mạng, Đạo Nhái và Xuyên Tạc.',
+      {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '14px',
+        color: '#475569',
+        align: 'center',
+        lineSpacing: 4,
+      }
+    ).setOrigin(0.5);
+
+    introContainer.add([badgeBg, badgeText, title, goal]);
+
+    // 4 Instruction Cards
+    const rules = [
+      { icon: '🕹️', title: 'Di chuyển', desc: 'Dùng WASD / Phím mũi tên, hoặc chạm kéo trực tiếp trên màn hình.' },
+      { icon: '⚡', title: 'Tự động bắn', desc: 'Nhân vật tự động tìm và tấn công quái vật gần nhất trong tầm bắn.' },
+      { icon: '⭐', title: 'Nhặt XP & Lên cấp', desc: 'Thu thập hạt ngọc rơi từ quái để chọn 1 trong 3 thẻ bài nâng cấp giá trị.' },
+      { icon: '🌐', title: 'Tình huống thực tế', desc: 'Xử lý các bài đăng trên mạng để nhận buff và giữ vững Môi Trường Văn Hóa!' },
+    ];
+
+    rules.forEach((rule, idx) => {
+      const rx = width / 2;
+      const ry = height / 2 - winH / 2 + 185 + idx * 56;
+
+      const rowBg = this.add.rectangle(rx, ry, winW - 60, 48, 0xf8fafc, 1);
+      rowBg.setStrokeStyle(1, 0xe2e8f0);
+
+      const iconText = this.add.text(rx - (winW - 60) / 2 + 25, ry, rule.icon, {
+        fontSize: '20px',
+      }).setOrigin(0.5);
+
+      const titleText = this.add.text(rx - (winW - 60) / 2 + 55, ry, rule.title + ':', {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '13px',
+        fontStyle: 'bold',
+        color: '#0f172a',
+      }).setOrigin(0, 0.5);
+
+      const descText = this.add.text(rx - (winW - 60) / 2 + 185, ry, rule.desc, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '12px',
+        color: '#475569',
+      }).setOrigin(0, 0.5);
+
+      introContainer.add([rowBg, iconText, titleText, descText]);
+    });
+
+    // Start Button
+    const btnY = height / 2 + winH / 2 - 42;
+    const btnBg = this.add.rectangle(width / 2, btnY, 260, 46, 0x0284c7);
+    btnBg.setStrokeStyle(1.5, 0x0369a1);
+    btnBg.setInteractive({ useHandCursor: true });
+
+    const btnText = this.add.text(width / 2, btnY, 'BẮT ĐẦU CHIẾN ĐẤU', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#ffffff',
+    }).setOrigin(0.5);
+
+    introContainer.add([btnBg, btnText]);
+
+    btnBg.on('pointerover', () => btnBg.setFillStyle(0x0369a1));
+    btnBg.on('pointerout', () => btnBg.setFillStyle(0x0284c7));
+
+    btnBg.on('pointerdown', () => {
+      localStorage.setItem('vanhoa404_intro_done', 'true');
+      introContainer.destroy();
+      this.resumeCombat();
+    });
+  }
 
   private setupVirtualJoystick(): void {
-    this.joystickBase = this.add.circle(0, 0, 50, 0x00f0ff, 0.2)
-      .setStrokeStyle(2, 0x00f0ff, 0.6)
+    this.joystickBase = this.add.circle(0, 0, 50, 0x0284c7, 0.15)
+      .setStrokeStyle(2, 0x0284c7, 0.6)
       .setDepth(95)
       .setVisible(false)
       .setScrollFactor(0);
 
-    this.joystickThumb = this.add.circle(0, 0, 24, 0x00f0ff, 0.8)
+    this.joystickThumb = this.add.circle(0, 0, 24, 0x0284c7, 0.8)
       .setDepth(96)
       .setVisible(false)
       .setScrollFactor(0);
@@ -266,7 +384,7 @@ export class GameScene extends Phaser.Scene {
       SoundSystem.playAlert();
     }
 
-    this.cameras.main.fadeOut(500, 7, 10, 14);
+    this.cameras.main.fadeOut(500, 241, 245, 249);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.start('ResultScene', {
         survivedTime: this.runSeconds,

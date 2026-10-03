@@ -62,9 +62,9 @@ export class BossManager {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '20px',
       fontStyle: 'bold',
-      color: '#ef4444',
+      color: '#dc2626',
       align: 'center',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setScrollFactor(0);
 
     this.scene.tweens.add({
       targets: warn,
@@ -178,8 +178,8 @@ export class BossManager {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       fontStyle: 'bold',
-      color: '#fbbf24',
-    }).setOrigin(0.5);
+      color: '#b45309',
+    }).setOrigin(0.5).setScrollFactor(0);
 
     this.scene.tweens.add({
       targets: banner,

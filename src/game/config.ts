@@ -10,7 +10,7 @@ export const GAME_HEIGHT = 720;
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  backgroundColor: '#070a0e',
+  backgroundColor: '#e8edf3',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

@@ -40,18 +40,18 @@ export class ResultScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.scale;
 
-    // Background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x070a0e, 1);
-    this.add.grid(width / 2, height / 2, width, height, 40, 40, 0x070a0e, 1, 0x1e293b, 0.3);
+    // Background (Light slate with grid)
+    this.add.rectangle(width / 2, height / 2, width, height, 0xf8fafc, 1);
+    this.add.grid(width / 2, height / 2, width, height, 48, 48, 0xf8fafc, 1, 0xe2e8f0, 0.7);
 
     // Header banner
     const isWin = this.resultData.isVictory;
-    const headerTitle = isWin ? 'HOÀN THÀNH SỨ MỆNH VĂN HÓA SỐ' : 'KẾT THÚC VÁN CHƠI';
-    const headerColor = isWin ? '#34d399' : '#f87171';
+    const headerTitle = isWin ? '🎉 HOÀN THÀNH SỨ MỆNH VĂN HÓA SỐ' : 'KẾT THÚC VÁN CHƠI';
+    const headerColor = isWin ? '#059669' : '#dc2626';
 
-    this.add.text(width / 2, height * 0.12, headerTitle, {
+    this.add.text(width / 2, height * 0.11, headerTitle, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '36px',
+      fontSize: '32px',
       fontStyle: 'bold',
       color: headerColor,
     }).setOrigin(0.5);
@@ -59,20 +59,20 @@ export class ResultScene extends Phaser.Scene {
     // Archetype calculation (Neutral perspective per GDD rules)
     const archetype = this.computeArchetype(this.resultData.values);
 
-    const archetypeBox = this.add.rectangle(width / 2, height * 0.24, 700, 75, 0x0f172a, 0.9);
-    archetypeBox.setStrokeStyle(1, 0x38bdf8);
+    const archetypeBox = this.add.rectangle(width / 2, height * 0.23, 760, 80, 0xffffff, 0.98);
+    archetypeBox.setStrokeStyle(1.5, 0x0284c7);
 
-    this.add.text(width / 2, height * 0.22, `HỒ SƠ ĐỊNH HƯỚNG: ${archetype.title.toUpperCase()}`, {
+    this.add.text(width / 2, height * 0.21, `HỒ SƠ ĐỊNH HƯỚNG: ${archetype.title.toUpperCase()}`, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '20px',
+      fontSize: '19px',
       fontStyle: 'bold',
-      color: '#38bdf8',
+      color: '#0369a1',
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.26, archetype.description, {
+    this.add.text(width / 2, height * 0.25, archetype.description, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
-      color: '#cbd5e1',
+      color: '#475569',
     }).setOrigin(0.5);
 
     // Run Stats Card
@@ -80,15 +80,16 @@ export class ResultScene extends Phaser.Scene {
     const seconds = Math.floor(this.resultData.survivedTime % 60);
     const timeFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-    const statsBox = this.add.rectangle(width / 2, height * 0.40, 700, 80, 0x131d2e, 0.85);
-    statsBox.setStrokeStyle(1, 0x334155);
+    const statsBox = this.add.rectangle(width / 2, height * 0.40, 760, 85, 0xffffff, 0.98);
+    statsBox.setStrokeStyle(1.5, 0xcbd5e1);
 
     this.add.text(width / 2, height * 0.38,
       `⏱ Thời gian trụ vững: ${timeFormatted}   |   ⚔ Quái vật đẩy lùi: ${this.resultData.enemiesKilled}   |   ⭐ Cấp đạt được: ${this.resultData.levelReached}`,
       {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '15px',
-        color: '#f8fafc',
+        fontStyle: 'bold',
+        color: '#0f172a',
       }
     ).setOrigin(0.5);
 
@@ -97,19 +98,20 @@ export class ResultScene extends Phaser.Scene {
       {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '14px',
-        color: this.resultData.communityMeter > 30 ? '#10b981' : '#f59e0b',
+        fontStyle: 'bold',
+        color: this.resultData.communityMeter > 30 ? '#059669' : '#d97706',
       }
     ).setOrigin(0.5);
 
     // Values Breakdown Card (8 Pillars)
-    const valuesBox = this.add.rectangle(width / 2, height * 0.63, 700, 160, 0x0f172a, 0.9);
-    valuesBox.setStrokeStyle(1, 0x1e293b);
+    const valuesBox = this.add.rectangle(width / 2, height * 0.63, 760, 160, 0xffffff, 0.98);
+    valuesBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-    this.add.text(width / 2, height * 0.54, 'CHI TIẾT 8 TRỤ CỘT HỆ GIÁ TRỊ', {
+    this.add.text(width / 2, height * 0.54, 'CHI TIẾT 8 TRỤ CỘT HỆ GIÁ TRỊ VĂN HÓA', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
-      color: '#94a3b8',
+      color: '#0369a1',
     }).setOrigin(0.5);
 
     const vals = this.resultData.values;
@@ -117,27 +119,27 @@ export class ResultScene extends Phaser.Scene {
     const row2 = `Chân: ${vals.chan}    •    Thiện: ${vals.thien}    •    Mỹ: ${vals.my}`;
     const row3 = `Kiến tạo (Xây): ${vals.build}    •    Đấu tranh (Chống): ${vals.fight}`;
 
-    this.add.text(width / 2, height * 0.60, row1, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#e2e8f0' }).setOrigin(0.5);
-    this.add.text(width / 2, height * 0.65, row2, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#e2e8f0' }).setOrigin(0.5);
-    this.add.text(width / 2, height * 0.70, row3, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', color: '#38bdf8' }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.60, row1, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b' }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.65, row2, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#1e293b' }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.70, row3, { fontFamily: 'system-ui, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#0284c7' }).setOrigin(0.5);
 
     // Replay Button
     const replayContainer = this.add.container(width / 2, height * 0.85);
-    const replayBg = this.add.rectangle(0, 0, 240, 50, 0x00f0ff);
-    replayBg.setStrokeStyle(2, 0xffffff);
+    const replayBg = this.add.rectangle(0, 0, 240, 52, 0x0284c7);
+    replayBg.setStrokeStyle(2, 0x0369a1);
 
     const replayText = this.add.text(0, 0, 'CHƠI LẠI', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '17px',
       fontStyle: 'bold',
-      color: '#041018',
+      color: '#ffffff',
     }).setOrigin(0.5);
 
     replayContainer.add([replayBg, replayText]);
     replayBg.setInteractive({ useHandCursor: true });
 
-    replayBg.on('pointerover', () => replayBg.setFillStyle(0x38bdf8));
-    replayBg.on('pointerout', () => replayBg.setFillStyle(0x00f0ff));
+    replayBg.on('pointerover', () => replayBg.setFillStyle(0x0369a1));
+    replayBg.on('pointerout', () => replayBg.setFillStyle(0x0284c7));
     replayBg.on('pointerdown', () => {
       this.scene.start('GameScene');
     });

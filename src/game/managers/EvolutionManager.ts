@@ -49,21 +49,22 @@ export class EvolutionManager {
     const { width } = this.scene.scale;
     const banner = this.scene.add.container(width / 2, 90);
     banner.setDepth(90);
+    banner.setScrollFactor(0); // PIN TO SCREEN
 
-    const bg = this.scene.add.rectangle(0, 0, 480, 50, 0x1e1b4b, 0.95);
-    bg.setStrokeStyle(2, 0xa855f7);
+    const bg = this.scene.add.rectangle(0, 0, 520, 54, 0xffffff, 0.98);
+    bg.setStrokeStyle(2, 0x7c3aed);
 
     const title = this.scene.add.text(0, -10, `✨ TIẾN HÓA KỸ NĂNG: ${evo.name.toUpperCase()}`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
-      color: '#c084fc',
+      color: '#6d28d9',
     }).setOrigin(0.5);
 
-    const desc = this.scene.add.text(0, 10, evo.description, {
+    const desc = this.scene.add.text(0, 11, evo.description, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '11px',
-      color: '#e2e8f0',
+      fontSize: '12px',
+      color: '#334155',
     }).setOrigin(0.5);
 
     banner.add([bg, title, desc]);
