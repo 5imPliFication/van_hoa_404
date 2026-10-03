@@ -8,6 +8,8 @@ export class XPManager {
   public orbs: Phaser.Physics.Arcade.Group;
   private onLevelUpCallback: (newLevel: number) => void;
 
+  public xpMultiplier: number = 1.0;
+
   constructor(scene: Phaser.Scene, player: Player, onLevelUp: (newLevel: number) => void) {
     this.player = player;
     this.onLevelUpCallback = onLevelUp;
@@ -33,6 +35,7 @@ export class XPManager {
     const pickupRadius = this.player.stats.pickupRadius;
     const px = this.player.x;
     const py = this.player.y;
+    const dtSec = dt / 1000;
 
     const children = this.orbs.getChildren() as XPOrb[];
     for (const orb of children) {
@@ -45,19 +48,26 @@ export class XPManager {
         orb.magnetize();
       }
 
-      // Check direct collection
-      if (dist <= 18) {
+      // 1. Direct touch collection
+      if (dist <= 30) {
         const gainedXP = orb.collect();
         SoundSystem.playGem();
         this.addXP(gainedXP);
-      } else {
-        orb.updateTowardsPlayer(px, py, dt);
+      } else if (orb.isMagnetized) {
+        // 2. Smooth homing towards player without oscillation
+        const reached = orb.updateTowardsPlayer(px, py, dtSec);
+        if (reached) {
+          const gainedXP = orb.collect();
+          SoundSystem.playGem();
+          this.addXP(gainedXP);
+        }
       }
     }
   }
 
   public addXP(amount: number): void {
-    this.player.currentXP += amount;
+    const finalAmount = Math.ceil(amount * this.xpMultiplier);
+    this.player.currentXP += finalAmount;
 
     if (this.player.currentXP >= this.player.nextLevelXP) {
       this.player.currentXP -= this.player.nextLevelXP;

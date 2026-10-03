@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 export class XPOrb extends Phaser.Physics.Arcade.Sprite {
   public xpValue: number = 1;
-  private isMagnetized: boolean = false;
+  public isMagnetized: boolean = false;
   private magnetSpeed: number = 320;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -19,6 +19,7 @@ export class XPOrb extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(true);
     this.xpValue = xpValue;
     this.isMagnetized = false;
+    this.magnetSpeed = 320;
     this.setVelocity(0, 0);
 
     // Subtle scale tween on spawn
@@ -35,16 +36,37 @@ export class XPOrb extends Phaser.Physics.Arcade.Sprite {
     this.isMagnetized = true;
   }
 
-  public updateTowardsPlayer(playerX: number, playerY: number, dt: number): void {
-    if (!this.active) return;
+  /**
+   * Deterministically moves the orb towards the player without physics lag or overshoot.
+   * Returns true if orb reached or penetrated player collection radius.
+   */
+  public updateTowardsPlayer(playerX: number, playerY: number, dtSec: number): boolean {
+    if (!this.active) return false;
 
-    if (this.isMagnetized) {
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, playerX, playerY);
-      this.magnetSpeed += 500 * (dt / 1000); // accelerates as it approaches
-      const vx = Math.cos(angle) * this.magnetSpeed;
-      const vy = Math.sin(angle) * this.magnetSpeed;
-      this.setVelocity(vx, vy);
+    if (!this.isMagnetized) return false;
+
+    const dx = playerX - this.x;
+    const dy = playerY - this.y;
+    const dist = Math.hypot(dx, dy);
+
+    // Generous player pickup radius (prevents stuttering/orbiting)
+    if (dist <= 32) {
+      return true;
     }
+
+    // Accelerate smoothly up to maximum cruising speed
+    this.magnetSpeed = Math.min(680, this.magnetSpeed + 480 * dtSec);
+    const step = this.magnetSpeed * dtSec;
+
+    // If step would reach or overshoot player in this frame, collect immediately
+    if (step >= dist) {
+      return true;
+    }
+
+    // Direct geometric homing
+    this.x += (dx / dist) * step;
+    this.y += (dy / dist) * step;
+    return false;
   }
 
   public collect(): number {
@@ -58,5 +80,6 @@ export class XPOrb extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false);
     this.setVelocity(0, 0);
     this.isMagnetized = false;
+    this.magnetSpeed = 320;
   }
 }

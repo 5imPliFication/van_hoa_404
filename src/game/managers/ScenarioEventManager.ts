@@ -6,29 +6,35 @@ import { ScenarioConfig, ScenarioChoice } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 
+import { XPManager } from './XPManager';
+
 export class ScenarioEventManager {
   private scene: Phaser.Scene;
   private player: Player;
   private communityMeter: CommunityMeterManager;
   private enemyManager: EnemyManager;
+  private xpManager?: XPManager;
   private scenarios: ScenarioConfig[] = [];
   private triggeredScenarioIds: Set<string> = new Set();
   private overlayContainer?: Phaser.GameObjects.Container;
   private onResumeCallback: () => void;
   private isShowing: boolean = false;
   private cleanupListeners?: () => void;
+  public activeBuffText: string = '';
 
   constructor(
     scene: Phaser.Scene,
     player: Player,
     communityMeter: CommunityMeterManager,
     enemyManager: EnemyManager,
+    xpManager: XPManager,
     onResume: () => void
   ) {
     this.scene = scene;
     this.player = player;
     this.communityMeter = communityMeter;
     this.enemyManager = enemyManager;
+    this.xpManager = xpManager;
     this.onResumeCallback = onResume;
     this.scenarios = DataLoader.getScenarios();
   }
@@ -190,16 +196,12 @@ export class ScenarioEventManager {
     }
     this.isShowing = false;
 
-    // 1. Apply effects
+    // 1. Immediate effects
     const eff = choice.effects;
-
     if (eff.player) {
-      if (eff.player.hp < 0) this.player.takeDamage(-eff.player.hp);
-      if (eff.player.hp > 0) this.player.heal(eff.player.hp);
+      if (eff.player.hp && eff.player.hp < 0) this.player.takeDamage(-eff.player.hp);
+      if (eff.player.hp && eff.player.hp > 0) this.player.heal(eff.player.hp);
       if (eff.player.shield) this.player.stats.shield += eff.player.shield;
-      if (eff.player.damageMultiplier && eff.player.damageMultiplier !== 1.0) {
-        this.player.stats.damage *= eff.player.damageMultiplier;
-      }
     }
 
     if (eff.world) {
@@ -211,6 +213,44 @@ export class ScenarioEventManager {
           this.enemyManager.spawnEnemy(eff.world.spawnEnemyType);
         }
       }
+    }
+
+    // 2. Timed Buffs / Debuffs (durationSeconds)
+    const duration = eff.durationSeconds || 0;
+    if (duration > 0) {
+      const dmgMult = eff.player?.damageMultiplier || 1.0;
+      const atkSpdMult = eff.player?.attackSpeedMultiplier || 1.0;
+      const movSpdMult = eff.player?.moveSpeedMultiplier || 1.0;
+      const xpMult = eff.world?.xpMultiplier || 1.0;
+      const enemySpdMult = eff.world?.enemySpeedMultiplier || 1.0;
+
+      // Apply multipliers
+      if (dmgMult !== 1.0) this.player.stats.damage *= dmgMult;
+      if (atkSpdMult !== 1.0) this.player.stats.attackSpeed *= atkSpdMult;
+      if (movSpdMult !== 1.0) this.player.stats.moveSpeed *= movSpdMult;
+      if (xpMult !== 1.0 && this.xpManager) this.xpManager.xpMultiplier *= xpMult;
+      if (enemySpdMult !== 1.0) this.enemyManager.globalEnemySpeedMultiplier *= enemySpdMult;
+
+      // Status text
+      const buffParts: string[] = [];
+      if (dmgMult > 1.0) buffParts.push(`+${Math.round((dmgMult - 1) * 100)}% Sát thương`);
+      if (dmgMult < 1.0) buffParts.push(`-${Math.round((1 - dmgMult) * 100)}% Sát thương`);
+      if (atkSpdMult > 1.0) buffParts.push(`+${Math.round((atkSpdMult - 1) * 100)}% Tốc bắn`);
+      if (movSpdMult > 1.0) buffParts.push(`+${Math.round((movSpdMult - 1) * 100)}% Tốc chạy`);
+      if (xpMult > 1.0) buffParts.push(`+${Math.round((xpMult - 1) * 100)}% XP`);
+      if (enemySpdMult < 1.0) buffParts.push(`Làm chậm quái ${Math.round((1 - enemySpdMult) * 100)}%`);
+      if (enemySpdMult > 1.0) buffParts.push(`Quái tăng tốc ${Math.round((enemySpdMult - 1) * 100)}%`);
+      this.activeBuffText = buffParts.join(' • ');
+
+      // Schedule reversal after duration
+      this.scene.time.delayedCall(duration * 1000, () => {
+        if (dmgMult !== 1.0) this.player.stats.damage /= dmgMult;
+        if (atkSpdMult !== 1.0) this.player.stats.attackSpeed /= atkSpdMult;
+        if (movSpdMult !== 1.0) this.player.stats.moveSpeed /= movSpdMult;
+        if (xpMult !== 1.0 && this.xpManager) this.xpManager.xpMultiplier /= xpMult;
+        if (enemySpdMult !== 1.0) this.enemyManager.globalEnemySpeedMultiplier /= enemySpdMult;
+        this.activeBuffText = '';
+      });
     }
 
     // Record learning pillars

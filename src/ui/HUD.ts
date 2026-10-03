@@ -25,6 +25,8 @@ export class HUD {
   private waveText: Phaser.GameObjects.Text;
   private killsText: Phaser.GameObjects.Text;
   private pillarsText: Phaser.GameObjects.Text;
+  private activeBuffPill: Phaser.GameObjects.Rectangle;
+  private activeBuffText: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -141,7 +143,19 @@ export class HUD {
       });
     }
 
-    this.container.add([this.timerText, this.waveText, helpBg, helpText]);
+    // Active Buff Display Banner (Under top bar)
+    this.activeBuffPill = scene.add.rectangle(width / 2, 46, 520, 22, 0xecfdf5, 0.95);
+    this.activeBuffPill.setStrokeStyle(1, 0xa7f3d0).setVisible(false);
+
+    this.activeBuffText = scene.add.text(width / 2, 46, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#065f46',
+      resolution: 2,
+    }).setOrigin(0.5).setVisible(false);
+
+    this.container.add([this.timerText, this.waveText, helpBg, helpText, this.activeBuffPill, this.activeBuffText]);
 
     // 5. Bottom Status Bar (Kills counter & 8 Cultural Pillars)
     const bottomBg = scene.add.rectangle(width / 2, height - 22, width - 40, 34, 0xffffff, 0.92);
@@ -167,7 +181,7 @@ export class HUD {
     this.container.add([this.killsText, this.pillarsText]);
   }
 
-  public update(runSeconds: number, kills: number, currentWave?: WaveConfig): void {
+  public update(runSeconds: number, kills: number, currentWave?: WaveConfig, buffText?: string): void {
     // 1. Update Timer
     const m = Math.floor(runSeconds / 60);
     const s = Math.floor(runSeconds % 60);
@@ -208,10 +222,20 @@ export class HUD {
       this.communityBarFill.setFillStyle(meter < 35 ? 0xf59e0b : 0x0891b2);
     }
 
-    // 6. Update Kills & Pillars
+    // 6. Update Active Buff Banner
+    if (buffText && buffText.length > 0) {
+      this.activeBuffText.setText(`⚡ HIỆU ỨNG SỰ KIỆN: ${buffText}`);
+      this.activeBuffText.setVisible(true);
+      this.activeBuffPill.setVisible(true);
+    } else {
+      this.activeBuffText.setVisible(false);
+      this.activeBuffPill.setVisible(false);
+    }
+
+    // 7. Update Kills & Pillars
     this.killsText.setText(`⚔️ ĐÃ ĐẨY LÙI: ${kills}`);
     const v = this.player.values;
-    const summary = `DânTộc:${v.danToc}  KhoaHọc:${v.khoaHoc}  ĐạiChúng:${v.daiChung} | Chân:${v.chan}  Thiện:${v.thien}  Mỹ:${v.my} | Xây:${v.build}  Chống:${v.fight}`;
+    const summary = `DânTộc:${v.danToc}  KhoaHọc:${v.khoaHoc}  ĐạiChúng:${v.daiChung} | Chân:${v.chan}  Thiện:${v.thien}  Mỹ:${v.my} | Xây:${v.build} (P:${this.player.stats.buildPower})  Chống:${v.fight} (P:${this.player.stats.fightPower})`;
     this.pillarsText.setText(summary);
   }
 

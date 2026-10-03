@@ -61,12 +61,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.clearTint();
   }
 
-  public updateAI(playerX: number, playerY: number, dt: number): { shouldShoot?: boolean; shouldDuplicate?: boolean } {
+  public updateAI(
+    playerX: number,
+    playerY: number,
+    dt: number,
+    globalSpeedMult: number = 1.0
+  ): { shouldShoot?: boolean; shouldDuplicate?: boolean } {
     if (!this.active) return {};
 
     const dtSec = dt / 1000;
     const dist = Phaser.Math.Distance.Between(this.x, this.y, playerX, playerY);
     const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, playerX, playerY);
+    const currentSpeed = this.speed * globalSpeedMult;
 
     let result: { shouldShoot?: boolean; shouldDuplicate?: boolean } = {};
 
@@ -85,13 +91,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
             // Initiate dash burst
             this.isDashing = true;
             this.dashTimer = 0;
-            const dashSpeed = this.speed * 2.2;
+            const dashSpeed = currentSpeed * 2.2;
             this.setVelocity(Math.cos(angleToPlayer) * dashSpeed, Math.sin(angleToPlayer) * dashSpeed);
             this.setRotation(angleToPlayer);
             return result;
           }
           // Normal chase
-          this.moveTowards(angleToPlayer, this.speed);
+          this.moveTowards(angleToPlayer, currentSpeed);
         }
         break;
 
@@ -100,10 +106,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         // Keep ideal distance around 200px
         if (dist < 160) {
           // Back away
-          this.moveTowards(angleToPlayer + Math.PI, this.speed * 0.8);
+          this.moveTowards(angleToPlayer + Math.PI, currentSpeed * 0.8);
         } else if (dist > 260) {
           // Move closer
-          this.moveTowards(angleToPlayer, this.speed);
+          this.moveTowards(angleToPlayer, currentSpeed);
         } else {
           // Stop and aim
           this.setVelocity(0, 0);
@@ -118,18 +124,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       case 'swarm':
         // Fast chase with slight randomized wobble
         const wobble = Math.sin(this.scene.time.now / 150) * 0.3;
-        this.moveTowards(angleToPlayer + wobble, this.speed);
+        this.moveTowards(angleToPlayer + wobble, currentSpeed);
         break;
 
       case 'elite':
         // Slow inevitable advance
-        this.moveTowards(angleToPlayer, this.speed);
+        this.moveTowards(angleToPlayer, currentSpeed);
         break;
 
       case 'chase':
       default:
         // Basic direct chase (No pathfinding, normalize steering)
-        this.moveTowards(angleToPlayer, this.speed);
+        this.moveTowards(angleToPlayer, currentSpeed);
 
         // Tin giả duplication mechanic if alive > 15s
         if (this.config.id === 'tinGia') {

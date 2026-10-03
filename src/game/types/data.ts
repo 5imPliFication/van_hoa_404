@@ -47,6 +47,10 @@ export interface UpgradeConfig {
     shieldAdd?: number;
     healPerInterval?: number;
     communityPowerAdd?: number;
+    fightPowerAdd?: number;
+    projectileCountAdd?: number;
+    projectileSpeedMultiplier?: number;
+    maxHpAdd?: number;
   };
   tags: string[];
 }

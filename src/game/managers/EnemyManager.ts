@@ -6,6 +6,7 @@ import { XPManager } from './XPManager';
 import { EnemyConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
+import { WeaponSystem } from './WeaponSystem';
 
 export class EnemyManager {
   private scene: Phaser.Scene;
@@ -17,6 +18,12 @@ export class EnemyManager {
   public totalKills: number = 0;
   private enemyConfigs: Map<string, EnemyConfig> = new Map();
   private auraTickTimer: number = 0;
+
+  // Active buffs & evolution modifiers
+  public auraSlowBonus: number = 0;
+  public auraRadiusBonus: number = 0;
+  public globalEnemySpeedMultiplier: number = 1.0;
+  public weaponSystem?: WeaponSystem;
 
   constructor(scene: Phaser.Scene, player: Player, xpManager: XPManager) {
     this.scene = scene;
@@ -67,7 +74,7 @@ export class EnemyManager {
     const py = this.player.y;
 
     for (const enemy of activeList) {
-      const aiResult = enemy.updateAI(px, py, dt);
+      const aiResult = enemy.updateAI(px, py, dt, this.globalEnemySpeedMultiplier);
 
       // Handle ranged projectile shoot
       if (aiResult.shouldShoot) {
@@ -95,14 +102,15 @@ export class EnemyManager {
 
   private updateAuraEffects(dt: number, px: number, py: number): void {
     const v = this.player.values;
-    if (v.daiChung === 0 && v.thien === 0 && v.my === 0 && v.build === 0) return;
+    if (v.daiChung === 0 && v.thien === 0 && v.my === 0 && v.build === 0 && this.auraRadiusBonus === 0) return;
 
     this.auraTickTimer += dt / 1000;
     if (this.auraTickTimer >= 0.8) {
       this.auraTickTimer = 0;
 
-      const auraRadius = 130 + v.daiChung * 18 + v.my * 10;
-      const auraDmg = v.daiChung * 4 + v.build * 3 + v.my * 2;
+      const auraRadius = 130 + v.daiChung * 18 + v.my * 10 + this.auraRadiusBonus;
+      const auraDmg = v.daiChung * 4 + v.build * 3 + v.my * 3 + Math.floor(this.player.stats.buildPower * 0.4);
+      const slowMult = Math.max(0.2, 0.7 - this.auraSlowBonus);
       const activeList = this.getActiveEnemies();
 
       for (const enemy of activeList) {
@@ -110,7 +118,7 @@ export class EnemyManager {
         if (d <= auraRadius) {
           // Slow down
           if (enemy.body) {
-            enemy.setVelocity(enemy.body.velocity.x * 0.7, enemy.body.velocity.y * 0.7);
+            enemy.setVelocity(enemy.body.velocity.x * slowMult, enemy.body.velocity.y * slowMult);
           }
 
           if (auraDmg > 0) {
@@ -135,7 +143,7 @@ export class EnemyManager {
     bullet.setDepth(14);
 
     const angle = Phaser.Math.Angle.Between(fromX, fromY, targetX, targetY);
-    const speed = 190;
+    const speed = 190 * this.globalEnemySpeedMultiplier;
     bullet.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
     // Auto cleanup after 3 seconds
@@ -176,14 +184,24 @@ export class EnemyManager {
         SoundSystem.playHit();
         let dmg = bullet.damage;
 
-        // Weakness calculation
+        // Weakness calculation (+25% bonus)
         if (enemy.config.weakAgainst?.some(pillar => this.player.values[pillar as keyof typeof this.player.values] > 0)) {
           dmg *= 1.25;
         }
 
+        // Fight Power (Chống) bonus damage (+1.5% per point)
+        if (this.player.stats.fightPower > 0) {
+          dmg *= (1 + this.player.stats.fightPower * 0.015);
+        }
+
+        // Evolution: Kiem Chung bonus vs Tin Gia (+50%)
+        if (this.weaponSystem?.bonusVsTinGiaMultiplier && this.weaponSystem.bonusVsTinGiaMultiplier > 1.0 && enemy.config.id === 'tinGia') {
+          dmg *= this.weaponSystem.bonusVsTinGiaMultiplier;
+        }
+
         // Knockback (Chống / Fight pillar strengthens knockback)
         const angle = Phaser.Math.Angle.Between(bullet.x, bullet.y, enemy.x, enemy.y);
-        const kb = 25 + this.player.values.fight * 10;
+        const kb = 25 + this.player.values.fight * 10 + this.player.stats.fightPower * 2;
         enemy.x += Math.cos(angle) * kb * 0.15;
         enemy.y += Math.sin(angle) * kb * 0.15;
 

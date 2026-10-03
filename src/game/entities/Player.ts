@@ -20,7 +20,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private auraRing?: Phaser.GameObjects.Image;
   private healTimer: number = 0;
-  private healPerInterval: number = 0;
+  public healPerInterval: number = 0;
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -74,11 +74,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.auraRing.rotation += 0.01;
     }
 
-    // Passive regeneration (Thiện pillar)
+    // Passive regeneration (Thiện pillar boosted by Build power)
     if (this.healPerInterval > 0) {
       this.healTimer += dt / 1000;
-      if (this.healTimer >= 10) {
-        this.heal(this.healPerInterval);
+      if (this.healTimer >= 5) {
+        const healAmt = this.healPerInterval * (1 + this.stats.buildPower * 0.02);
+        this.heal(healAmt);
         this.healTimer = 0;
       }
     }
@@ -154,7 +155,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.stats.hp = Math.min(this.stats.maxHp, this.stats.hp + amount);
   }
 
-  public applyUpgrade(upgrade: UpgradeConfig): void {
+  public applyUpgrade(upgrade: UpgradeConfig, onCommunityRestore?: (val: number) => void): void {
     const e = upgrade.effects;
 
     if (e.damageAdd) this.stats.damage += e.damageAdd;
@@ -165,7 +166,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (e.pickupRadiusAdd) this.stats.pickupRadius += e.pickupRadiusAdd;
     if (e.shieldAdd) this.stats.shield += e.shieldAdd;
     if (e.healPerInterval) this.healPerInterval += e.healPerInterval;
-    if (e.communityPowerAdd) this.stats.buildPower += e.communityPowerAdd;
+    if (e.communityPowerAdd) {
+      this.stats.buildPower += e.communityPowerAdd;
+      if (onCommunityRestore) onCommunityRestore(e.communityPowerAdd);
+    }
+    if (e.fightPowerAdd) this.stats.fightPower += e.fightPowerAdd;
+    if (e.projectileCountAdd) this.stats.projectileCount += e.projectileCountAdd;
+    if (e.projectileSpeedMultiplier) this.stats.projectileSpeed *= e.projectileSpeedMultiplier;
+    if (e.maxHpAdd) {
+      this.stats.maxHp += e.maxHpAdd;
+      this.stats.hp += e.maxHpAdd;
+    }
 
     // Increment corresponding pillar value
     const cat = upgrade.category as Pillar;
@@ -173,8 +184,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.values[cat] = (this.values[cat] || 0) + 1;
     }
 
-    // Enable aura ring visual if Dai Chung or Thien is leveled up
-    if (this.values.daiChung > 0 || this.values.thien > 0) {
+    // Enable aura ring visual if Dai Chung, Thien, My, or Build is leveled up
+    if (this.values.daiChung > 0 || this.values.thien > 0 || this.values.my > 0 || this.values.build > 0) {
       this.auraRing?.setVisible(true);
     }
   }

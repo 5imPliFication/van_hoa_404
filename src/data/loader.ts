@@ -115,7 +115,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'khoaHoc',
     level: 1,
     maxLevel: 5,
-    description: '+15% Tốc độ đạn, +5% Tỉ lệ bạo kích',
+    description: '+15% Tốc độ bắn, +5% Tỉ lệ bạo kích',
     effects: {
       attackSpeedMultiplier: 1.15,
       critChanceAdd: 0.05,
@@ -128,7 +128,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'danToc',
     level: 1,
     maxLevel: 5,
-    description: '+25 Khiên chắn, tăng kháng nhiễu',
+    description: '+25 Khiên chắn bảo vệ, tăng sức chống chịu',
     effects: {
       shieldAdd: 25,
     },
@@ -140,7 +140,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'daiChung',
     level: 1,
     maxLevel: 5,
-    description: '+25% Bán kính nhặt XP, +10% Bán kính hào quang',
+    description: '+30 Bán kính nhặt XP, +5 Sức mạnh Xây',
     effects: {
       pickupRadiusAdd: 30,
       communityPowerAdd: 5,
@@ -165,7 +165,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'thien',
     level: 1,
     maxLevel: 5,
-    description: 'Hồi 2 HP mỗi 10 giây',
+    description: 'Hồi 2 HP mỗi 5 giây',
     effects: {
       healPerInterval: 2,
     },
@@ -177,7 +177,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'my',
     level: 1,
     maxLevel: 5,
-    description: '+15% Sát thương diện rộng và làm chậm quái',
+    description: '+15% Sát thương diện rộng và mở rộng hào quang',
     effects: {
       damageMultiplier: 1.15,
     },
@@ -189,9 +189,11 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'fight',
     level: 1,
     maxLevel: 5,
-    description: '+1 Tia đạn bổ sung cho mỗi đòn đánh',
+    description: '+1 Tia đạn bổ sung cho mỗi đòn đánh, +10 Sức mạnh Chống',
     effects: {
+      projectileCountAdd: 1,
       damageAdd: 5,
+      fightPowerAdd: 10,
     },
     tags: ['fight', 'bullet'],
   },
@@ -201,10 +203,10 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'build',
     level: 1,
     maxLevel: 5,
-    description: '+15% Tốc độ di chuyển, hồi phục Community Meter',
+    description: '+15% Tốc độ di chuyển, hồi ngay 15% Môi Trường Văn Hóa, +10 Sức mạnh Xây',
     effects: {
       moveSpeedMultiplier: 1.15,
-      communityPowerAdd: 10,
+      communityPowerAdd: 15,
     },
     tags: ['build', 'speed'],
   },

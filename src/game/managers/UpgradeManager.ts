@@ -4,18 +4,22 @@ import { UpgradeConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 
+import { CommunityMeterManager } from './CommunityMeterManager';
+
 export class UpgradeManager {
   private scene: Phaser.Scene;
   private player: Player;
+  private communityMeter?: CommunityMeterManager;
   private allUpgrades: UpgradeConfig[] = [];
   private overlayContainer?: Phaser.GameObjects.Container;
   private isShowing: boolean = false;
   private onSelectResumeCallback: () => void;
   private cleanupListeners?: () => void;
 
-  constructor(scene: Phaser.Scene, player: Player, onSelectResume: () => void) {
+  constructor(scene: Phaser.Scene, player: Player, communityMeter: CommunityMeterManager, onSelectResume: () => void) {
     this.scene = scene;
     this.player = player;
+    this.communityMeter = communityMeter;
     this.onSelectResumeCallback = onSelectResume;
     this.allUpgrades = DataLoader.getUpgrades();
   }
@@ -196,7 +200,7 @@ export class UpgradeManager {
       this.cleanupListeners = undefined;
     }
     SoundSystem.playGem();
-    this.player.applyUpgrade(upgrade);
+    this.player.applyUpgrade(upgrade, (amt) => this.communityMeter?.modify(amt));
     this.overlayContainer?.destroy();
     this.overlayContainer = undefined;
     this.isShowing = false;

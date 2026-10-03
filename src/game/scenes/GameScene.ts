@@ -83,10 +83,11 @@ export class GameScene extends Phaser.Scene {
 
     this.enemyManager = new EnemyManager(this, this.player, this.xpManager);
     this.weaponSystem = new WeaponSystem(this, this.player);
+    this.enemyManager.weaponSystem = this.weaponSystem;
     this.communityMeter = new CommunityMeterManager(this, this.player);
     this.waveManager = new WaveManager(this.enemyManager);
 
-    this.upgradeManager = new UpgradeManager(this, this.player, () => {
+    this.upgradeManager = new UpgradeManager(this, this.player, this.communityMeter, () => {
       this.resumeCombat();
     });
 
@@ -95,12 +96,19 @@ export class GameScene extends Phaser.Scene {
       this.player,
       this.communityMeter,
       this.enemyManager,
+      this.xpManager,
       () => {
         this.resumeCombat();
       }
     );
 
-    this.evolutionManager = new EvolutionManager(this, this.player, this.weaponSystem);
+    this.evolutionManager = new EvolutionManager(
+      this,
+      this.player,
+      this.weaponSystem,
+      this.enemyManager,
+      this.communityMeter
+    );
 
     this.bossManager = new BossManager(
       this,
@@ -387,7 +395,11 @@ export class GameScene extends Phaser.Scene {
           if (bossSprite?.active) {
             const distToBoss = Phaser.Math.Distance.Between(b.x, b.y, bossSprite.x, bossSprite.y);
             if (distToBoss < 40) {
-              this.bossManager.takeDamage(b.damage);
+              let bossDmg = b.damage;
+              if (this.player.stats.fightPower > 0) {
+                bossDmg *= (1 + this.player.stats.fightPower * 0.015);
+              }
+              this.bossManager.takeDamage(bossDmg);
               b.onHit();
             }
           }
@@ -416,7 +428,12 @@ export class GameScene extends Phaser.Scene {
 
     // 6. Update HUD
     const currentWave = this.waveManager.getCurrentWave(this.runSeconds);
-    this.hud.update(this.runSeconds, this.enemyManager.totalKills, currentWave);
+    this.hud.update(
+      this.runSeconds,
+      this.enemyManager.totalKills,
+      currentWave,
+      this.scenarioManager.activeBuffText
+    );
   }
 
   private onLevelUp(): void {
