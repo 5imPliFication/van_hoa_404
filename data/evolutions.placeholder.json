@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "version": "0.1.0"
+  },
+  "evolutionTemplate": {
+    "id": "evolution_unique_id",
+    "name": "__PLACEHOLDER__",
+    "description": "__PLACEHOLDER__",
+    "requiredPillars": [
+      "__PLACEHOLDER__: danToc | khoaHoc | daiChung | chan | thien | my | build | fight"
+    ],
+    "effects": {
+      "projectilePierce": false,
+      "damageMultiplier": 1.0,
+      "auraRadius": 0,
+      "auraSlow": 0,
+      "auraHeal": 0,
+      "bonusVsEnemyType": null,
+      "bonusDamageMultiplier": 1.0,
+      "communityMeterBuff": 0
+    }
+  },
+  "evolutions": []
+}

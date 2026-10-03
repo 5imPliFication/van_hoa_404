@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "version": "0.1.0"
+  },
+  "bossTemplate": {
+    "id": "boss_unique_id",
+    "name": "__PLACEHOLDER__",
+    "maxHp": 1000,
+    "speed": 1.0,
+    "phases": [
+      {
+        "phaseNumber": 1,
+        "name": "__PLACEHOLDER__",
+        "hpThresholdPercent": 100,
+        "attackPattern": "__PLACEHOLDER__: projectileSpread | laserSweep | minionSpawn | slowZone",
+        "attackCooldown": 3.0,
+        "speedMultiplier": 1.0,
+        "communityMeterDrainPerSecond": 0
+      }
+    ]
+  },
+  "boss": []
+}
