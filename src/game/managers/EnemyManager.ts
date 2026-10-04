@@ -68,7 +68,15 @@ export class EnemyManager {
     return enemy;
   }
 
-  public update(dt: number): void {
+  public currentRunSeconds: number = 0;
+
+  public getScaledEnemyDamage(baseDamage: number): number {
+    const timeScaling = 1 + (this.currentRunSeconds / 60) * 0.05;
+    return Math.max(1, Math.round(baseDamage * timeScaling));
+  }
+
+  public update(dt: number, runSeconds: number = 0): void {
+    this.currentRunSeconds = runSeconds;
     const activeList = this.getActiveEnemies();
     const px = this.player.x;
     const py = this.player.y;
@@ -78,7 +86,8 @@ export class EnemyManager {
 
       // Handle ranged projectile shoot
       if (aiResult.shouldShoot) {
-        this.fireEnemyBullet(enemy.x, enemy.y, px, py, enemy.damage, undefined, `Đạn của ${enemy.config.name}`);
+        const bulletDmg = this.getScaledEnemyDamage(enemy.damage);
+        this.fireEnemyBullet(enemy.x, enemy.y, px, py, bulletDmg, undefined, `Đạn của ${enemy.config.name}`);
       }
 
       // Handle duplication (Tin Giả)
@@ -87,9 +96,11 @@ export class EnemyManager {
       }
 
       // Check collision with player
+      enemy.contactTimer += dt / 1000;
       const distToPlayer = Phaser.Math.Distance.Between(enemy.x, enemy.y, px, py);
-      if (distToPlayer < 24) {
-        this.player.takeDamage(enemy.damage, enemy.config.name);
+      if (distToPlayer < 24 && enemy.contactTimer >= 0.75) {
+        enemy.contactTimer = 0;
+        this.player.takeDamage(this.getScaledEnemyDamage(enemy.damage), enemy.config.name);
       }
     }
 

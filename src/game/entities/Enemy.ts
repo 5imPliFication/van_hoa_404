@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { EnemyConfig, EnemyType } from '../types/data';
+import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public config!: EnemyConfig;
@@ -9,6 +10,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public damage: number = 5;
   public speed: number = 100;
   public xpDrop: number = 1;
+  public contactTimer: number = 0.75;
 
   // Behavior state
   private dashTimer: number = 0;
@@ -40,6 +42,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.isDashing = false;
     this.attackCooldownTimer = Phaser.Math.Between(0, 1000) / 1000;
     this.duplicateTimer = 0;
+    this.contactTimer = 0.75;
 
     // Set sprite texture based on enemy ID
     const textureKey = `enemy_${config.id}`;
@@ -163,8 +166,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.currentHp -= amount;
 
-    // Show floating damage number
-    this.showDamageText(Math.round(amount), isCrit);
+    // Show floating damage number (white with black border, orange if crit)
+    DamageNumberSystem.showDamage(this.x, this.y, amount, isCrit ? 'crit' : 'monster');
 
     // Hit flash
     this.setTint(0xffffff);
@@ -178,32 +181,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     return false;
-  }
-
-  private showDamageText(dmg: number, isCrit: boolean): void {
-    const dmgText = this.scene.add.text(
-      this.x + Phaser.Math.Between(-10, 10),
-      this.y - 12,
-      dmg.toString(),
-      {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: isCrit ? '16px' : '12px',
-        fontStyle: isCrit ? 'bold' : 'normal',
-        color: isCrit ? '#facc15' : '#ffffff',
-        stroke: '#0f172a',
-        strokeThickness: 2,
-        resolution: 2,
-      }
-    ).setOrigin(0.5);
-
-    this.scene.tweens.add({
-      targets: dmgText,
-      y: dmgText.y - 24,
-      alpha: 0,
-      duration: 500,
-      ease: 'Power1',
-      onComplete: () => dmgText.destroy(),
-    });
   }
 
   public deactivate(): void {

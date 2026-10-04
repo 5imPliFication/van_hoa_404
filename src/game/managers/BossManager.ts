@@ -7,6 +7,7 @@ import { BossConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 import { Projectile } from '../entities/Projectile';
+import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export interface BossTierConfig {
   tierNumber: number;
@@ -31,12 +32,12 @@ export const BOSS_TIERS: BossTierConfig[] = [
     tierBadge: 'CẤP I',
     timelineLabel: '3 PHÚT',
     timelineSecond: 180,
-    maxHp: 750,
+    maxHp: 2500,
     contactDamage: 12,
     bulletDamage: 8,
     bulletSpeed: 180,
     dotDamage: 3,
-    minionHp: 8,
+    minionHp: 16,
     minionDamage: 3,
     minionCount: 8,
     speed: 100,
@@ -47,12 +48,12 @@ export const BOSS_TIERS: BossTierConfig[] = [
     tierBadge: 'CẤP II',
     timelineLabel: '5 PHÚT',
     timelineSecond: 300,
-    maxHp: 1450,
+    maxHp: 5500,
     contactDamage: 18,
     bulletDamage: 14,
     bulletSpeed: 210,
     dotDamage: 5,
-    minionHp: 16,
+    minionHp: 32,
     minionDamage: 6,
     minionCount: 12,
     speed: 115,
@@ -63,12 +64,12 @@ export const BOSS_TIERS: BossTierConfig[] = [
     tierBadge: 'CẤP III',
     timelineLabel: '7 PHÚT',
     timelineSecond: 420,
-    maxHp: 2350,
+    maxHp: 10000,
     contactDamage: 26,
     bulletDamage: 20,
     bulletSpeed: 240,
     dotDamage: 8,
-    minionHp: 24,
+    minionHp: 55,
     minionDamage: 9,
     minionCount: 16,
     speed: 125,
@@ -79,12 +80,12 @@ export const BOSS_TIERS: BossTierConfig[] = [
     tierBadge: 'ĐẠI TRÙM TỐI HẬU',
     timelineLabel: '10 PHÚT',
     timelineSecond: 600,
-    maxHp: 3600,
+    maxHp: 18000,
     contactDamage: 36,
     bulletDamage: 28,
     bulletSpeed: 270,
     dotDamage: 12,
-    minionHp: 36,
+    minionHp: 90,
     minionDamage: 14,
     minionCount: 20,
     speed: 135,
@@ -693,9 +694,9 @@ export class BossManager {
       if (m.active && projectile.active) {
         const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, m.x, m.y);
         if (dist < 18) {
-          let hp = (m.getData('hp') ?? 8) - projectile.damage;
+          let hp = (m.getData('hp') ?? 16) - projectile.damage;
           m.setData('hp', hp);
-          this.showDamageText(m.x, m.y - 12, Math.round(projectile.damage), projectile.isCrit);
+          DamageNumberSystem.showDamage(m.x, m.y - 12, projectile.damage, projectile.isCrit ? 'crit' : 'monster');
           if (hp <= 0) {
             m.setActive(false).setVisible(false).setVelocity(0, 0);
             this.xpManager.dropXP(m.x, m.y, 1);
@@ -716,7 +717,7 @@ export class BossManager {
           dmg *= (1 + fightPowerBonusMultiplier);
         }
         this.takeDamage(dmg, projectile.isCrit);
-        this.showDamageText(this.bossSprite.x, this.bossSprite.y - 35, Math.round(dmg), projectile.isCrit);
+        DamageNumberSystem.showDamage(this.bossSprite.x, this.bossSprite.y - 35, dmg, projectile.isCrit ? 'crit' : 'monster');
         projectile.onHit();
         return true;
       }

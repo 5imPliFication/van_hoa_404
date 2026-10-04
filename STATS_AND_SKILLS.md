@@ -213,12 +213,12 @@ $$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số 
 
 | Thông số | Mốc 3 Phút (Cấp I) | Mốc 5 Phút (Cấp II) | Mốc 7 Phút (Cấp III) | Mốc 10 Phút (Đại Trùm Tối Hậu) |
 | :--- | :---: | :---: | :---: | :---: |
-| **Máu tối đa (`maxHp`)** | **`750 HP`** | **`1,450 HP`** | **`2,350 HP`** | **`3,600 HP`** |
+| **Máu tối đa (`maxHp`)** | **`2,500 HP`** | **`5,500 HP`** | **`10,000 HP`** | **`18,000 HP`** |
 | **Sát thương va chạm thân (`contactDamage`)** | **`12 dmg`** | **`18 dmg`** | **`26 dmg`** | **`36 dmg`** *(x1.5 khi lướt)* |
 | **Sát thương đạn bắn (`bulletDamage`)** | **`8 dmg`** | **`14 dmg`** | **`20 dmg`** | **`28 dmg`** |
 | **Vận tốc đạn (`bulletSpeed`)** | `180 px/s` | `210 px/s` | `240 px/s` | `270 px/s` |
 | **Sát thương rút độc (`dotDamage`)** | `3 dmg / 1.5s` | `5 dmg / 1.5s` | `8 dmg / 1.5s` | `12 dmg / 1.5s` |
-| **Chỉ số quái bầy đàn đệ tử** | 8 quái (8 HP, 3 dmg) | 12 quái (16 HP, 6 dmg) | 16 quái (24 HP, 9 dmg) | 20 quái (36 HP, 14 dmg) |
+| **Chỉ số quái bầy đàn đệ tử** | 8 quái (16 HP, 3 dmg) | 12 quái (32 HP, 6 dmg) | 16 quái (55 HP, 9 dmg) | 20 quái (90 HP, 14 dmg) |
 | **Tốc độ di chuyển trùm** | `100 px/s` | `115 px/s` | `125 px/s` | `135 px/s` |
 | **Bán kính thể hình trùm** | `26 px` | `30 px` | `34 px` | `40 px` |
 | **Kết cục khi bị tiêu diệt** | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 40 XP, **Chiến Thắng Chung Cuộc** |
@@ -233,17 +233,32 @@ $$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số 
 
 ## 8. HỆ THỐNG ĐA DẠNG QUÁI VẬT THEO CÁC LÀN SÓNG (Wave Roster & Progression)
 
-Cứ mỗi mốc thời gian, toàn bộ quái vật trên bản đồ sẽ **thay đổi sang 2 loại quái vật hoàn toàn mới**, và **đợt sau luôn mạnh hơn rõ rệt so với đợt trước** cả về lượng Máu, Sát thương và Tốc độ:
+Cứ mỗi mốc thời gian, toàn bộ quái vật trên bản đồ sẽ **thay đổi sang 2 loại quái vật hoàn toàn mới**, và **đợt sau luôn mạnh hơn rõ rệt so với đợt trước** cả về lượng Máu, Sát thương và Tốc độ. Sát thương cơ bản được tinh chỉnh khởi đầu thấp và tăng dần theo thời gian (+5% mỗi phút):
 
-| Làn Sóng | Khoảng Thời Gian | Tên Quái Vật & Định Danh | Hệ & Kiểu AI | Máu (HP) | Sát Thương | Tốc Độ | Kinh Nghiệm (XP) | Đặc Điểm Nhận Dạng & Chiến Thuật |
+$$\text{damageScaled} = \max\left(1, \operatorname{round}\left(\text{baseDamage} \cdot \left(1 + \frac{\text{runSeconds}}{60} \cdot 0.05\right)\right)\right)$$
+
+| Làn Sóng | Khoảng Thời Gian | Tên Quái Vật & Định Danh | Hệ & Kiểu AI | Máu (HP) | Sát Thương Gốc | Tốc Độ | Kinh Nghiệm (XP) | Đặc Điểm Nhận Dạng & Chiến Thuật |
 | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Wave 1** | **0:00 — 3:00**<br>*(Khởi đầu)* | **Clickbait (Giật Tít)**<br>`enemy_clickbait` | Dash (Lướt) | **`20`** | **`7`** | 175 px/s | 1 XP | Tam giác vàng hổ phách; thường xuyên lướt nhanh áp sát bất ngờ. |
-| | | **Tin Giả (Fake News)**<br>`enemy_tinGia` | Chase (Truy đuổi) | **`30`** | **`9`** | 120 px/s | 2 XP | Hình thoi cam glitch; tự động nhân bản phân thân nếu sống sót quá 15s. |
-| **Wave 2** | **3:00 — 5:00**<br>*(Đổi 2 quái mới, mạnh hơn)* | **Tâm Lý Đám Đông (Bầy Đàn)**<br>`enemy_tamLyDamDong` | Swarm (Bầy đàn) | **`55`** | **`13`** | 145 px/s | 2 XP | Cầu tròn hồng cánh sen; di chuyển uốn lượn theo bầy đông đúc vây hãm. |
-| | | **Bạo Lực Ngôn Từ (Toxic Ranged)**<br>`enemy_baoLucNgonTu` | Ranged (Tầm xa) | **`80`** | **`16`** | 95 px/s | 3 XP | Khối gai đỏ sẫm; giữ cự ly 200px và liên tục nã đạn độc tầm xa. |
-| **Wave 3** | **5:00 — 7:00**<br>*(Đổi 2 quái mới, mạnh vượt trội)* | **Đạo Nhái Sáng Tạo (Plagiarism)**<br>`enemy_daoNhai` | Dash (Lướt) | **`130`** | **`22`** | 185 px/s | 4 XP | Hình thoi glitch đúp xanh ngọc & hồng; lướt tốc hành gây sát thương nặng. |
-| | | **Xuyên Tạc Văn Hóa (Distortion Elite)**<br>`enemy_xuyenTacVanHoa` | Elite (Tinh anh) | **`240`** | **`28`** | 105 px/s | 6 XP | Đa giác tím khổng lồ; thân hình hộ pháp với lớp giáp dày cộm. |
-| **Wave 4** | **7:00 — 10:00**<br>*(Đổi 2 quái mới, Cực hạn & Khủng hoảng)* | **Cực Đoan Mạng (Berserk Extremism)**<br>`enemy_cucDoanMang` | Chase (Cuồng nộ) | **`350`** | **`35`** | 165 px/s | 8 XP | Ngôi sao gai lửa đỏ rực rỡ; lao điên cuồng với nhịp độ hung hãn tột cùng. |
-| | | **Khủng Hoảng Truyền Thông (Crisis Heavy Tank)**<br>`enemy_khungHoangTruyenThong` | Elite Ranged (Siêu tăng) | **`550`** | **`45`** | 90 px/s | 12 XP | Pháo đài đen hắc diện thạch viền đỏ & lõi vàng; trâu bò cực đại nã pháo hủy diệt. |
+| **Wave 1** | **0:00 — 3:00**<br>*(Khởi đầu)* | **Clickbait (Giật Tít)**<br>`enemy_clickbait` | Dash (Lướt) | **`20`** | **`3`** *(tăng dần)* | 175 px/s | 1 XP | Tam giác vàng hổ phách; thường xuyên lướt nhanh áp sát bất ngờ. |
+| | | **Tin Giả (Fake News)**<br>`enemy_tinGia` | Chase (Truy đuổi) | **`30`** | **`4`** *(tăng dần)* | 120 px/s | 2 XP | Hình thoi cam glitch; tự động nhân bản phân thân nếu sống sót quá 15s. |
+| **Wave 2** | **3:00 — 5:00**<br>*(Đổi 2 quái mới, mạnh hơn)* | **Tâm Lý Đám Đông (Bầy Đàn)**<br>`enemy_tamLyDamDong` | Swarm (Bầy đàn) | **`55`** | **`6`** *(tăng dần)* | 145 px/s | 2 XP | Cầu tròn hồng cánh sen; di chuyển uốn lượn theo bầy đông đúc vây hãm. |
+| | | **Bạo Lực Ngôn Từ (Toxic Ranged)**<br>`enemy_baoLucNgonTu` | Ranged (Tầm xa) | **`80`** | **`8`** *(tăng dần)* | 95 px/s | 3 XP | Khối gai đỏ sẫm; giữ cự ly 200px và liên tục nã đạn độc tầm xa. |
+| **Wave 3** | **5:00 — 7:00**<br>*(Đổi 2 quái mới, mạnh vượt trội)* | **Đạo Nhái Sáng Tạo (Plagiarism)**<br>`enemy_daoNhai` | Dash (Lướt) | **`130`** | **`10`** *(tăng dần)* | 185 px/s | 4 XP | Hình thoi glitch đúp xanh ngọc & hồng; lướt tốc hành gây sát thương nặng. |
+| | | **Xuyên Tạc Văn Hóa (Distortion Elite)**<br>`enemy_xuyenTacVanHoa` | Elite (Tinh anh) | **`240`** | **`14`** *(tăng dần)* | 105 px/s | 6 XP | Đa giác tím khổng lồ; thân hình hộ pháp với lớp giáp dày cộm. |
+| **Wave 4** | **7:00 — 10:00**<br>*(Đổi 2 quái mới, Cực hạn & Khủng hoảng)* | **Cực Đoan Mạng (Berserk Extremism)**<br>`enemy_cucDoanMang` | Chase (Cuồng nộ) | **`350`** | **`18`** *(tăng dần)* | 165 px/s | 8 XP | Ngôi sao gai lửa đỏ rực rỡ; lao điên cuồng với nhịp độ hung hãn tột cùng. |
+| | | **Khủng Hoảng Truyền Thông (Crisis Heavy Tank)**<br>`enemy_khungHoangTruyenThong` | Elite Ranged (Siêu tăng) | **`550`** | **`24`** *(tăng dần)* | 90 px/s | 12 XP | Pháo đài đen hắc diện thạch viền đỏ & lõi vàng; trâu bò cực đại nã pháo hủy diệt. |
+
+---
+
+## 9. HỆ THỐNG HIỂN THỊ SỐ SÁT THƯƠNG NỔI (Floating Damage Numbers)
+
+Mỗi đòn đánh trúng mục tiêu đều tạo phản hồi thị giác trực quan sinh động theo quy chuẩn màu sắc phân biệt:
+
+* **Sát thương lên Quái vật / Trùm**:
+  * **Đòn đánh thường**: Chữ số **màu trắng (`#ffffff`)**, **viền đen viền nét dày 3.5px (`#000000`)**, kích thước 14px nảy nhẹ và bay lên trên.
+  * **Đòn đánh Chí mạng (Critical Hit)**: Chữ số **màu cam rực rỡ (`#f97316`)**, **viền đen viền nét dày 4px (`#000000`)**, kích thước 18px phóng to với dấu chấm than `[dmg]!`.
+* **Sát thương người chơi gánh chịu (Player Damage Taken)**:
+  * Chữ số **màu đỏ cảnh báo (`#ef4444`)**, **viền đen viền nét dày 4px (`#000000`)**, hiển thị dấu trừ `-[dmg]` phía trên đầu nhân vật, giúp người chơi lập tức nhận diện nguy hiểm và điều chỉnh vị trí né tránh.
+* **Tối ưu hóa hiệu năng (Performance Optimization)**: Giới hạn tối đa 60 chữ số hiển thị đồng thời kết hợp cơ chế Tween mờ dần (Alpha Fade), đảm bảo tốc độ khung hình luôn duy trì vững vàng 60 FPS trên mọi thiết bị.
 
 

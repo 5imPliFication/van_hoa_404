@@ -12,6 +12,7 @@ import { BossManager } from '../managers/BossManager';
 import { HUD } from '../../ui/HUD';
 import { Projectile } from '../entities/Projectile';
 import { SoundSystem } from '../systems/SoundSystem';
+import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -48,6 +49,9 @@ export class GameScene extends Phaser.Scene {
     this.isPaused = false;
     this.isIntroOpen = false;
     this.closeIntroCallback = undefined;
+
+    // Initialize Damage Numbers System
+    DamageNumberSystem.init(this);
 
     // 1. World & Arena setup
     this.physics.world.setBounds(0, 0, this.arenaWidth, this.arenaHeight);
@@ -576,7 +580,7 @@ export class GameScene extends Phaser.Scene {
     this.player.update(dt);
 
     const activeEnemies = this.enemyManager.getActiveEnemies();
-    this.enemyManager.update(dt);
+    this.enemyManager.update(dt, this.runSeconds);
     this.weaponSystem.update(dt, activeEnemies);
     this.xpManager.update(dt);
 

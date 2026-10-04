@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { PlayerStats, CulturalValues, INITIAL_PLAYER_STATS, Pillar } from '../types/player';
 import { UpgradeConfig } from '../types/data';
+import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   public stats: PlayerStats;
@@ -154,6 +155,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public takeDamage(amount: number, sourceName: string = 'Hiện tượng tiêu cực trên mạng'): boolean {
     if (!this.isAlive) return false;
     this.lastDamagedBy = sourceName;
+
+    if (amount > 0) {
+      DamageNumberSystem.showDamage(this.x, this.y - 14, amount, 'player');
+    }
 
     let remaining = amount;
     if (this.stats.shield > 0) {

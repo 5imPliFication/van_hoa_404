@@ -25,7 +25,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 20,
       speed: 175,
-      damage: 7,
+      damage: 3,
       xpDrop: 1,
     },
     behavior: {
@@ -43,7 +43,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 30,
       speed: 120,
-      damage: 9,
+      damage: 4,
       xpDrop: 2,
     },
     behavior: {
@@ -63,7 +63,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 55,
       speed: 145,
-      damage: 13,
+      damage: 6,
       xpDrop: 2,
     },
     behavior: {
@@ -81,7 +81,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 80,
       speed: 95,
-      damage: 16,
+      damage: 8,
       xpDrop: 3,
     },
     behavior: {
@@ -101,7 +101,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 130,
       speed: 185,
-      damage: 22,
+      damage: 10,
       xpDrop: 4,
     },
     behavior: {
@@ -119,7 +119,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 240,
       speed: 105,
-      damage: 28,
+      damage: 14,
       xpDrop: 6,
     },
     behavior: {
@@ -139,7 +139,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 350,
       speed: 165,
-      damage: 35,
+      damage: 18,
       xpDrop: 8,
     },
     behavior: {
@@ -157,7 +157,7 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     stats: {
       hp: 550,
       speed: 90,
-      damage: 45,
+      damage: 24,
       xpDrop: 12,
     },
     behavior: {
@@ -623,7 +623,7 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
   {
     id: 'boss_swarm',
     name: 'CƠN BÃO TÂM LÝ ĐÁM ĐÔNG (SWARM SURGE)',
-    maxHp: 750,
+    maxHp: 2500,
     speed: 100,
     testDescription: 'Thử thách: Đạn chùm (projectileCount) • Xuyên thấu (Pierce) • Tốc độ chạy (Speed)',
     mechanicType: 'swarm',
@@ -643,7 +643,7 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
   {
     id: 'boss_dot',
     name: 'LƯỚI ĐỘC BẠO LỰC MẠNG & MIỆT THỊ (TOXIC ATTRITION)',
-    maxHp: 1450,
+    maxHp: 5500,
     speed: 90,
     testDescription: 'Thử thách: Khiên chắn (Shield) • Hồi máu (Heal/sustain) • Sức mạnh Xây (Build Power)',
     mechanicType: 'dot',
@@ -663,7 +663,7 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
   {
     id: 'boss_shield_dash',
     name: 'ẢO ẢNH XUYÊN TẠC & ĐẠO NHÁI (PHANTOM SHIELD & DASH)',
-    maxHp: 2350,
+    maxHp: 10000,
     speed: 110,
     testDescription: 'Thử thách: Sát thương cao (Damage) • Bạo kích (Crit) • Sức mạnh Chống (Fight Power)',
     mechanicType: 'shield_dash',
@@ -683,7 +683,7 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
   {
     id: 'boss_final',
     name: 'HIỆN THÂN LỆCH CHUẨN VĂN HÓA SỐ (CHAOS & CRISIS)',
-    maxHp: 3600,
+    maxHp: 18000,
     speed: 95,
     testDescription: 'Thử thách tối hậu: Cân bằng toàn diện 8 trụ cột & Kỹ năng Tiến Hóa (Evolutions)',
     mechanicType: 'final',
