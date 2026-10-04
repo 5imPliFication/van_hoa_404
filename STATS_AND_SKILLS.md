@@ -164,68 +164,52 @@ $$\text{nextLevelXP}(L) = \left\lfloor 10 + 70 \cdot \left(1 - e^{-0.085 \cdot (
 
 ---
 
-## 7. HỆ THỐNG 4 TRÙM THEO MỐC THỜI GIAN & KIỂM TRA PHÂN BỔ CHỈ SỐ CÂN BẰNG
+---
 
-Trận đấu được cấu trúc thành 4 mốc thử thách trùm then chốt tại các phút **3, 5, 7 và 10**. Mỗi con trùm được thiết kế đặc thù nhằm **kiểm tra sự phân bổ cân bằng giữa các chỉ số nhân vật**, ngăn chặn lối chơi dồn toàn bộ điểm vào một chỉ số duy nhất:
+## 7. HỆ THỐNG 4 TRÙM: XUẤT HIỆN NGẪU NHIÊN & PHÂN CẤP CHỈ SỐ BẮT BUỘC
 
-```mermaid
-timeline
-    title 4 Mốc Thời Gian Trùm & Chỉ Số Thử Thách
-    03:00 : Trùm 1: Hội Chứng Bầy Đàn Siêu Tốc : Thử thách ProjectileCount, Pierce, MoveSpeed, Hào Quang
-    05:00 : Trùm 2: Bão Độc Bạo Lực Mạng (DOT) : Thử thách Shield, Sustain (Hồi máu Thiện), BuildPower
-    07:00 : Trùm 3: Hiện Thân Xuyên Tạc & Ảo Ảnh : Thử thách CritChance, FightPower, Khắc chế Phân thân & Lướt
-    10:00 : Trùm 4: Đại Trùm Lệch Chuẩn Văn Hóa Số : Thử thách Toàn Diện 8 Trụ Cột & Các Kỹ Năng Tiến Hóa
-```
+Trận đấu được cấu trúc thành 4 mốc thử thách trùm then chốt tại các phút **3, 5, 7 và 10**.
+
+### 🎲 Cơ Chế Ngẫu Nhiên Thứ Tự Trùm (Randomized Boss Order):
+Trong mỗi ván chơi mới, thứ tự xuất hiện của 4 chủng loại trùm sẽ được **xáo trộn ngẫu nhiên hoàn toàn** (Fisher-Yates Shuffle). Người chơi không thể đoán trước trùm nào sẽ xuất hiện ở phút nào (tổng cộng 24 hoán vị chiến trường khác nhau).
+
+### ⚖️ Quy Tắc Phân Cấp Chỉ Số Bắt Buộc (Strict Stat Scaling):
+Bất kể chủng loại trùm nào xuất hiện ở mốc thời gian nào, chỉ số Máu (HP) và Sát thương (Damage) của trùm **bắt buộc tuân thủ nguyên tắc tăng dần nghiêm ngặt theo thời gian**:
+$$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số (5 phút)} > \text{Chỉ số (3 phút)}$$
+
+| Thông số | Mốc 3 Phút (Cấp I) | Mốc 5 Phút (Cấp II) | Mốc 7 Phút (Cấp III) | Mốc 10 Phút (Đại Trùm Tối Hậu) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Máu tối đa (`maxHp`)** | **`750 HP`** | **`1,450 HP`** | **`2,350 HP`** | **`3,600 HP`** |
+| **Sát thương va chạm thân (`contactDamage`)** | **`12 dmg`** | **`18 dmg`** | **`26 dmg`** | **`36 dmg`** *(x1.5 khi lướt)* |
+| **Sát thương đạn bắn (`bulletDamage`)** | **`8 dmg`** | **`14 dmg`** | **`20 dmg`** | **`28 dmg`** |
+| **Vận tốc đạn (`bulletSpeed`)** | `180 px/s` | `210 px/s` | `240 px/s` | `270 px/s` |
+| **Sát thương rút độc (`dotDamage`)** | `3 dmg / 1.5s` | `5 dmg / 1.5s` | `8 dmg / 1.5s` | `12 dmg / 1.5s` |
+| **Chỉ số quái bầy đàn đệ tử** | 8 quái (8 HP, 3 dmg) | 12 quái (16 HP, 6 dmg) | 16 quái (24 HP, 9 dmg) | 20 quái (36 HP, 14 dmg) |
+| **Tốc độ di chuyển trùm** | `100 px/s` | `115 px/s` | `125 px/s` | `135 px/s` |
+| **Bán kính thể hình trùm** | `26 px` | `30 px` | `34 px` | `40 px` |
+| **Kết cục khi bị tiêu diệt** | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 40 XP, **Chiến Thắng Chung Cuộc** |
+
+### 4 Thể Loại Cơ Chế Trùm (Boss Archetypes):
+1. **Trùm Bầy Đàn (`swarm`)**: Triệu hồi đàn quái tí hon lao thần tốc bổ nhào vào người chơi, bắn chùm đạn quạt 5 hướng.
+2. **Trùm Vùng Độc Tố (`dot`)**: Tỏa ra vòng tròn độc tố bán kính 280px gây sát thương liên tục theo thời gian, bắn cầu độc tầm xa.
+3. **Trùm Khiên Ảo Ảnh & Lướt Kích (`shield_dash`)**: 2 phân thân ảo ảnh bay quanh làm bia đỡ đạn, giảm 50% sát thương từ đòn đánh thường (bị khắc chế bởi bạo kích hoặc `fightPower >= 10`), tung cú lướt thần tốc `320 px/s` kèm bão đạn 8 hướng.
+4. **Trùm Lệch Chuẩn Hỗn Loạn (`final`)**: Biến chuyển 3 giai đoạn (Bão đạn 8 hướng → Tăng tốc độ & đạn liên thanh 3 tia → Bão đạn 12 hướng toàn màn hình + triệu hồi Tinh Anh Xuyên Tạc tiếp viện).
 
 ---
 
-### Mốc 1: 03 Phút (180s) — Trùm Hội Chứng Bầy Đàn Siêu Tốc
-* **Hình thái**: Hiện thân của hiện tượng tâm lý a dua, bầy đàn cực đoan trên mạng.
-* **Cơ chế chiến đấu**:
-  * Triệu hồi liên tục từng đợt **10 quái vật tí hon** (`tiny_swarm`) sau mỗi 3.5 giây. Bầy quái tí hon này di chuyển với tốc độ cực nhanh (`215 px/s`), lao thẳng bổ nhào vào người chơi.
-  * Bản thân trùm bắn chùm đạn quạt 5 hướng tỏa rộng.
-* **Chỉ số kiểm tra**:
-  * **`projectileCount` (Số tia đạn)** & **Kỹ năng Kiểm Chứng (`pierce` đạn xuyên)**: Cực kỳ cần thiết để quét sạch hàng chục quái đàn tí hon đang lao tới mà không bị chặn đạn.
-  * **`moveSpeed` (Tốc chạy)**: Cần tốc độ để giữ cự ly an toàn, thả diều (kiting) không để bị vây ép vào góc tường.
-  * **Hào Quang Văn Hóa (`daiChung`, `my`)**: Làm chậm và triệt tiêu bầy quái áp sát.
-* **Phần thưởng khi đánh bại**: Mưa **25 ngọc XP**, lập tức hồi phục **+25% Môi Trường Văn Hóa**, hiển thị biểu ngữ vinh danh và tiếp tục hành trình sang mốc thời gian tiếp theo.
+## 8. HỆ THỐNG ĐA DẠNG QUÁI VẬT THEO CÁC LÀN SÓNG (Wave Roster & Progression)
 
----
+Cứ mỗi mốc thời gian, toàn bộ quái vật trên bản đồ sẽ **thay đổi sang 2 loại quái vật hoàn toàn mới**, và **đợt sau luôn mạnh hơn rõ rệt so với đợt trước** cả về lượng Máu, Sát thương và Tốc độ:
 
-### Mốc 2: 05 Phút (300s) — Trùm Bão Độc Bạo Lực Mạng (Toxic DOT)
-* **Hình thái**: Hiện thân của không gian mạng độc hại, ngôn từ thù ghét và công kích cá nhân.
-* **Cơ chế chiến đấu**:
-  * Tỏa ra một **Vùng Độc Tố Bán Kính 280px** màu xanh lục vây quanh trùm. Người chơi khi ở trong vùng này sẽ liên tục nhận sát thương theo thời gian (**Damage Over Time - DOT: 3 sát thương mỗi 1.5 giây**).
-  * Trùm liên tục bắn 3 quả cầu độc tầm xa gây khó khăn cho việc né tránh.
-* **Chỉ số kiểm tra**:
-  * **`shield` (Khiên chắn Dân Tộc)**: Lớp khiên vững chắc là tấm đệm hấp thụ các nhịp rút máu DOT độc hại mà không làm tổn hại đến HP gốc.
-  * **`thien` (Hồi máu định kỳ Ứng Xử)** & **`buildPower` (Sức mạnh Xây)**: Bù đắp lượng máu bị rút liên tục, giúp trụ vững suốt thời gian giao tranh trong vùng ô nhiễm.
-  * Tầm bắn và sát thương chuẩn xác để không bị ép góc quá lâu.
-* **Phần thưởng khi đánh bại**: Mưa **25 ngọc XP**, hồi phục **+25% Môi Trường Văn Hóa**, hiển thị thông báo vượt ải và tiếp tục cuộc chơi.
+| Làn Sóng | Khoảng Thời Gian | Tên Quái Vật & Định Danh | Hệ & Kiểu AI | Máu (HP) | Sát Thương | Tốc Độ | Kinh Nghiệm (XP) | Đặc Điểm Nhận Dạng & Chiến Thuật |
+| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Wave 1** | **0:00 — 3:00**<br>*(Khởi đầu)* | **Clickbait (Giật Tít)**<br>`enemy_clickbait` | Dash (Lướt) | **`20`** | **`7`** | 175 px/s | 1 XP | Tam giác vàng hổ phách; thường xuyên lướt nhanh áp sát bất ngờ. |
+| | | **Tin Giả (Fake News)**<br>`enemy_tinGia` | Chase (Truy đuổi) | **`30`** | **`9`** | 120 px/s | 2 XP | Hình thoi cam glitch; tự động nhân bản phân thân nếu sống sót quá 15s. |
+| **Wave 2** | **3:00 — 5:00**<br>*(Đổi 2 quái mới, mạnh hơn)* | **Tâm Lý Đám Đông (Bầy Đàn)**<br>`enemy_tamLyDamDong` | Swarm (Bầy đàn) | **`55`** | **`13`** | 145 px/s | 2 XP | Cầu tròn hồng cánh sen; di chuyển uốn lượn theo bầy đông đúc vây hãm. |
+| | | **Bạo Lực Ngôn Từ (Toxic Ranged)**<br>`enemy_baoLucNgonTu` | Ranged (Tầm xa) | **`80`** | **`16`** | 95 px/s | 3 XP | Khối gai đỏ sẫm; giữ cự ly 200px và liên tục nã đạn độc tầm xa. |
+| **Wave 3** | **5:00 — 7:00**<br>*(Đổi 2 quái mới, mạnh vượt trội)* | **Đạo Nhái Sáng Tạo (Plagiarism)**<br>`enemy_daoNhai` | Dash (Lướt) | **`130`** | **`22`** | 185 px/s | 4 XP | Hình thoi glitch đúp xanh ngọc & hồng; lướt tốc hành gây sát thương nặng. |
+| | | **Xuyên Tạc Văn Hóa (Distortion Elite)**<br>`enemy_xuyenTacVanHoa` | Elite (Tinh anh) | **`240`** | **`28`** | 105 px/s | 6 XP | Đa giác tím khổng lồ; thân hình hộ pháp với lớp giáp dày cộm. |
+| **Wave 4** | **7:00 — 10:00**<br>*(Đổi 2 quái mới, Cực hạn & Khủng hoảng)* | **Cực Đoan Mạng (Berserk Extremism)**<br>`enemy_cucDoanMang` | Chase (Cuồng nộ) | **`350`** | **`35`** | 165 px/s | 8 XP | Ngôi sao gai lửa đỏ rực rỡ; lao điên cuồng với nhịp độ hung hãn tột cùng. |
+| | | **Khủng Hoảng Truyền Thông (Crisis Heavy Tank)**<br>`enemy_khungHoangTruyenThong` | Elite Ranged (Siêu tăng) | **`550`** | **`45`** | 90 px/s | 12 XP | Pháo đài đen hắc diện thạch viền đỏ & lõi vàng; trâu bò cực đại nã pháo hủy diệt. |
 
----
-
-### Mốc 3: 07 Phút (420s) — Trùm Hiện Thân Xuyên Tạc & Ảo Ảnh (Phantom Shield & Dash)
-* **Hình thái**: Hiện thân của sự bẻ cong sự thật, tạo thông tin giả ngụy tạo và các chiêu trò đánh lạc hướng.
-* **Cơ chế chiến đấu**:
-  * **Phân thân ảo ảnh (`clones`)**: Triệu hồi 2 phân thân ảo ảnh bay quanh bảo vệ, đóng vai trò như lá chắn thịt hấp thụ mọi phát đạn thông thường.
-  * **Khiên giảm thương**: Trùm nhận giảm 50% sát thương từ mọi đòn đánh thông thường nếu người chơi không có đòn bạo kích hoặc thiếu Sức mạnh Chống.
-  * **Lướt thần tốc (`dash`)**: Cứ sau mỗi 4 giây, trùm khóa mục tiêu và tung cú lướt tốc hành cực mạnh (`320 px/s`) hướng thẳng vào người chơi kèm theo bão đạn 8 hướng.
-* **Chỉ số kiểm tra**:
-  * **`critChance` (Tỉ lệ chí mạng Khoa Học)**: Đòn đánh bạo kích bỏ qua hiệu ứng giảm thương của lớp khiên, gây trọn vẹn x2 sát thương dứt điểm.
-  * **`fightPower` (Sức mạnh Chống)**: Nếu đạt `fightPower >= 10`, người chơi vô hiệu hóa cơ chế phòng ngự của trùm và đẩy lùi hiệu quả.
-  * **Đạn xuyên (`pierce`)**: Đạn xuyên thấu qua phân thân ảo ảnh để chạm thẳng vào thực thể trùm phía sau.
-* **Phần thưởng khi đánh bại**: Mưa **25 ngọc XP**, hồi phục **+25% Môi Trường Văn Hóa**, thông báo hoàn thành ải 7 phút.
-
----
-
-### Mốc 4: 10 Phút (600s) — Đại Trùm Cuối: Hiện Thân Lệch Chuẩn Văn Hóa Số
-* **Hình thái**: Hiện thân tối thượng tích tụ của toàn bộ 4 hiện tượng xấu xa trên mạng Internet (Tin giả, Bạo lực, Đạo nhái, Xuyên tạc).
-* **Cơ chế 3 giai đoạn tiến hóa (`Phases`)**:
-  * **Giai đoạn 1 (100% — 65% HP)**: Bão đạn 8 hướng hình quạt, di chuyển áp sát đều đặn, bắt đầu rút nhẹ Môi Trường Văn Hóa.
-  * **Giai đoạn 2 (65% — 30% HP)**: *Bạo Lực & Cực Hóa*: Tăng 35% tốc độ di chuyển, bắn chùm đạn liên thanh 3 tia tốc độ cao 240 px/s.
-  * **Giai đoạn 3 (< 30% HP)**: *Khủng Hoảng Toàn Diện*: Tung bão đạn 12 hướng toàn màn hình, liên tục triệu hồi quái Tinh Anh Xuyên Tạc tiếp ứng, rút mạnh Môi Trường Văn Hóa (-2%/giây).
-* **Chỉ số kiểm tra**:
-  * Đòi hỏi sự **cân bằng toàn diện cả 8 trụ cột**: Đủ sát thương và bạo kích để kết liễu trùm trước khi Môi Trường cạn kiệt; đủ khiên, máu và tốc chạy để sống sót qua làn đạn 12 hướng; và sở hữu các kỹ năng tối thượng như **Mặt Trận Văn Hóa**, **Kiểm Chứng**, **Văn Hóa Ứng Xử**, **Bản Sắc Sáng Tạo**.
-* **Phần thưởng khi đánh bại**: Mưa **40 ngọc XP**, kích hoạt màn hình **Chiến Thắng Vinh Quang (Victory)** với phân tích toàn diện bảng thành tích và huy hiệu danh dự văn hóa số!
 

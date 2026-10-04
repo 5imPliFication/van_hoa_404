@@ -78,7 +78,7 @@ export class EnemyManager {
 
       // Handle ranged projectile shoot
       if (aiResult.shouldShoot) {
-        this.fireEnemyBullet(enemy.x, enemy.y, px, py);
+        this.fireEnemyBullet(enemy.x, enemy.y, px, py, enemy.damage);
       }
 
       // Handle duplication (Tin Giả)
@@ -134,16 +134,17 @@ export class EnemyManager {
     }
   }
 
-  private fireEnemyBullet(fromX: number, fromY: number, targetX: number, targetY: number): void {
+  public fireEnemyBullet(fromX: number, fromY: number, targetX: number, targetY: number, damage: number = 10, speedOverride?: number): void {
     const bullet = this.enemyProjectiles.get(fromX, fromY, 'enemy_bullet') as Phaser.Physics.Arcade.Image;
     if (!bullet) return;
 
     bullet.setActive(true);
     bullet.setVisible(true);
     bullet.setDepth(14);
+    bullet.setData('damage', damage);
 
     const angle = Phaser.Math.Angle.Between(fromX, fromY, targetX, targetY);
-    const speed = 190 * this.globalEnemySpeedMultiplier;
+    const speed = (speedOverride || 190) * this.globalEnemySpeedMultiplier;
     bullet.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
 
     // Auto cleanup after 3 seconds
@@ -162,7 +163,8 @@ export class EnemyManager {
       if (!b.active) continue;
       const d = Phaser.Math.Distance.Between(b.x, b.y, px, py);
       if (d < 18) {
-        this.player.takeDamage(10);
+        const bulletDmg = (b.getData('damage') as number) || 10;
+        this.player.takeDamage(bulletDmg);
         b.setActive(false);
         b.setVisible(false);
         b.setVelocity(0, 0);

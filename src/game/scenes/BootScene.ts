@@ -111,7 +111,43 @@ export class BootScene extends Phaser.Scene {
     eliteGfx.generateTexture('enemy_xuyenTacVanHoa', 48, 48);
     eliteGfx.destroy();
 
-    // 10. Enemy Bullet
+    // 10. Enemy: Đạo Nhái Sáng Tạo (Glitch duplicate cyan & magenta rhombus)
+    const daoNhaiGfx = this.make.graphics({ x: 0, y: 0 });
+    daoNhaiGfx.fillStyle(0x06b6d4, 0.9);
+    daoNhaiGfx.fillTriangle(26, 14, 2, 2, 6, 26);
+    daoNhaiGfx.fillStyle(0xec4899, 0.85);
+    daoNhaiGfx.fillTriangle(22, 16, 6, 4, 10, 28);
+    daoNhaiGfx.lineStyle(2, 0x0891b2, 1);
+    daoNhaiGfx.strokeTriangle(26, 14, 2, 2, 6, 26);
+    daoNhaiGfx.generateTexture('enemy_daoNhai', 30, 30);
+    daoNhaiGfx.destroy();
+
+    // 11. Enemy: Cực Đoan Mạng (Spiky dark scarlet berserk flame star)
+    const cucDoanGfx = this.make.graphics({ x: 0, y: 0 });
+    cucDoanGfx.fillStyle(0xb91c1c, 1);
+    cucDoanGfx.fillCircle(18, 18, 14);
+    cucDoanGfx.lineStyle(3, 0x450a0a, 1);
+    cucDoanGfx.strokeCircle(18, 18, 16);
+    cucDoanGfx.fillStyle(0xf97316, 1);
+    cucDoanGfx.fillTriangle(18, 2, 34, 18, 18, 14);
+    cucDoanGfx.fillTriangle(18, 34, 2, 18, 18, 22);
+    cucDoanGfx.generateTexture('enemy_cucDoanMang', 36, 36);
+    cucDoanGfx.destroy();
+
+    // 12. Enemy: Khủng Hoảng Truyền Thông (Super-heavy obsidian tank with crimson warning runes)
+    const khungHoangGfx = this.make.graphics({ x: 0, y: 0 });
+    khungHoangGfx.fillStyle(0x18181b, 1);
+    khungHoangGfx.fillCircle(26, 26, 22);
+    khungHoangGfx.lineStyle(4, 0xdc2626, 1);
+    khungHoangGfx.strokeCircle(26, 26, 24);
+    khungHoangGfx.lineStyle(2, 0xfacc15, 1);
+    khungHoangGfx.strokeCircle(26, 26, 15);
+    khungHoangGfx.fillStyle(0xef4444, 1);
+    khungHoangGfx.fillCircle(26, 26, 8);
+    khungHoangGfx.generateTexture('enemy_khungHoangTruyenThong', 52, 52);
+    khungHoangGfx.destroy();
+
+    // 13. Enemy Bullet
     const eBulletGfx = this.make.graphics({ x: 0, y: 0 });
     eBulletGfx.fillStyle(0xef4444, 1);
     eBulletGfx.fillCircle(6, 6, 5);
@@ -120,8 +156,8 @@ export class BootScene extends Phaser.Scene {
     eBulletGfx.generateTexture('enemy_bullet', 12, 12);
     eBulletGfx.destroy();
 
-    // 11. Boss Textures for all 4 Milestones
-    // 11a. Boss 3m: Cơn Bão Tâm Lý Đám Đông (Emerald/magenta swarm queen core)
+    // 14. Boss Textures for all 4 Milestones
+    // 14a. Boss Archetype: Swarm (Emerald/magenta swarm queen core)
     const b3mGfx = this.make.graphics({ x: 0, y: 0 });
     b3mGfx.fillStyle(0xdb2777, 1);
     b3mGfx.fillCircle(30, 30, 26);
@@ -130,9 +166,10 @@ export class BootScene extends Phaser.Scene {
     b3mGfx.fillStyle(0x10b981, 1);
     b3mGfx.fillCircle(30, 30, 14);
     b3mGfx.generateTexture('boss_3min', 60, 60);
+    b3mGfx.generateTexture('boss_swarm', 60, 60);
     b3mGfx.destroy();
 
-    // 11b. Boss 5m: Lưới Độc Bạo Lực Mạng (Toxic crimson/acid core)
+    // 14b. Boss Archetype: Toxic DOT (Toxic crimson/acid core)
     const b5mGfx = this.make.graphics({ x: 0, y: 0 });
     b5mGfx.fillStyle(0x84cc16, 0.9);
     b5mGfx.fillCircle(34, 34, 30);
@@ -141,6 +178,7 @@ export class BootScene extends Phaser.Scene {
     b5mGfx.fillStyle(0x15803d, 1);
     b5mGfx.fillCircle(34, 34, 16);
     b5mGfx.generateTexture('boss_5min', 68, 68);
+    b5mGfx.generateTexture('boss_dot', 68, 68);
     b5mGfx.destroy();
 
     // 11c. Boss 7m: Ảo Ảnh Xuyên Tạc & Đạo Nhái (Phantom holographic core)
@@ -152,9 +190,10 @@ export class BootScene extends Phaser.Scene {
     b7mGfx.fillStyle(0xf43f5e, 1);
     b7mGfx.fillCircle(36, 36, 15);
     b7mGfx.generateTexture('boss_7min', 72, 72);
+    b7mGfx.generateTexture('boss_shield_dash', 72, 72);
     b7mGfx.destroy();
 
-    // 11d. Boss 10m: Đại Trùm Cuối (Gigantic corrupted apex core)
+    // 14d. Boss Archetype: Final Crisis (Gigantic corrupted apex core)
     const bossGfx = this.make.graphics({ x: 0, y: 0 });
     bossGfx.fillStyle(0x3b0764, 0.95);
     bossGfx.fillCircle(42, 42, 38);
@@ -166,6 +205,7 @@ export class BootScene extends Phaser.Scene {
     bossGfx.fillCircle(42, 42, 14);
     bossGfx.generateTexture('boss', 84, 84);
     bossGfx.generateTexture('boss_10min', 84, 84);
+    bossGfx.generateTexture('boss_final', 84, 84);
     bossGfx.destroy();
 
     // 11e. Tiny Swarm Runner (Boss 1 minions)

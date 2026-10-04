@@ -148,4 +148,15 @@ export interface BossConfig {
   timelineSecond?: number;
   testDescription?: string;
   mechanicType?: 'swarm' | 'dot' | 'shield_dash' | 'final';
+  contactDamage?: number;
+  bulletDamage?: number;
+  bulletSpeed?: number;
+  dotDamage?: number;
+  minionHp?: number;
+  minionDamage?: number;
+  minionCount?: number;
+  tierNumber?: number;
+  tierLabel?: string;
+  radius?: number;
+  textureKey?: string;
 }

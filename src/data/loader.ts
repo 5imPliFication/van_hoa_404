@@ -16,33 +16,16 @@ import {
 
 // Default MVP fallback items when placeholder arrays are empty, ensuring combat loop is immediately playable
 const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
-  {
-    id: 'tinGia',
-    name: 'Tin Giả',
-    type: 'chase',
-    learningTag: 'khoaHoc',
-    stats: {
-      hp: 25,
-      speed: 130,
-      damage: 8,
-      xpDrop: 2,
-    },
-    behavior: {
-      attackRange: 0,
-      cooldown: 0,
-      special: 'duplicate',
-    },
-    weakAgainst: ['khoaHoc', 'chan'],
-  },
+  // --- Wave 1: 0 - 3m (Standard 2 Mobs - Tier 1) ---
   {
     id: 'clickbait',
-    name: 'Clickbait',
+    name: 'Clickbait (Giật Tít)',
     type: 'dash',
     learningTag: 'chan',
     stats: {
-      hp: 15,
-      speed: 190,
-      damage: 12,
+      hp: 20,
+      speed: 175,
+      damage: 7,
       xpDrop: 1,
     },
     behavior: {
@@ -53,15 +36,35 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
     weakAgainst: ['chan', 'my'],
   },
   {
+    id: 'tinGia',
+    name: 'Tin Giả (Fake News)',
+    type: 'chase',
+    learningTag: 'khoaHoc',
+    stats: {
+      hp: 30,
+      speed: 120,
+      damage: 9,
+      xpDrop: 2,
+    },
+    behavior: {
+      attackRange: 0,
+      cooldown: 0,
+      special: 'duplicate',
+    },
+    weakAgainst: ['khoaHoc', 'chan'],
+  },
+
+  // --- Wave 2: 3 - 5m (2 Different Mobs - Tier 2, Stronger) ---
+  {
     id: 'tamLyDamDong',
-    name: 'Tâm Lý Đám Đông',
+    name: 'Tâm Lý Đám Đông (Bầy Đàn)',
     type: 'swarm',
     learningTag: 'daiChung',
     stats: {
-      hp: 10,
-      speed: 110,
-      damage: 5,
-      xpDrop: 1,
+      hp: 55,
+      speed: 145,
+      damage: 13,
+      xpDrop: 2,
     },
     behavior: {
       attackRange: 0,
@@ -72,39 +75,97 @@ const DEFAULT_MVP_ENEMIES: EnemyConfig[] = [
   },
   {
     id: 'baoLucNgonTu',
-    name: 'Bạo Lực Ngôn Từ',
+    name: 'Bạo Lực Ngôn Từ (Toxic Ranged)',
     type: 'ranged',
     learningTag: 'thien',
     stats: {
-      hp: 35,
-      speed: 80,
-      damage: 10,
+      hp: 80,
+      speed: 95,
+      damage: 16,
       xpDrop: 3,
     },
     behavior: {
-      attackRange: 220,
+      attackRange: 230,
       cooldown: 2.0,
       special: 'slowZone',
     },
     weakAgainst: ['thien', 'daiChung'],
   },
+
+  // --- Wave 3: 5 - 7m (2 Different Mobs - Tier 3, Even Stronger) ---
+  {
+    id: 'daoNhai',
+    name: 'Đạo Nhái Sáng Tạo (Plagiarism)',
+    type: 'dash',
+    learningTag: 'my',
+    stats: {
+      hp: 130,
+      speed: 185,
+      damage: 22,
+      xpDrop: 4,
+    },
+    behavior: {
+      attackRange: 180,
+      cooldown: 2.2,
+      special: 'dash',
+    },
+    weakAgainst: ['my', 'danToc'],
+  },
   {
     id: 'xuyenTacVanHoa',
-    name: 'Xuyên Tạc Văn Hóa',
+    name: 'Xuyên Tạc Văn Hóa (Distortion Elite)',
     type: 'elite',
     learningTag: 'danToc',
     stats: {
-      hp: 120,
-      speed: 95,
-      damage: 15,
-      xpDrop: 10,
+      hp: 240,
+      speed: 105,
+      damage: 28,
+      xpDrop: 6,
     },
     behavior: {
-      attackRange: 100,
-      cooldown: 4.0,
+      attackRange: 120,
+      cooldown: 3.5,
       special: 'distortionAura',
     },
     weakAgainst: ['danToc', 'chan'],
+  },
+
+  // --- Wave 4: 7 - 10m (2 Different Mobs - Tier 4, Apex Strongest) ---
+  {
+    id: 'cucDoanMang',
+    name: 'Cực Đoan Mạng (Berserk Extremism)',
+    type: 'chase',
+    learningTag: 'thien',
+    stats: {
+      hp: 350,
+      speed: 165,
+      damage: 35,
+      xpDrop: 8,
+    },
+    behavior: {
+      attackRange: 0,
+      cooldown: 0,
+      special: 'frenzy',
+    },
+    weakAgainst: ['thien', 'khoaHoc'],
+  },
+  {
+    id: 'khungHoangTruyenThong',
+    name: 'Khủng Hoảng Truyền Thông (Crisis Heavy Tank)',
+    type: 'elite',
+    learningTag: 'daiChung',
+    stats: {
+      hp: 550,
+      speed: 90,
+      damage: 45,
+      xpDrop: 12,
+    },
+    behavior: {
+      attackRange: 240,
+      cooldown: 2.5,
+      special: 'heavyBarrage',
+    },
+    weakAgainst: ['daiChung', 'chan'],
   },
 ];
 
@@ -216,42 +277,40 @@ const DEFAULT_MVP_WAVES: WaveConfig[] = [
   {
     id: 'wave_1',
     startSecond: 0,
-    endSecond: 180, // Milestone 3:00 - Boss 1
+    endSecond: 180, // 0:00 - 3:00 (Standard 2 Mobs: Clickbait & Tin Giả)
     spawns: [
       { enemyId: 'clickbait', ratePerSecond: 1.2, maxAlive: 25 },
-      { enemyId: 'tinGia', ratePerSecond: 0.8, maxAlive: 20 },
+      { enemyId: 'tinGia', ratePerSecond: 0.9, maxAlive: 20 },
     ],
     eventIds: ['scenario_sample_1'],
   },
   {
     id: 'wave_2',
     startSecond: 180,
-    endSecond: 300, // Milestone 5:00 - Boss 2
+    endSecond: 300, // 3:00 - 5:00 (2 Different Mobs: Tâm Lý Đám Đông & Bạo Lực Ngôn Từ)
     spawns: [
-      { enemyId: 'tamLyDamDong', ratePerSecond: 2.2, maxAlive: 45 },
-      { enemyId: 'baoLucNgonTu', ratePerSecond: 0.7, maxAlive: 16 },
+      { enemyId: 'tamLyDamDong', ratePerSecond: 2.2, maxAlive: 40 },
+      { enemyId: 'baoLucNgonTu', ratePerSecond: 0.9, maxAlive: 18 },
     ],
     eventIds: ['scenario_sample_2'],
   },
   {
     id: 'wave_3',
     startSecond: 300,
-    endSecond: 420, // Milestone 7:00 - Boss 3
+    endSecond: 420, // 5:00 - 7:00 (2 Different Mobs: Đạo Nhái & Xuyên Tạc Văn Hóa)
     spawns: [
-      { enemyId: 'tinGia', ratePerSecond: 1.5, maxAlive: 35 },
-      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.35, maxAlive: 5 },
-      { enemyId: 'baoLucNgonTu', ratePerSecond: 1.0, maxAlive: 20 },
+      { enemyId: 'daoNhai', ratePerSecond: 1.6, maxAlive: 30 },
+      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.5, maxAlive: 8 },
     ],
     eventIds: ['scenario_sample_3'],
   },
   {
     id: 'wave_4',
     startSecond: 420,
-    endSecond: 600, // Milestone 10:00 - Final Boss
+    endSecond: 600, // 7:00 - 10:00 (2 Different Mobs: Cực Đoan Mạng & Khủng Hoảng Truyền Thông)
     spawns: [
-      { enemyId: 'clickbait', ratePerSecond: 2.0, maxAlive: 40 },
-      { enemyId: 'tamLyDamDong', ratePerSecond: 3.0, maxAlive: 55 },
-      { enemyId: 'xuyenTacVanHoa', ratePerSecond: 0.6, maxAlive: 8 },
+      { enemyId: 'cucDoanMang', ratePerSecond: 1.8, maxAlive: 35 },
+      { enemyId: 'khungHoangTruyenThong', ratePerSecond: 0.45, maxAlive: 6 },
     ],
     eventIds: ['scenario_sample_4'],
   },
@@ -457,33 +516,33 @@ const DEFAULT_MVP_EVOLUTIONS: EvolutionConfig[] = [
 
 const DEFAULT_MVP_BOSSES: BossConfig[] = [
   {
-    id: 'boss_3min_swarm',
-    name: 'CƠN BÃO TÂM LÝ ĐÁM ĐÔNG (SWARM & SPEED SURGE)',
-    maxHp: 650,
-    speed: 105,
-    timelineSecond: 180, // 3:00
+    id: 'boss_swarm',
+    name: 'CƠN BÃO TÂM LÝ ĐÁM ĐÔNG (SWARM SURGE)',
+    maxHp: 750,
+    speed: 100,
     testDescription: 'Thử thách: Đạn chùm (projectileCount) • Xuyên thấu (Pierce) • Tốc độ chạy (Speed)',
     mechanicType: 'swarm',
+    textureKey: 'boss_3min',
     phases: [
       {
         phaseNumber: 1,
         name: 'Bầy Đàn Bùng Phát',
         hpThresholdPercent: 100,
         attackPattern: 'minionSpawn',
-        attackCooldown: 3.0,
+        attackCooldown: 3.2,
         speedMultiplier: 1.0,
         communityMeterDrainPerSecond: 0.3,
       },
     ],
   },
   {
-    id: 'boss_5min_dot',
+    id: 'boss_dot',
     name: 'LƯỚI ĐỘC BẠO LỰC MẠNG & MIỆT THỊ (TOXIC ATTRITION)',
-    maxHp: 1100,
-    speed: 85,
-    timelineSecond: 300, // 5:00
+    maxHp: 1450,
+    speed: 90,
     testDescription: 'Thử thách: Khiên chắn (Shield) • Hồi máu (Heal/sustain) • Sức mạnh Xây (Build Power)',
     mechanicType: 'dot',
+    textureKey: 'boss_5min',
     phases: [
       {
         phaseNumber: 1,
@@ -497,13 +556,13 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
     ],
   },
   {
-    id: 'boss_7min_shield_dps',
+    id: 'boss_shield_dash',
     name: 'ẢO ẢNH XUYÊN TẠC & ĐẠO NHÁI (PHANTOM SHIELD & DASH)',
-    maxHp: 1800,
+    maxHp: 2350,
     speed: 110,
-    timelineSecond: 420, // 7:00
     testDescription: 'Thử thách: Sát thương cao (Damage) • Bạo kích (Crit) • Sức mạnh Chống (Fight Power)',
     mechanicType: 'shield_dash',
+    textureKey: 'boss_7min',
     phases: [
       {
         phaseNumber: 1,
@@ -517,13 +576,13 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
     ],
   },
   {
-    id: 'boss_10min_final',
-    name: 'ĐẠI TRÙM CUỐI: LỆCH CHUẨN VĂN HÓA SỐ',
-    maxHp: 2600,
-    speed: 90,
-    timelineSecond: 600, // 10:00
+    id: 'boss_final',
+    name: 'HIỆN THÂN LỆCH CHUẨN VĂN HÓA SỐ (CHAOS & CRISIS)',
+    maxHp: 3600,
+    speed: 95,
     testDescription: 'Thử thách tối hậu: Cân bằng toàn diện 8 trụ cột & Kỹ năng Tiến Hóa (Evolutions)',
     mechanicType: 'final',
+    textureKey: 'boss_10min',
     phases: [
       {
         phaseNumber: 1,

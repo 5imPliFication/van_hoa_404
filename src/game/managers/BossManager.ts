@@ -8,6 +8,90 @@ import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 import { Projectile } from '../entities/Projectile';
 
+export interface BossTierConfig {
+  tierNumber: number;
+  tierBadge: string;
+  timelineLabel: string;
+  timelineSecond: number;
+  maxHp: number;
+  contactDamage: number;
+  bulletDamage: number;
+  bulletSpeed: number;
+  dotDamage: number;
+  minionHp: number;
+  minionDamage: number;
+  minionCount: number;
+  speed: number;
+  radius: number;
+}
+
+export const BOSS_TIERS: BossTierConfig[] = [
+  {
+    tierNumber: 1,
+    tierBadge: 'CẤP I',
+    timelineLabel: '3 PHÚT',
+    timelineSecond: 180,
+    maxHp: 750,
+    contactDamage: 12,
+    bulletDamage: 8,
+    bulletSpeed: 180,
+    dotDamage: 3,
+    minionHp: 8,
+    minionDamage: 3,
+    minionCount: 8,
+    speed: 100,
+    radius: 26,
+  },
+  {
+    tierNumber: 2,
+    tierBadge: 'CẤP II',
+    timelineLabel: '5 PHÚT',
+    timelineSecond: 300,
+    maxHp: 1450,
+    contactDamage: 18,
+    bulletDamage: 14,
+    bulletSpeed: 210,
+    dotDamage: 5,
+    minionHp: 16,
+    minionDamage: 6,
+    minionCount: 12,
+    speed: 115,
+    radius: 30,
+  },
+  {
+    tierNumber: 3,
+    tierBadge: 'CẤP III',
+    timelineLabel: '7 PHÚT',
+    timelineSecond: 420,
+    maxHp: 2350,
+    contactDamage: 26,
+    bulletDamage: 20,
+    bulletSpeed: 240,
+    dotDamage: 8,
+    minionHp: 24,
+    minionDamage: 9,
+    minionCount: 16,
+    speed: 125,
+    radius: 34,
+  },
+  {
+    tierNumber: 4,
+    tierBadge: 'ĐẠI TRÙM TỐI HẬU',
+    timelineLabel: '10 PHÚT',
+    timelineSecond: 600,
+    maxHp: 3600,
+    contactDamage: 36,
+    bulletDamage: 28,
+    bulletSpeed: 270,
+    dotDamage: 12,
+    minionHp: 36,
+    minionDamage: 14,
+    minionCount: 20,
+    speed: 135,
+    radius: 40,
+  },
+];
+
 export class BossManager {
   private scene: Phaser.Scene;
   private player: Player;
@@ -16,7 +100,7 @@ export class BossManager {
   private xpManager: XPManager;
   private onBossDefeatedCallback: (isFinal: boolean) => void;
 
-  private allBossConfigs: BossConfig[] = [];
+  public allBossConfigs: BossConfig[] = [];
   private spawnedBossIndexes: Set<number> = new Set();
   public currentBossIndex: number = -1;
   public currentBossConfig?: BossConfig;
@@ -26,16 +110,17 @@ export class BossManager {
   public bossMaxHp: number = 0;
   public currentPhaseIndex: number = 0;
   private attackTimer: number = 0;
+  private contactDamageTimer: number = 0;
 
-  // Boss 1 Swarm mechanic
+  // Boss Swarm mechanic
   private swarmTimer: number = 0;
   public tinySwarmGroup: Phaser.Physics.Arcade.Group;
 
-  // Boss 2 DOT mechanic
+  // Boss DOT mechanic
   private dotTimer: number = 0;
   private toxicAuraGfx?: Phaser.GameObjects.Graphics;
 
-  // Boss 3 Shield & Dash & Clone mechanic
+  // Boss Shield & Dash & Clone mechanic
   private dashTimer: number = 0;
   private isDashing: boolean = false;
   private clones: Phaser.Physics.Arcade.Sprite[] = [];
@@ -54,12 +139,52 @@ export class BossManager {
     this.communityMeter = communityMeter;
     this.xpManager = xpManager;
     this.onBossDefeatedCallback = onBossDefeated;
-    this.allBossConfigs = DataLoader.getBosses();
 
-    // Group for Boss 1 fast tiny swarmers
+    // Group for fast tiny swarmers
     this.tinySwarmGroup = scene.physics.add.group({
       defaultKey: 'tiny_swarm',
       maxSize: 60,
+    });
+
+    // Initialize randomized boss order with strict tier scaling (10m > 7m > 5m > 3m)
+    this.initializeRandomizedBosses();
+  }
+
+  /**
+   * Shuffles boss archetypes randomly and applies strict stat scaling per tier.
+   * Guarantees: 10m boss (3600 HP, 36 Contact Dmg, 28 Bullet Dmg)
+   *             > 7m boss (2350 HP, 26 Contact Dmg, 20 Bullet Dmg)
+   *             > 5m boss (1450 HP, 18 Contact Dmg, 14 Bullet Dmg)
+   *             > 3m boss (750 HP, 12 Contact Dmg, 8 Bullet Dmg)
+   */
+  public initializeRandomizedBosses(): void {
+    const archetypes = [...DataLoader.getBosses()];
+
+    // Fisher-Yates Shuffle for true randomness on each run
+    for (let i = archetypes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [archetypes[i], archetypes[j]] = [archetypes[j], archetypes[i]];
+    }
+
+    this.allBossConfigs = archetypes.map((archetype, idx) => {
+      const tier = BOSS_TIERS[idx] || BOSS_TIERS[0];
+      return {
+        ...archetype,
+        timelineSecond: tier.timelineSecond,
+        maxHp: tier.maxHp,
+        speed: tier.speed,
+        contactDamage: tier.contactDamage,
+        bulletDamage: tier.bulletDamage,
+        bulletSpeed: tier.bulletSpeed,
+        dotDamage: tier.dotDamage,
+        minionHp: tier.minionHp,
+        minionDamage: tier.minionDamage,
+        minionCount: tier.minionCount,
+        tierNumber: tier.tierNumber,
+        tierLabel: tier.tierBadge,
+        radius: tier.radius,
+        textureKey: archetype.textureKey || (archetype.id === 'boss_swarm' ? 'boss_swarm' : archetype.id === 'boss_dot' ? 'boss_dot' : archetype.id === 'boss_shield_dash' ? 'boss_shield_dash' : 'boss_final'),
+      };
     });
   }
 
@@ -95,13 +220,14 @@ export class BossManager {
     this.swarmTimer = 0;
     this.dotTimer = 0;
     this.dashTimer = 0;
+    this.contactDamageTimer = 0.8;
     this.isDashing = false;
 
     SoundSystem.playBossAlarm();
 
     const { width, height } = this.scene.scale;
-    const textureKey = index === 0 ? 'boss_3min' : index === 1 ? 'boss_5min' : index === 2 ? 'boss_7min' : 'boss_10min';
-    const radius = index === 0 ? 26 : index === 1 ? 30 : index === 2 ? 32 : 38;
+    const textureKey = config.textureKey || (index === 0 ? 'boss_3min' : index === 1 ? 'boss_5min' : index === 2 ? 'boss_7min' : 'boss_10min');
+    const radius = config.radius || 30;
 
     this.bossSprite = this.scene.physics.add.sprite(this.player.x, this.player.y - 320, textureKey);
     this.bossSprite.setDepth(20);
@@ -115,26 +241,28 @@ export class BossManager {
       ease: 'Back.easeOut',
     });
 
-    // Milestone announcement banner
-    const timelineLabel = index === 0 ? '3 PHÚT' : index === 1 ? '5 PHÚT' : index === 2 ? '7 PHÚT' : '10 PHÚT';
+    // Milestone announcement banner with stats
+    const timelineLabel = config.timelineSecond ? `${Math.floor(config.timelineSecond / 60)} PHÚT` : 'CHIẾN TRƯỜNG';
+    const tierBadge = config.tierLabel || `CẤP ${index + 1}`;
     const warnContainer = this.scene.add.container(width / 2, height * 0.22);
     warnContainer.setDepth(110);
     warnContainer.setScrollFactor(0);
 
-    const warnBg = this.scene.add.rectangle(0, 0, 720, 68, 0xfee2e2, 0.95);
+    const warnBg = this.scene.add.rectangle(0, 0, 740, 72, 0xfee2e2, 0.96);
     warnBg.setStrokeStyle(2, 0xdc2626);
 
-    const warnTitle = this.scene.add.text(0, -14, `⚠️ TRÙM MỐC ${timelineLabel}: ${config.name} ⚠️`, {
+    const warnTitle = this.scene.add.text(0, -16, `⚠️ [${tierBadge} - ${timelineLabel}] ${config.name} ⚠️`, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '17px',
+      fontSize: '15px',
       fontStyle: 'bold',
       color: '#dc2626',
       resolution: 2,
     }).setOrigin(0.5);
 
-    const warnDesc = this.scene.add.text(0, 14, config.testDescription || '', {
+    const statsInfo = `HP: ${config.maxHp} • Công va chạm: ${config.contactDamage} • Đạn: ${config.bulletDamage} • ${config.testDescription || ''}`;
+    const warnDesc = this.scene.add.text(0, 14, statsInfo, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '12px',
+      fontSize: '11px',
       fontStyle: 'bold',
       color: '#991b1b',
       resolution: 2,
@@ -146,17 +274,17 @@ export class BossManager {
       targets: warnContainer,
       alpha: 0,
       duration: 1000,
-      delay: 2500,
+      delay: 2600,
       onComplete: () => warnContainer.destroy(),
     });
 
-    // Boss 2: Toxic Aura graphics initialization
+    // Toxic Aura graphics initialization if mechanic is dot
     if (config.mechanicType === 'dot') {
       this.toxicAuraGfx = this.scene.add.graphics();
       this.toxicAuraGfx.setDepth(18);
     }
 
-    // Boss 3: Spawn 2 phantom illusion clones
+    // Spawn 2 phantom illusion clones if mechanic is shield_dash
     if (config.mechanicType === 'shield_dash') {
       this.spawnClones();
     }
@@ -193,10 +321,27 @@ export class BossManager {
     const bx = this.bossSprite.x;
     const by = this.bossSprite.y;
     const mechanic = this.currentBossConfig.mechanicType;
+    const bossSpeed = this.currentBossConfig.speed || 100;
+    const hitRadius = (this.currentBossConfig.radius || 30) + 14;
 
-    // 1. Movement logic based on mechanic
+    // 1. Contact damage between Boss body and Player
+    const distToPlayer = Phaser.Math.Distance.Between(bx, by, px, py);
+    if (distToPlayer < hitRadius) {
+      this.contactDamageTimer += dtSec;
+      if (this.contactDamageTimer >= 0.8) {
+        this.contactDamageTimer = 0;
+        const dmg = this.isDashing
+          ? (this.currentBossConfig.contactDamage || 20) * 1.5
+          : (this.currentBossConfig.contactDamage || 15);
+        this.player.takeDamage(Math.round(dmg));
+      }
+    } else {
+      this.contactDamageTimer = 0.8;
+    }
+
+    // 2. Movement logic based on mechanic
     if (mechanic === 'shield_dash') {
-      // Boss 3: Dash mechanic
+      // Dash mechanic
       this.dashTimer += dtSec;
       if (this.isDashing) {
         if (this.dashTimer >= 0.7) {
@@ -215,11 +360,11 @@ export class BossManager {
         } else {
           // Standard chase
           const angle = Phaser.Math.Angle.Between(bx, by, px, py);
-          this.bossSprite.setVelocity(Math.cos(angle) * this.currentBossConfig.speed, Math.sin(angle) * this.currentBossConfig.speed);
+          this.bossSprite.setVelocity(Math.cos(angle) * bossSpeed, Math.sin(angle) * bossSpeed);
         }
       }
 
-      // Update Clones
+      // Update Clones orbit
       this.clones.forEach((clone, idx) => {
         if (clone && clone.active) {
           const orbitAngle = (this.scene.time.now / 600) + (idx * Math.PI);
@@ -227,26 +372,25 @@ export class BossManager {
         }
       });
     } else {
-      // Standard chase towards player
+      // Standard chase towards player (accelerates in phase 2 and 3)
       const angle = Phaser.Math.Angle.Between(bx, by, px, py);
-      const speed = this.currentBossConfig.speed * (this.currentPhaseIndex === 1 ? 1.35 : 1.0);
+      const phaseSpeedMult = this.currentPhaseIndex === 1 ? 1.3 : this.currentPhaseIndex === 2 ? 1.5 : 1.0;
+      const speed = bossSpeed * phaseSpeedMult;
       this.bossSprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
     }
 
-    // 2. Boss 1 Swarm Mechanic: Spawn fast tiny runners every 3.5s
+    // 3. Swarm Mechanic: Spawn fast tiny runners every 3.5s
     if (mechanic === 'swarm') {
       this.swarmTimer += dtSec;
       if (this.swarmTimer >= 3.5) {
         this.swarmTimer = 0;
-        this.spawnTinySwarm(10);
+        this.spawnTinySwarm(this.currentBossConfig.minionCount || 10);
       }
       this.updateTinySwarm(px, py);
     }
 
-    // 3. Boss 2 DOT Mechanic: Toxic Zone damages player over time (1.5s tick)
+    // 4. Toxic DOT Mechanic: Toxic Zone damages player over time (1.5s tick)
     if (mechanic === 'dot') {
-      const distToPlayer = Phaser.Math.Distance.Between(bx, by, px, py);
-
       // Render toxic aura
       if (this.toxicAuraGfx) {
         this.toxicAuraGfx.clear();
@@ -260,14 +404,14 @@ export class BossManager {
         this.dotTimer += dtSec;
         if (this.dotTimer >= 1.5) {
           this.dotTimer = 0;
-          this.player.takeDamage(3); // Absorbed by shield or healed by Thiện
+          this.player.takeDamage(this.currentBossConfig.dotDamage || 4);
         }
       } else {
         this.dotTimer = 0;
       }
     }
 
-    // 4. Attack pattern timer
+    // 5. Attack pattern timer
     this.attackTimer += dtSec;
     const currentPhase = this.currentBossConfig.phases[this.currentPhaseIndex] || this.currentBossConfig.phases[0];
     const cd = currentPhase?.attackCooldown || 2.5;
@@ -278,7 +422,7 @@ export class BossManager {
     }
 
     // Community drain in later phases or final boss
-    if (currentPhase.communityMeterDrainPerSecond > 0) {
+    if (currentPhase && currentPhase.communityMeterDrainPerSecond > 0) {
       this.communityMeter.modify(-currentPhase.communityMeterDrainPerSecond * dtSec);
     }
   }
@@ -287,9 +431,11 @@ export class BossManager {
     if (!this.bossSprite?.active) return;
     const bx = this.bossSprite.x;
     const by = this.bossSprite.y;
+    const actualCount = this.currentBossConfig?.minionCount || count;
+    const minionHp = this.currentBossConfig?.minionHp || 8;
 
-    for (let i = 0; i < count; i++) {
-      const angle = (Math.PI * 2 * i) / count;
+    for (let i = 0; i < actualCount; i++) {
+      const angle = (Math.PI * 2 * i) / actualCount;
       const minion = this.tinySwarmGroup.get(
         bx + Math.cos(angle) * 35,
         by + Math.sin(angle) * 35,
@@ -298,7 +444,7 @@ export class BossManager {
 
       if (minion) {
         minion.setActive(true).setVisible(true).setDepth(15);
-        minion.setData('hp', 8);
+        minion.setData('hp', minionHp);
         minion.setCircle(5);
       }
     }
@@ -306,6 +452,8 @@ export class BossManager {
 
   private updateTinySwarm(px: number, py: number): void {
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
+    const minionDmg = this.currentBossConfig?.minionDamage || 4;
+
     for (const m of minions) {
       if (!m.active) continue;
 
@@ -317,7 +465,7 @@ export class BossManager {
       // Hit player
       const dist = Phaser.Math.Distance.Between(m.x, m.y, px, py);
       if (dist < 20) {
-        this.player.takeDamage(4);
+        this.player.takeDamage(minionDmg);
         m.setActive(false).setVisible(false);
         m.setVelocity(0, 0);
       }
@@ -325,64 +473,62 @@ export class BossManager {
   }
 
   private performBossAttack(bx: number, by: number, px: number, py: number, mechanic?: string): void {
+    const bSpeed = this.currentBossConfig?.bulletSpeed || 190;
+    const bDamage = this.currentBossConfig?.bulletDamage || 10;
+
     if (mechanic === 'swarm') {
       // 5-way fan shot
       const targetAngle = Phaser.Math.Angle.Between(bx, by, px, py);
       for (const off of [-0.3, -0.15, 0, 0.15, 0.3]) {
-        this.fireProjectile(bx, by, targetAngle + off, 180);
+        this.fireProjectile(bx, by, targetAngle + off, bSpeed, bDamage);
       }
     } else if (mechanic === 'dot') {
-      // 3 orbiting or slow toxic balls
+      // 3 slow toxic balls
       const targetAngle = Phaser.Math.Angle.Between(bx, by, px, py);
       for (const off of [-0.25, 0, 0.25]) {
-        this.fireProjectile(bx, by, targetAngle + off, 160);
+        this.fireProjectile(bx, by, targetAngle + off, bSpeed * 0.85, bDamage);
       }
     } else if (mechanic === 'shield_dash') {
       // 8-way burst
       for (let i = 0; i < 8; i++) {
         const angle = (Math.PI * 2 * i) / 8;
-        this.fireProjectile(bx, by, angle, 190);
+        this.fireProjectile(bx, by, angle, bSpeed, bDamage);
       }
     } else {
-      // Final Boss: Phase-based attacks
+      // Final / Chaos Archetype: Phase-based attacks
       if (this.currentPhaseIndex === 0) {
         // 8-way spread
         for (let i = 0; i < 8; i++) {
           const angle = (Math.PI * 2 * i) / 8;
-          this.fireProjectile(bx, by, angle, 170);
+          this.fireProjectile(bx, by, angle, bSpeed * 0.9, bDamage);
         }
       } else if (this.currentPhaseIndex === 1) {
         // Rapid aimed tri-shot
         const targetAngle = Phaser.Math.Angle.Between(bx, by, px, py);
         for (const off of [-0.2, 0, 0.2]) {
-          this.fireProjectile(bx, by, targetAngle + off, 240);
+          this.fireProjectile(bx, by, targetAngle + off, bSpeed * 1.15, bDamage);
         }
       } else {
         // 12-way apocalyptic spread + minion spawns
         for (let i = 0; i < 12; i++) {
           const angle = (Math.PI * 2 * i) / 12;
-          this.fireProjectile(bx, by, angle, 200);
+          this.fireProjectile(bx, by, angle, bSpeed, bDamage);
         }
         this.enemyManager.spawnEnemy('xuyenTacVanHoa', bx + 30, by);
       }
     }
   }
 
-  private fireProjectile(fromX: number, fromY: number, angle: number, speed: number): void {
-    const b = this.enemyManager.enemyProjectiles.get(fromX, fromY, 'enemy_bullet') as Phaser.Physics.Arcade.Image;
-    if (b) {
-      b.setActive(true).setVisible(true).setDepth(14);
-      b.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
-      this.scene.time.delayedCall(3200, () => {
-        if (b.active) b.setActive(false).setVisible(false).setVelocity(0, 0);
-      });
-    }
+  private fireProjectile(fromX: number, fromY: number, angle: number, speed: number, damage: number = 10): void {
+    const targetX = fromX + Math.cos(angle) * 100;
+    const targetY = fromY + Math.sin(angle) * 100;
+    this.enemyManager.fireEnemyBullet(fromX, fromY, targetX, targetY, damage, speed);
   }
 
   public takeDamage(amount: number, isCrit: boolean = false): boolean {
     if (!this.isBossActive || !this.bossSprite?.active || !this.currentBossConfig) return false;
 
-    // Boss 3 Phantom Shield: Reduces non-crit damage by 50% unless player has high Fight Power
+    // Phantom Shield: Reduces non-crit damage by 50% unless player has high Fight Power
     if (this.currentBossConfig.mechanicType === 'shield_dash') {
       if (!isCrit && this.player.stats.fightPower < 10) {
         amount *= 0.5;
@@ -397,8 +543,8 @@ export class BossManager {
 
     const hpPercent = (this.bossHp / this.bossMaxHp) * 100;
 
-    // Check phase transition for Final Boss
-    if (this.currentBossConfig.mechanicType === 'final') {
+    // Check phase transition for 10-minute boss or final mechanic archetype
+    if (this.currentBossIndex === 3 || this.currentBossConfig.mechanicType === 'final') {
       if (this.currentPhaseIndex === 0 && hpPercent <= 65) {
         this.currentPhaseIndex = 1;
         this.announcePhase('GIAI ĐOẠN 2: BẠO LỰC & CỰC HÓA');
@@ -438,7 +584,7 @@ export class BossManager {
       }
     }
 
-    // Drop huge XP shower (25-35 gems)
+    // Drop huge XP shower (25 gems for milestone bosses, 40 gems for final boss)
     const gemCount = isFinal ? 40 : 25;
     for (let i = 0; i < gemCount; i++) {
       const angle = (Math.PI * 2 * i) / gemCount;
@@ -454,7 +600,7 @@ export class BossManager {
       // 10-minute boss defeated -> Victory!
       this.onBossDefeatedCallback(true);
     } else {
-      // Milestone Boss 1, 2, or 3 defeated -> Celebrate & continue run!
+      // Milestone Boss (3m, 5m, 7m) defeated -> Celebrate & continue run!
       SoundSystem.playLevelUp();
 
       const { width, height } = this.scene.scale;
@@ -462,12 +608,12 @@ export class BossManager {
       toast.setDepth(110);
       toast.setScrollFactor(0);
 
-      const bg = this.scene.add.rectangle(0, 0, 700, 60, 0xdcfce7, 0.96);
+      const bg = this.scene.add.rectangle(0, 0, 720, 62, 0xdcfce7, 0.96);
       bg.setStrokeStyle(2, 0x16a34a);
 
       const text = this.scene.add.text(0, 0, `✨ ĐÃ ĐẨY LÙI ${bossName}! CHIẾN TRƯỜNG TIẾP TỤC! ✨`, {
         fontFamily: 'system-ui, sans-serif',
-        fontSize: '15px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#15803d',
         resolution: 2,
@@ -527,7 +673,7 @@ export class BossManager {
       }
     }
 
-    // 2. Check hitting tiny swarm minions (Boss 1 fast swarms)
+    // 2. Check hitting tiny swarm minions
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
     for (const m of minions) {
       if (m.active && projectile.active) {
@@ -549,7 +695,8 @@ export class BossManager {
     // 3. Check hitting the main boss
     if (this.bossSprite?.active && projectile.active) {
       const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, this.bossSprite.x, this.bossSprite.y);
-      if (dist < 42) {
+      const hitRadius = (this.currentBossConfig?.radius || 30) + 12;
+      if (dist < hitRadius) {
         let dmg = projectile.damage;
         if (fightPowerBonusMultiplier > 0) {
           dmg *= (1 + fightPowerBonusMultiplier);
