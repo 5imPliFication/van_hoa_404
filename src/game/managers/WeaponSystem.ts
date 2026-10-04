@@ -24,6 +24,19 @@ export class WeaponSystem {
     });
   }
 
+  public clearAllProjectiles(): void {
+    const bullets = this.projectiles.getChildren() as Projectile[];
+    for (const b of bullets) {
+      if (b.active) {
+        b.deactivate();
+      }
+    }
+  }
+
+  public readyToFire(): void {
+    this.fireTimer = 999999;
+  }
+
   public update(dt: number, activeEnemies: Enemy[]): void {
     if (!this.player.isAlive) return;
 

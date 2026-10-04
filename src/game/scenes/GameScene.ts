@@ -636,14 +636,17 @@ export class GameScene extends Phaser.Scene {
     for (const e of enemies) {
       e.setVelocity(0, 0);
     }
-    const bullets = this.weaponSystem.projectiles.getChildren() as Projectile[];
-    for (const b of bullets) {
-      b.setVelocity(0, 0);
-    }
+
+    // Clean up in-flight projectiles so they do not freeze in mid-air or get stuck
+    this.weaponSystem.clearAllProjectiles();
+    this.enemyManager.clearEnemyBullets();
+    this.bossManager.pauseBossPhysics();
   }
 
   private resumeCombat(): void {
     this.isPaused = false;
+    // Instantly ready weapon to fire fresh shots upon resuming
+    this.weaponSystem.readyToFire();
   }
 
   private onBossDefeated(isFinal: boolean): void {
@@ -670,6 +673,8 @@ export class GameScene extends Phaser.Scene {
         isVictory: isVictory,
         communityMeter: this.communityMeter.meterValue,
         killedBy: isVictory ? undefined : this.player.lastDamagedBy,
+        buildPower: this.player.stats.buildPower,
+        fightPower: this.player.stats.fightPower,
       });
     });
   }

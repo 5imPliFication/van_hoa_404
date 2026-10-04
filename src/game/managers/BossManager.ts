@@ -312,6 +312,18 @@ export class BossManager {
     this.clones = [];
   }
 
+  public pauseBossPhysics(): void {
+    if (this.bossSprite?.active) {
+      this.bossSprite.setVelocity(0, 0);
+    }
+    const minions = this.tinySwarmGroup?.getChildren() as Phaser.Physics.Arcade.Sprite[];
+    if (minions) {
+      for (const m of minions) {
+        if (m.active) m.setVelocity(0, 0);
+      }
+    }
+  }
+
   public update(dt: number): void {
     if (!this.isBossActive || !this.bossSprite?.active || !this.currentBossConfig) return;
 

@@ -158,6 +158,17 @@ export class EnemyManager {
     });
   }
 
+  public clearEnemyBullets(): void {
+    const bullets = this.enemyProjectiles.getChildren() as Phaser.Physics.Arcade.Image[];
+    for (const b of bullets) {
+      if (b.active) {
+        b.setActive(false);
+        b.setVisible(false);
+        b.setVelocity(0, 0);
+      }
+    }
+  }
+
   private updateEnemyProjectiles(px: number, py: number): void {
     const bullets = this.enemyProjectiles.getChildren() as Phaser.Physics.Arcade.Image[];
     for (const b of bullets) {
