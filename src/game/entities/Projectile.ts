@@ -8,6 +8,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
   public maxPierces: number = 1;
   private lifeTime: number = 0;
   private readonly maxLifeTime: number = 3000; // ms
+  private hitTargetIds: Set<string> = new Set();
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player_bullet');
@@ -15,6 +16,14 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     this.setCircle(6, 2, 2);
     this.setDepth(15);
+  }
+
+  public hasHitTarget(id: string): boolean {
+    return this.hitTargetIds.has(id);
+  }
+
+  public registerHitTarget(id: string): void {
+    this.hitTargetIds.add(id);
   }
 
   public fire(
@@ -37,6 +46,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     this.pierceCount = 0;
     this.maxPierces = isPierce ? 99 : 1;
     this.lifeTime = 0;
+    this.hitTargetIds.clear();
 
     if (isPierce) {
       this.setTexture('player_bullet_pierce');
@@ -84,5 +94,6 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     this.setActive(false);
     this.setVisible(false);
     this.setVelocity(0, 0);
+    this.hitTargetIds.clear();
   }
 }

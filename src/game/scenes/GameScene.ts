@@ -145,6 +145,8 @@ export class GameScene extends Phaser.Scene {
     this.weaponSystem = new WeaponSystem(this, this.player);
     this.enemyManager.weaponSystem = this.weaponSystem;
     this.communityMeter = new CommunityMeterManager(this, this.player);
+    this.player.communityMeter = this.communityMeter;
+    this.enemyManager.communityMeter = this.communityMeter;
     this.waveManager = new WaveManager(this.enemyManager);
 
     this.upgradeManager = new UpgradeManager(this, this.player, this.communityMeter, () => {
@@ -651,7 +653,7 @@ export class GameScene extends Phaser.Scene {
 
     // 3. Systems update
     this.waveManager.update(this.runSeconds, dt);
-    this.communityMeter.update(dt, activeEnemies.length);
+    this.communityMeter.update(dt, activeEnemies.length, this.bossManager.isBossActive);
     this.evolutionManager.checkEvolutions();
 
     // 4. Boss logic & timeline checks (3m, 5m, 7m, 10m)

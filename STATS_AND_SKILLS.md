@@ -10,62 +10,69 @@ Tài liệu chi tiết toàn bộ các cơ chế chỉ số nhân vật, hệ th
 | :--- | :---: | :--- | :--- |
 | **`hp`** | 100 | Máu hiện tại của nhân vật. Khi nhận sát thương từ quái hoặc sự kiện, HP sẽ bị trừ. Nếu HP tụt về `<= 0`, người chơi tử trận. | Hồi máu qua trụ cột Thiện (+2 HP/5s), Tiến hóa Văn Hóa Ứng Xử, hoặc lựa chọn đúng sự kiện. |
 | **`maxHp`** | 100 | Máu tối đa của nhân vật. Mọi hiệu ứng hồi máu đều bị giới hạn bởi trần `maxHp`. | Có thể gia tăng thông qua các hiệu ứng đặc biệt. |
-| **`moveSpeed`** | 240 | Tốc độ di chuyển tính theo pixel/giây (hỗ trợ phím WASD, mũi tên, hoặc kéo ngón tay trên màn cảm ứng). | Nâng cấp thẻ Xây (+15%/cấp), lựa chọn sự kiện tích cực. |
-| **`damage`** | 20 | Sát thương cơ bản của mỗi phát đạn bắn ra. | Nâng cấp thẻ Chân (+20%), thẻ Chống (+5), các Tiến Hóa, và buff tạm thời từ sự kiện. |
-| **`attackSpeed`** | 1.2 | Tốc độ bắn (số phát bắn mỗi giây). Thời gian giãn cách giữa 2 loạt bắn: `cooldown = 1000 / attackSpeed` ms. | Nâng cấp thẻ Khoa Học (+15%/cấp), sự kiện tích cực. |
-| **`projectileCount`**| 1 | Số lượng tia đạn phát ra trong mỗi đòn tấn công. Khi > 1, vũ khí tự động bắn chùm hình nón tỏa đều góc `0.15 rad`. | Nâng cấp thẻ Chống (+1 tia đạn/cấp). |
+| **`moveSpeed`** | 240 | Tốc độ di chuyển tính theo pixel/giây (hỗ trợ phím WASD, mũi tên, hoặc kéo ngón tay trên màn cảm ứng). | Nâng cấp thẻ Xây (+12/cấp, tối đa cấp 5), buff Môi Trường Trong Lành (+8%). |
+| **`damage`** | 15 | Sát thương cơ bản của mỗi phát đạn bắn ra. | Nâng cấp thẻ Chân (+2.5/cấp), thẻ Chống (+2/cấp), thẻ Mỹ (+1.8/cấp), Tiến Hóa, và buff tạm thời. |
+| **`attackSpeed`** | 1.2 | Tốc độ bắn (số phát bắn mỗi giây). Thời gian giãn cách giữa 2 loạt bắn: `cooldown = 1000 / attackSpeed` ms. | Nâng cấp thẻ Khoa Học (+0.1/cấp, tối đa cấp 5), sự kiện tích cực. |
+| **`projectileCount`**| 1 | Số lượng tia đạn phát ra trong mỗi đòn tấn công. Đạn tỏa đều hình nón `0.15 rad`. | Nâng cấp thẻ Chống (+1 tia tại các mốc Cấp 1, Cấp 3, Cấp 5; tối đa 4 tia). |
 | **`projectileSpeed`**| 450 | Vận tốc bay của viên đạn (pixel/giây). Giúp đạn bay nhanh đến mục tiêu di động. | Chỉ số cơ bản của vũ khí. |
-| **`pickupRadius`** | 90 | Bán kính hút ngọc kinh nghiệm XP (Magnet Radius). Ngọc trong phạm vi này sẽ tự động lướt mượt mà về phía người chơi. | Nâng cấp thẻ Đại Chúng (+30px/cấp). |
-| **`critChance`** | 5% (0.05) | Tỉ lệ đòn đánh gây sát thương chí mạng (**x2.0 sát thương**, hiển thị số damage màu vàng kim nổi bật). | Nâng cấp thẻ Khoa Học (+5%/cấp). |
-| **`shield`** | 0 | Điểm khiên bảo vệ. Hấp thụ toàn bộ sát thương thay cho HP cho đến khi cạn kiệt. | Nâng cấp thẻ Dân Tộc (+25 khiên), các quyết định sự kiện bảo vệ văn hóa. |
-| **`buildPower`** | 0 | **Sức mạnh Kiến Tạo (Xây)**: Tăng tốc độ hồi phục Môi Trường Văn Hóa (+2%/điểm), tăng hiệu lực hồi máu định kỳ (+2%/điểm), và tăng sát thương Hào Quang (+0.4 dmg/điểm). | Thẻ Xây (+15), thẻ Đại Chúng (+5), Tiến Hóa Mặt Trận Văn Hóa (+15). |
-| **`fightPower`** | 0 | **Sức mạnh Đấu Tranh (Chống)**: Tăng trực tiếp toàn bộ sát thương vũ khí (+1.5%/điểm) lên quái và Boss, đồng thời gia tăng lực đẩy lùi (+2px/điểm) khi bắn trúng quái. | Thẻ Chống (+10), Tiến Hóa Mặt Trận Văn Hóa (+15). |
+| **`pickupRadius`** | 90 | Bán kính hút ngọc kinh nghiệm XP (Magnet Radius). Ngọc trong phạm vi này sẽ tự động lướt mượt mà về phía người chơi. | Nâng cấp thẻ Đại Chúng (+22px/cấp, tối đa cấp 5). |
+| **`critChance`** | 5% (0.05) | Tỉ lệ đòn đánh gây sát thương chí mạng (**x2.0 sát thương**, hiển thị số damage màu vàng cam nổi bật). | Nâng cấp thẻ Khoa Học (+4%/cấp, tối đa 25%). |
+| **`shield`** | 0 | Điểm khiên bảo vệ. Hấp thụ toàn bộ sát thương thay cho HP cho đến khi cạn kiệt. | Nâng cấp thẻ Dân Tộc (+15 khiên/cấp, tối đa +75 khiên), các quyết định sự kiện. |
+| **`buildPower`** | 0 | **Sức mạnh Kiến Tạo (Xây)**: Tăng tốc độ thanh lọc Môi Trường (+0.02%/điểm), tăng hiệu lực hồi máu định kỳ (+2%/điểm), và tăng sát thương Hào Quang (+0.4 dmg/điểm). | Thẻ Xây (+4/cấp), thẻ Đại Chúng (+3/cấp), Tiến Hóa Mặt Trận Văn Hóa (+15). |
+| **`fightPower`** | 0 | **Sức mạnh Đấu Tranh (Chống)**: Tăng trực tiếp toàn bộ sát thương vũ khí (+1.0%/điểm) lên quái và Boss, đồng thời gia tăng lực đẩy lùi (+2px/điểm) khi bắn trúng quái. | Thẻ Chống (+5 đến +10/cấp), Tiến Hóa Mặt Trận Văn Hóa (+15). |
 
 ---
 
-## 2. HỆ THỐNG 8 TRỤ CỘT NÂNG CẤP (Cultural Upgrades)
+## 2. HỆ THỐNG 8 TRỤ CỘT & GIỚI HẠN CẤP ĐỘ (Stat Level Cap: Max 5)
 
-Mỗi lần nhặt đủ hạt ngọc kinh nghiệm (XP) để lên cấp, người chơi được chọn 1 trong 3 thẻ bài ngẫu nhiên:
+Mỗi chỉ số trụ cột có **giới hạn tối đa là Cấp 5 (Level Cap: 5/5)**. Khi một trụ cột đạt Cấp 5, các thẻ bài của trụ cột đó sẽ không còn xuất hiện trong danh sách lựa chọn thăng cấp, khuyến khích người chơi xây dựng bộ chỉ số cân bằng, đa dạng thay vì dồn toàn lực vào một chỉ số duy nhất.
 
-### 1. Tư Duy Phản Biện (Khoa Học I)
-* **Trụ cột**: `khoaHoc` (+1)
-* **Hiệu ứng**: `+15% Tốc độ bắn`, `+5% Tỉ lệ bạo kích (Chí mạng x2)`
-* **Ý nghĩa & Khắc chế**: Rèn luyện khả năng kiểm chứng logic, tăng nhịp độ công kích và xác suất hạ gục nhanh các hiện tượng **Tin Giả**.
+Nếu người chơi tối đa hóa toàn bộ 8 trụ cột (tổng 40 cấp), thẻ bài đặc biệt **Đại Viên Mãn Giá Trị (Hồi Phục)** sẽ được kích hoạt để hồi phục sinh lực và khiên chắn.
 
-### 2. Bản Sắc Bền Vững (Dân Tộc I)
-* **Trụ cột**: `danToc` (+1)
-* **Hiệu ứng**: `+25 Khiên chắn bảo vệ kiên cố`
-* **Ý nghĩa & Khắc chế**: Bảo tồn giá trị cốt lõi, tạo lớp khiên dày giúp chống đỡ sự xuyên tạc và công kích độc hại từ các hiện tượng **Xuyên Tạc Văn Hóa**.
+### 1. Tư Duy Phản Biện (Khoa Học: 1 → 5)
+* **Trụ cột**: `khoaHoc` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+8% Tốc độ bắn`, `+4% Tỉ lệ bạo kích` (Cấp 5: +40% tốc bắn, +20% bạo kích)
+* **Ý nghĩa**: Rèn luyện khả năng kiểm chứng logic, tăng nhịp xả đạn và xác suất chí mạng x2.
 
-### 3. Lan Tỏa Cộng Đồng (Đại Chúng I)
-* **Trụ cột**: `daiChung` (+1)
-* **Hiệu ứng**: `+30 Bán kính nhặt XP`, `+5 Sức mạnh Xây`, `Kích hoạt Hào Quang Văn Hóa`
-* **Ý nghĩa & Khắc chế**: Mở rộng tầm kết nối cộng đồng, hút XP từ xa và tạo vùng năng lượng làm chậm quái vật, giải tán hiện tượng **Tâm Lý Đám Đông**.
+### 2. Bản Sắc Bền Vững (Dân Tộc: 1 → 5)
+* **Trụ cột**: `danToc` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+15 Khiên chắn bảo vệ`, `+10 Máu tối đa (HP)` (Cấp 5: +75 khiên, +50 HP)
+* **Ý nghĩa**: Củng cố sức chống chịu bền vững, bảo vệ người chơi trước các đợt công kích dồn dập.
 
-### 4. Xác Thực Chân Lý (Chân I)
-* **Trụ cột**: `chan` (+1)
-* **Hiệu ứng**: `+20% Sát thương đạn chuẩn xác vĩnh viễn`
-* **Ý nghĩa & Khắc chế**: Tôn trọng sự thật khách quan, tăng uy lực đạn để thổi bay các thông tin giật gân, độc hại như **Clickbait** và **Tin Giả**.
+### 3. Lan Tỏa Cộng Đồng (Đại Chúng: 1 → 5)
+* **Trụ cột**: `daiChung` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+22 Bán kính nhặt XP`, `+3 Sức mạnh Xây`, mở rộng Hào quang Văn hóa
+* **Ý nghĩa**: Kết nối cộng đồng, thu hút ngọc kinh nghiệm từ xa và gia tăng năng lực bảo vệ môi trường.
 
-### 5. Ứng Xử Văn Minh (Thiện I)
-* **Trụ cột**: `thien` (+1)
-* **Hiệu ứng**: `Tự động hồi phục 2 HP sau mỗi 5 giây` (được tăng cường thêm bởi Sức mạnh Xây)
-* **Ý nghĩa & Khắc chế**: Lan tỏa sự tử tế, hồi phục tinh thần và sinh lực trước các đợt tấn công từ xa của hiện tượng **Bạo Lực Ngôn Từ**.
+### 4. Xác Thực Chân Lý (Chân: 1 → 5)
+* **Trụ cột**: `chan` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+15% Sát thương đạn chuẩn xác` (+2.5 sát thương cơ bản mỗi cấp)
+* **Ý nghĩa**: Nâng tầm sát thương thực chất, không bị phụ thuộc vào may rủi.
 
-### 6. Thẩm Mỹ Số (Mỹ I)
-* **Trụ cột**: `my` (+1)
-* **Hiệu ứng**: `+15% Sát thương diện rộng`, `Mở rộng tầm sát thương của Hào Quang`
-* **Ý nghĩa & Khắc chế**: Tôn vinh cái đẹp và sự sáng tạo nguyên bản, khắc chế hiện tượng **Đạo Nhái** và nội dung rác câu view.
+### 5. Ứng Xử Văn Minh (Thiện: 1 → 5)
+* **Trụ cột**: `thien` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `Hồi phục +1 HP mỗi 4 giây` (Cấp 5: hồi 5 HP mỗi 4s, tăng theo Sức mạnh Xây)
+* **Ý nghĩa**: Duy trì sức bền sinh lực trường kỳ trong các trận chiến kéo dài.
 
-### 7. Tường Lửa Chống Lệch Chuẩn (Chống I)
-* **Trụ cột**: `fight` (+1)
-* **Hiệu ứng**: `+1 Tia đạn bổ sung (Bắn chùm đa tia)`, `+5 Sát thương đạn gốc`, `+10 Sức mạnh Chống`
-* **Ý nghĩa & Khắc chế**: Tinh thần đấu tranh quyết liệt đẩy lùi cái xấu, tăng diện bao phủ hỏa lực và gia tăng cự ly đẩy lùi quái vật.
+### 6. Thẩm Mỹ Số (Mỹ: 1 → 5)
+* **Trụ cột**: `my` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+10% Sát thương diện rộng` (+1.8 sát thương) và mở rộng +12% bán kính Hào quang
+* **Ý nghĩa**: Mở rộng tầm bảo vệ và sát thương diện rộng thanh tẩy khu vực xung quanh.
 
-### 8. Kiến Tạo Giá Trị Tích Cực (Xây I)
-* **Trụ cột**: `build` (+1)
-* **Hiệu ứng**: `+15% Tốc độ di chuyển`, `Hồi phục ngay lập tức 15% Môi Trường Văn Hóa`, `+15 Sức mạnh Xây`
-* **Ý nghĩa & Khắc chế**: Tinh thần xây dựng không gian mạng nhân văn, tăng độ cơ động né đòn và củng cố vững chắc thanh Môi Trường Văn Hóa.
+### 7. Tường Lửa Chống Lệch Chuẩn (Chống: 1 → 5)
+* **Trụ cột**: `fight` (+1 cấp, tối đa 5)
+* **Phân phối cấp độ chuẩn xác**:
+  * **Cấp 1**: `+1 Tia đạn (Tổng 2 tia)`, `+2 Sát thương`, `+5 Sức mạnh Chống`
+  * **Cấp 2**: `+2 Sát thương chuẩn`, `+6 Sức mạnh Chống`
+  * **Cấp 3**: `+1 Tia đạn (Tổng 3 tia)`, `+2 Sát thương`, `+7 Sức mạnh Chống`
+  * **Cấp 4**: `+2 Sát thương chuẩn`, `+8 Sức mạnh Chống`
+  * **Cấp 5 (Tối Đa)**: `+1 Tia đạn tối thượng (Tổng 4 tia)`, `+2 Sát thương`, `+9 Sức mạnh Chống`
+* **Ý nghĩa**: Khống chế số lượng tia đạn ở mức tối đa 4 tia, ngăn chặn việc xả đạn vô tận làm mất cân bằng trận đấu.
+
+### 8. Kiến Tạo Giá Trị Tích Cực (Xây: 1 → 5)
+* **Trụ cột**: `build` (+1 cấp, tối đa 5)
+* **Hiệu ứng mỗi cấp**: `+12 Tốc độ di chuyển`, `Hồi phục ngay +10% Môi Trường Số`, `+4 Sức mạnh Xây`
+* **Ý nghĩa**: Tăng tốc độ cơ động né đòn và kích hoạt khả năng thanh lọc môi trường liên tục.
 
 ---
 
@@ -160,17 +167,27 @@ Các tình huống xuất hiện ngắt nhịp trận đấu, yêu cầu ngườ
 
 ---
 
-## 5. CƠ CHẾ MÔI TRƯỜNG VĂN HÓA (Community Meter)
+## 5. CƠ CHẾ CÂN BẰNG MÔI TRƯỜNG VĂN HÓA SỐ (Dynamic Community Meter)
+
+Nhằm khắc phục tình trạng chỉ số Môi Trường bị "khóa cứng ở 100%" và trở nên vô nghĩa khi người chơi đã mạnh, hệ thống Môi Trường được đại tu thành một **hệ sinh thái động lực học hai chiều**:
 
 * **Thang điểm**: `0% — 100%` (Khởi điểm: `75%`).
-* **Quy luật suy giảm**: Khi để quái vật tích tụ đông đảo trên màn hình (`> 25 quái`), không gian mạng bị vẩn đục, thanh Môi Trường giảm `-0.6%/giây`.
-* **Quy luật phục hồi**:
-  * Khi quét sạch chiến trường (`< 10 quái`) và có đầu tư điểm Xây (`values.build > 0`), thanh tự hồi phục `+0.4%/giây x (1 + buildPower * 0.02)`.
-  * Nhận trực tiếp khi chọn thẻ **Xây I** (`+15%`), **Mặt Trận Văn Hóa** (`+25%`), hoặc các lựa chọn sự kiện tích cực (`+10%` đến `+25%`).
-* **Trạng thái Khủng hoảng (Crisis State)**: Khi Môi Trường chạm đáy `0%`, người chơi không bị xử thua ngay lập tức mà bị áp dụng **Debuff Nghiêm Trọng**:
-  * **`-25% Sát thương`**
-  * **`-20% Tốc độ di chuyển`**
-  * Trạng thái này chỉ được giải trừ khi người chơi phục hồi chỉ số Môi Trường trở lại trên `20%`.
+* **Áp lực ô nhiễm số liên tục (Continuous Digital Pollution)**:
+  * Mỗi quái vật tiêu cực đang tồn tại trên bản đồ liên tục phát tán "rác thông tin": `Ô nhiễm = -0.035% x số quái / giây`. (Ví dụ: 15 quái = -0.525%/s; 25 quái = -0.875%/s).
+  * Khi có Đại Trùm đang hoành hành trên chiến trường: Áp lực khủng hoảng cộng thêm `-0.45%/giây`.
+  * **Tổn hại khi bị công kích (Damage Contamination)**: Mỗi khi người chơi bị quái vật đánh trúng làm mất HP, độc tố số ngấm vào cộng đồng, thanh Môi Trường bị trừ trực tiếp `-0.12 x sát thương gánh chịu`.
+* **Cơ chế phục hồi & Thanh lọc (Purification & Restoration)**:
+  * **Năng lượng Xây (Build Power)**: Mỗi điểm đầu tư vào trụ cột Xây và chỉ số Sức mạnh Xây tạo ra trường thanh lọc tự động liên tục: `Phục hồi = (values.build * 0.12 + buildPower * 0.02) / giây`. Người chơi càng đầu tư vào Xây, tốc độ tự làm sạch không gian mạng càng mạnh mẽ.
+  * Tiêu diệt Quái Tinh Anh (Elite): Lập tức hồi `+3.5%` Môi Trường.
+  * Tiêu diệt Đại Trùm: Lập tức thanh tẩy toàn bộ chiến trường `+20%` Môi Trường.
+* **4 Trạng thái Môi Trường & Cơ chế Thưởng / Phạt**:
+  1. **Trong Lành (`> 70%`)** *(Thanh xanh ngọc `#10b981`)*: Không gian mạng văn minh, lành mạnh. Người chơi nhận **Buff Khuyến Khích: `+8% Tốc độ di chuyển`**.
+  2. **Bình Thường (`30% — 70%`)** *(Thanh lam cyber `#0891b2`)*: Mức ổn định cơ bản.
+  3. **Ô Nhiễm (`< 30%`)** *(Thanh cam cảnh báo `#f59e0b`)*: Báo động không gian mạng bắt đầu suy thoái, quái vật xuất hiện dồn dập hơn.
+  4. **Khủng Hoảng Toàn Diện (`<= 0%`)** *(Thanh đỏ rực `#dc2626`)*: Người chơi chịu **Debuff Nghiêm Trọng**:
+     * **`-25% Sát thương`**
+     * **`-20% Tốc độ di chuyển`**
+     * Debuff chỉ được hóa giải khi khôi phục thanh Môi Trường vượt mốc `25%`.
 
 ---
 
@@ -185,24 +202,22 @@ $$\text{nextLevelXP}(L) = \left\lfloor 10 + 70 \cdot \left(1 - e^{-0.085 \cdot (
 2. **Tăng độ thử thách mượt mà (Levels 4 — 10)**: Số XP yêu cầu tăng dần đều đặn (`26 — 64 XP`) tương ứng với mật độ quái vật bắt đầu đông hơn trên bản đồ.
 3. **Không tạo "bức tường kinh nghiệm" (Levels 15+)**: Nhờ độ cong tiệm cận của hàm nghịch đảo hàm mũ, mức XP yêu cầu không bị bùng nổ vô tận mà duy trì tốc độ thăng cấp ổn định (`75 — 95 XP`), giúp người chơi liên tục có cơ hội nâng cấp và thử nghiệm chiến thuật.
 
-| Cấp độ | XP cần để lên cấp tiếp theo | Nhịp độ trải nghiệm |
-| :---: | :---: | :--- |
-| **Cấp 1 → 2** | `10 XP` | Nhặt vài ngọc quái đầu tiên, mở khóa thẻ trụ cột đầu tiên |
-| **Cấp 2 → 3** | `18 XP` | Định hình phong cách (Xây, Chống, hoặc Khoa học) |
-| **Cấp 3 → 4** | `26 XP` | Chuẩn bị trước đợt sóng quái bầy đàn đầu tiên |
-| **Cấp 5 → 6** | `40 XP` | Đạt ngưỡng kích hoạt Tiến hóa đầu tiên nếu chọn đúng cặp |
-| **Cấp 7 → 8** | `52 XP` | Chuẩn bị đối đầu Trùm 3 phút |
-| **Cấp 10 → 11** | `67 XP` | Củng cố sức mạnh đối đầu Trùm 5 phút |
-| **Cấp 15 → 16** | `85 XP` | Đạt 2-3 Kỹ năng Tiến hóa, đối đầu Trùm 7 phút |
-| **Cấp 20+** | `~98+ XP` | Sức mạnh toàn diện đối đầu Đại Trùm 10 phút |
-
 ---
 
----
-
-## 7. HỆ THỐNG 4 TRÙM: XUẤT HIỆN NGẪU NHIÊN & PHÂN CẤP CHỈ SỐ BẮT BUỘC
+## 7. HỆ THỐNG 4 TRÙM, THANH MÁU TRÙM TRÊN ĐỈNH & CƠ CHẾ CHỐNG STACK ĐẠN
 
 Trận đấu được cấu trúc thành 4 mốc thử thách trùm then chốt tại các phút **3, 5, 7 và 10**.
+
+### 👑 Thanh Máu Trùm Cố Định Trên Đỉnh Màn Hình (Top Boss Health Bar):
+* Khi Trùm xuất hiện, một thanh máu hoành tráng dài 620px cố định trên đỉnh màn hình (ngay dưới thanh HUD) sẽ hiện ra:
+  * **Huy hiệu & Tên Trùm**: `👑 [CẤP I - 3 PHÚT] CƠN BÃO TÂM LÝ ĐÁM ĐÔNG`
+  * **Thanh máu trực tiếp**: Dải màu đỏ sẫm `#dc2626` co giãn mượt mà theo sát thương gánh chịu.
+  * **Chỉ số chi tiết**: Hiển thị chính xác `[HP Hiện Tại / HP Tối Đa (Phần Trăm %)]`.
+  * **Biến mất mượt mà**: Khi Trùm bị hạ gục, thanh máu tự động mờ dần và giải phóng tầm nhìn.
+
+### 🛡️ Khắc Phục Lỗi Xuyên Thấu Gây Sát Thương Đa Tầng (Anti-Frame Stacking):
+* Trước đây, đạn xuyên thấu khi bay qua thân trùm khổng lồ (bán kính 40px) kích hoạt va chạm trên từng khung hình (60 frame/s), gây ra hàng chục lần sát thương trong chớp mắt khiến trùm bị "one-shot".
+* **Giải pháp**: Mỗi viên đạn tích hợp cơ chế `hitTargetIds: Set<string>`. Một viên đạn chỉ có thể gây sát thương lên thân trùm hoặc cùng 1 quái vật **duy nhất 1 lần trong suốt đường bay**, giữ vững tính thử thách và yêu cầu người chơi phải né đòn, câu kéo và phối hợp kỹ năng thực thụ.
 
 ### 🎲 Cơ Chế Ngẫu Nhiên Thứ Tự Trùm (Randomized Boss Order):
 Trong mỗi ván chơi mới, thứ tự xuất hiện của 4 chủng loại trùm sẽ được **xáo trộn ngẫu nhiên hoàn toàn** (Fisher-Yates Shuffle). Người chơi không thể đoán trước trùm nào sẽ xuất hiện ở phút nào (tổng cộng 24 hoán vị chiến trường khác nhau).
@@ -221,7 +236,7 @@ $$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số 
 | **Chỉ số quái bầy đàn đệ tử** | 8 quái (16 HP, 3 dmg) | 12 quái (32 HP, 6 dmg) | 16 quái (55 HP, 9 dmg) | 20 quái (90 HP, 14 dmg) |
 | **Tốc độ di chuyển trùm** | `100 px/s` | `115 px/s` | `125 px/s` | `135 px/s` |
 | **Bán kính thể hình trùm** | `26 px` | `30 px` | `34 px` | `40 px` |
-| **Kết cục khi bị tiêu diệt** | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 25 XP, +25% Môi Trường, tiếp tục | Rơi 40 XP, **Chiến Thắng Chung Cuộc** |
+| **Kết cục khi bị tiêu diệt** | Rơi 25 XP, +20% Môi Trường, tiếp tục | Rơi 25 XP, +20% Môi Trường, tiếp tục | Rơi 25 XP, +20% Môi Trường, tiếp tục | Rơi 40 XP, **Chiến Thắng Chung Cuộc** |
 
 ### 4 Thể Loại Cơ Chế Trùm (Boss Archetypes):
 1. **Trùm Bầy Đàn (`swarm`)**: Triệu hồi đàn quái tí hon lao thần tốc bổ nhào vào người chơi, bắn chùm đạn quạt 5 hướng.

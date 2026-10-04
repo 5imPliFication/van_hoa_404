@@ -27,6 +27,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public healPerInterval: number = 0;
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
   public lastDamagedBy: string = 'Hiện tượng tiêu cực trên mạng';
+  public communityMeter?: any;
+
+  public getStatLevel(pillar: Pillar): number {
+    return this.values[pillar] || 0;
+  }
+
+  public isStatMaxed(pillar: Pillar): boolean {
+    return (this.values[pillar] || 0) >= 5;
+  }
+
+  public areAllStatsMaxed(): boolean {
+    const pillars: Pillar[] = ['danToc', 'khoaHoc', 'daiChung', 'chan', 'thien', 'my', 'build', 'fight'];
+    return pillars.every(p => (this.values[p] || 0) >= 5);
+  }
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -208,6 +222,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (remaining > 0) {
       this.stats.hp = Math.max(0, this.stats.hp - remaining);
+      this.communityMeter?.modify(-remaining * 0.12);
       this.scene.cameras.main.shake(120, 0.006);
 
       // Red hit flash
@@ -232,32 +247,65 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public applyUpgrade(upgrade: UpgradeConfig, onCommunityRestore?: (val: number) => void): void {
-    const e = upgrade.effects;
-
-    if (e.damageAdd) this.stats.damage += e.damageAdd;
-    if (e.damageMultiplier) this.stats.damage *= e.damageMultiplier;
-    if (e.attackSpeedMultiplier) this.stats.attackSpeed *= e.attackSpeedMultiplier;
-    if (e.moveSpeedMultiplier) this.stats.moveSpeed *= e.moveSpeedMultiplier;
-    if (e.critChanceAdd) this.stats.critChance += e.critChanceAdd;
-    if (e.pickupRadiusAdd) this.stats.pickupRadius += e.pickupRadiusAdd;
-    if (e.shieldAdd) this.stats.shield += e.shieldAdd;
-    if (e.healPerInterval) this.healPerInterval += e.healPerInterval;
-    if (e.communityPowerAdd) {
-      this.stats.buildPower += e.communityPowerAdd;
-      if (onCommunityRestore) onCommunityRestore(e.communityPowerAdd);
-    }
-    if (e.fightPowerAdd) this.stats.fightPower += e.fightPowerAdd;
-    if (e.projectileCountAdd) this.stats.projectileCount += e.projectileCountAdd;
-    if (e.projectileSpeedMultiplier) this.stats.projectileSpeed *= e.projectileSpeedMultiplier;
-    if (e.maxHpAdd) {
-      this.stats.maxHp += e.maxHpAdd;
-      this.stats.hp += e.maxHpAdd;
+    if (upgrade.id === 'sustain_mastery') {
+      this.heal(40);
+      this.stats.shield += 25;
+      if (onCommunityRestore) onCommunityRestore(20);
+      return;
     }
 
-    // Increment corresponding pillar value
     const cat = upgrade.category as Pillar;
-    if (cat in this.values) {
-      this.values[cat] = (this.values[cat] || 0) + 1;
+    const currentLevel = this.values[cat] || 0;
+    if (currentLevel >= 5) return; // Hard level cap of 5!
+
+    const nextLvl = currentLevel + 1;
+    this.values[cat] = nextLvl;
+
+    switch (cat) {
+      case 'fight': // Chống: Additional projectile at lvl 1, 3, 5 (Max 4 projectiles total); flat damage
+        if (nextLvl === 1 || nextLvl === 3 || nextLvl === 5) {
+          this.stats.projectileCount += 1;
+        }
+        this.stats.damage += 2;
+        this.stats.fightPower += 4 + nextLvl;
+        break;
+
+      case 'chan': // Chân: +15% damage bonus
+        this.stats.damage += 2.5;
+        break;
+
+      case 'my': // Mỹ: +10% AOE damage bonus and aura expansion
+        this.stats.damage += 1.8;
+        if (this.auraRing) {
+          this.auraRing.setScale(0.8 + nextLvl * 0.12);
+        }
+        break;
+
+      case 'khoaHoc': // Khoa Học: +8% attack speed, +4% crit
+        this.stats.attackSpeed += 0.1;
+        this.stats.critChance += 0.04;
+        break;
+
+      case 'danToc': // Dân Tộc: +15 shield, +10 max HP
+        this.stats.shield += 15;
+        this.stats.maxHp += 10;
+        this.stats.hp += 10;
+        break;
+
+      case 'thien': // Thiện: HP regeneration
+        this.healPerInterval += 1;
+        break;
+
+      case 'daiChung': // Đại Chúng: +22 pickup radius, +3 build power
+        this.stats.pickupRadius += 22;
+        this.stats.buildPower += 3;
+        break;
+
+      case 'build': // Xây: Move speed, build power, restore community
+        this.stats.moveSpeed += 12;
+        this.stats.buildPower += 4;
+        if (onCommunityRestore) onCommunityRestore(10);
+        break;
     }
 
     // Enable aura ring visual if Dai Chung, Thien, My, or Build is leveled up

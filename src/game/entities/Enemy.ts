@@ -12,6 +12,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public xpDrop: number = 1;
   public contactTimer: number = 0.75;
   public shadow: Phaser.GameObjects.Image;
+  public enemyId: string = '';
 
   // Behavior state
   private dashTimer: number = 0;
@@ -31,6 +32,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   public spawn(x: number, y: number, config: EnemyConfig): void {
+    this.enemyId = 'enemy_' + Phaser.Math.RND.uuid();
     this.setPosition(x, y);
     this.setActive(true);
     this.setVisible(true);

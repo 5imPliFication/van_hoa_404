@@ -144,11 +144,41 @@ export class UpgradeManager {
 
     const colorConfig = catColors[upgrade.category] || { bg: 0xf1f5f9, text: '#334155', label: `TRỤ CỘT: ${upgrade.category.toUpperCase()}` };
 
+    const currentLevel = (this.player.values as any)[upgrade.category] || 0;
+    const nextLvl = currentLevel + 1;
+
+    let dynamicDesc = upgrade.description;
+    if (upgrade.id === 'sustain_mastery') {
+      dynamicDesc = upgrade.description;
+    } else if (upgrade.category === 'fight') {
+      if (nextLvl === 1) dynamicDesc = '+1 Tia đạn bổ sung (2 tia), +2 Sát thương, +5 Sức mạnh Chống';
+      else if (nextLvl === 2) dynamicDesc = '+2 Sát thương chuẩn xác, +6 Sức mạnh Chống';
+      else if (nextLvl === 3) dynamicDesc = '+1 Tia đạn bổ sung (3 tia), +2 Sát thương, +7 Sức mạnh Chống';
+      else if (nextLvl === 4) dynamicDesc = '+2 Sát thương chuẩn xác, +8 Sức mạnh Chống';
+      else if (nextLvl === 5) dynamicDesc = '★ CẤP TỐI ĐA: +1 Tia đạn (4 tia), +2 Sát thương, +9 Sức mạnh Chống';
+    } else if (upgrade.category === 'chan') {
+      dynamicDesc = '+15% Sát thương đòn đánh chuẩn xác (+2.5 sát thương)';
+    } else if (upgrade.category === 'khoaHoc') {
+      dynamicDesc = '+8% Tốc độ bắn xả đạn, +4% Tỉ lệ đòn đánh bạo kích';
+    } else if (upgrade.category === 'danToc') {
+      dynamicDesc = '+15 Khiên chắn năng lượng, +10 Máu tối đa (HP)';
+    } else if (upgrade.category === 'thien') {
+      dynamicDesc = `Hồi phục +1 HP mỗi 4 giây (Hiện tại: hồi ${this.player.healPerInterval} HP/4s)`;
+    } else if (upgrade.category === 'my') {
+      dynamicDesc = '+10% Sát thương diện rộng và mở rộng hào quang bảo vệ';
+    } else if (upgrade.category === 'daiChung') {
+      dynamicDesc = '+22 Bán kính hút XP từ xa, +3 Sức mạnh Kiến Tạo (Xây)';
+    } else if (upgrade.category === 'build') {
+      dynamicDesc = '+12 Tốc độ di chuyển, hồi ngay +10% Môi Trường, +4 Sức mạnh Xây';
+    }
+
+    const badgeLabel = upgrade.id === 'sustain_mastery' ? '⭐ TỐI ĐA HÓA' : `${colorConfig.label} • CẤP ${nextLvl}/5`;
+
     // Badge Pill
     const badgeBg = this.scene.add.rectangle(0, -h / 2 + 35, w - 40, 28, colorConfig.bg, 1);
     badgeBg.setStrokeStyle(1.5, 0xcbd5e1);
 
-    const catBadge = this.scene.add.text(0, -h / 2 + 35, colorConfig.label, {
+    const catBadge = this.scene.add.text(0, -h / 2 + 35, badgeLabel, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
@@ -168,7 +198,7 @@ export class UpgradeManager {
     }).setOrigin(0.5);
 
     // Description
-    const descText = this.scene.add.text(0, 15, upgrade.description, {
+    const descText = this.scene.add.text(0, 15, dynamicDesc, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '13px',
       color: '#334155',
@@ -231,7 +261,29 @@ export class UpgradeManager {
   }
 
   private getRandomUpgrades(count: number): UpgradeConfig[] {
-    const shuffled = [...this.allUpgrades].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+    // Filter only upgrades whose category is below the level cap of 5!
+    const available = this.allUpgrades.filter(u => {
+      const cat = u.category as any;
+      return (this.player.values as any)[cat] < 5;
+    });
+
+    if (available.length === 0) {
+      return [{
+        id: 'sustain_mastery',
+        name: 'Đại Viên Mãn Giá Trị (Hồi Phục)',
+        category: 'daiChung',
+        level: 5,
+        maxLevel: 5,
+        description: 'Đã tối đa hóa toàn bộ 8 trụ cột (5/5)! Hồi 40 HP, 25 Khiên và 20% Môi Trường.',
+        effects: {
+          shieldAdd: 25,
+          communityPowerAdd: 20,
+        },
+        tags: ['sustain'],
+      }];
+    }
+
+    const shuffled = [...available].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, shuffled.length));
   }
 }

@@ -24,6 +24,7 @@ export class EnemyManager {
   public auraRadiusBonus: number = 0;
   public globalEnemySpeedMultiplier: number = 1.0;
   public weaponSystem?: WeaponSystem;
+  public communityMeter?: any;
 
   constructor(scene: Phaser.Scene, player: Player, xpManager: XPManager) {
     this.scene = scene;
@@ -202,11 +203,13 @@ export class EnemyManager {
     const activeList = this.getActiveEnemies();
     for (const enemy of activeList) {
       if (!enemy.active) continue;
+      if (bullet.hasHitTarget(enemy.enemyId)) continue;
 
       const dist = Phaser.Math.Distance.Between(bullet.x, bullet.y, enemy.x, enemy.y);
       const hitRadius = enemy.enemyType === 'elite' ? 24 : 16;
 
       if (dist <= hitRadius) {
+        bullet.registerHitTarget(enemy.enemyId);
         SoundSystem.playHit();
         let dmg = bullet.damage;
 
@@ -236,6 +239,9 @@ export class EnemyManager {
 
         if (isDead) {
           this.totalKills++;
+          if (enemy.enemyType === 'elite') {
+            this.communityMeter?.modify(3.5);
+          }
           this.spawnDeathSparks(enemy.x, enemy.y);
           this.xpManager.dropXP(enemy.x, enemy.y, enemy.xpDrop);
         }

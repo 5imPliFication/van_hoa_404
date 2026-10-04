@@ -246,14 +246,23 @@ export class HUD {
     // 5. Update Community Meter
     const meter = this.communityMeter.meterValue;
     this.communityBarFill.width = 170 * (meter / 100);
-    this.communityText.setText(`🌐 MÔI TRƯỜNG: ${Math.round(meter)}%`);
 
     if (meter <= 0) {
+      this.communityText.setText('🌐 MÔI TRƯỜNG: 0% [KHỦNG HOẢNG]');
       this.crisisWarningText.setVisible(true);
       this.communityBarFill.setFillStyle(0xdc2626);
-    } else {
+    } else if (meter < 30) {
+      this.communityText.setText(`🌐 MÔI TRƯỜNG: ${Math.round(meter)}% [Ô NHIỄM]`);
       this.crisisWarningText.setVisible(false);
-      this.communityBarFill.setFillStyle(meter < 35 ? 0xf59e0b : 0x0891b2);
+      this.communityBarFill.setFillStyle(0xf59e0b);
+    } else if (meter > 70) {
+      this.communityText.setText(`🌐 MÔI TRƯỜNG: ${Math.round(meter)}% [TRONG LÀNH]`);
+      this.crisisWarningText.setVisible(false);
+      this.communityBarFill.setFillStyle(0x10b981);
+    } else {
+      this.communityText.setText(`🌐 MÔI TRƯỜNG: ${Math.round(meter)}%`);
+      this.crisisWarningText.setVisible(false);
+      this.communityBarFill.setFillStyle(0x0891b2);
     }
 
     // 6. Update Active Buff Banner (30s Scenario Buff Countdown)

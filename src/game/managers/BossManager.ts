@@ -127,6 +127,11 @@ export class BossManager {
   private clones: Phaser.Physics.Arcade.Sprite[] = [];
   private bossShadow?: Phaser.GameObjects.Image;
 
+  // Boss Top Health Bar
+  private bossBarContainer?: Phaser.GameObjects.Container;
+  private bossHpFill?: Phaser.GameObjects.Rectangle;
+  private bossHpText?: Phaser.GameObjects.Text;
+
   constructor(
     scene: Phaser.Scene,
     player: Player,
@@ -277,6 +282,36 @@ export class BossManager {
     }).setOrigin(0.5);
 
     warnContainer.add([warnBg, warnTitle, warnDesc]);
+
+    // Top Persistent Boss Health Bar
+    const barWidth = Math.min(620, width - 48);
+    const barHeight = 22;
+    this.bossBarContainer = this.scene.add.container(width / 2, 74);
+    this.bossBarContainer.setDepth(90);
+    this.bossBarContainer.setScrollFactor(0);
+
+    const barBg = this.scene.add.rectangle(0, 0, barWidth, barHeight, 0x0f172a, 0.95);
+    barBg.setStrokeStyle(1.5, 0xdc2626);
+
+    this.bossHpFill = this.scene.add.rectangle(-barWidth / 2 + 2, 0, barWidth - 4, barHeight - 4, 0xdc2626).setOrigin(0, 0.5);
+
+    const bossLabelText = this.scene.add.text(0, -17, `👑 [${tierBadge} - ${timelineLabel}] ${config.name}`, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#dc2626',
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    this.bossHpText = this.scene.add.text(0, 0, `${this.bossHp} / ${this.bossMaxHp} (100%)`, {
+      fontFamily: 'monospace, system-ui',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffffff',
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    this.bossBarContainer.add([barBg, this.bossHpFill, bossLabelText, this.bossHpText]);
 
     this.scene.tweens.add({
       targets: warnContainer,
@@ -568,6 +603,15 @@ export class BossManager {
       if (this.bossSprite?.active) this.bossSprite.clearTint();
     });
 
+    // Update top boss health bar
+    if (this.bossHpFill && this.bossHpText) {
+      const barWidth = Math.min(620, this.scene.scale.width - 48) - 4;
+      const ratio = Phaser.Math.Clamp(this.bossHp / this.bossMaxHp, 0, 1);
+      this.bossHpFill.width = barWidth * ratio;
+      const pct = Math.ceil(ratio * 100);
+      this.bossHpText.setText(`${Math.max(0, Math.ceil(this.bossHp))} / ${this.bossMaxHp} (${pct}%)`);
+    }
+
     const hpPercent = (this.bossHp / this.bossMaxHp) * 100;
 
     // Check phase transition for 10-minute boss or final mechanic archetype
@@ -604,6 +648,21 @@ export class BossManager {
     this.toxicAuraGfx?.destroy();
     this.toxicAuraGfx = undefined;
     this.clearClones();
+
+    // Fade out and cleanup top boss health bar
+    if (this.bossBarContainer) {
+      this.scene.tweens.add({
+        targets: this.bossBarContainer,
+        alpha: 0,
+        duration: 400,
+        onComplete: () => {
+          this.bossBarContainer?.destroy();
+          this.bossBarContainer = undefined;
+          this.bossHpFill = undefined;
+          this.bossHpText = undefined;
+        },
+      });
+    }
 
     // Cleanup tiny swarm
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
@@ -686,8 +745,12 @@ export class BossManager {
     // 1. Check hitting clones (Boss 3 decoy shields)
     for (const clone of this.clones) {
       if (clone && clone.active && projectile.active) {
+        const cloneId = (clone as any)._id || ((clone as any)._id = 'clone_' + Math.random());
+        if (projectile.hasHitTarget(cloneId)) continue;
+
         const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, clone.x, clone.y);
         if (dist < 26) {
+          projectile.registerHitTarget(cloneId);
           // Clone absorbs hit
           clone.setAlpha(0.25);
           this.scene.tweens.add({
@@ -706,8 +769,12 @@ export class BossManager {
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
     for (const m of minions) {
       if (m.active && projectile.active) {
+        const minionId = (m as any)._id || ((m as any)._id = 'minion_' + Math.random());
+        if (projectile.hasHitTarget(minionId)) continue;
+
         const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, m.x, m.y);
         if (dist < 18) {
+          projectile.registerHitTarget(minionId);
           let hp = (m.getData('hp') ?? 16) - projectile.damage;
           m.setData('hp', hp);
           DamageNumberSystem.showDamage(m.x, m.y - 12, projectile.damage, projectile.isCrit ? 'crit' : 'monster');
@@ -723,17 +790,20 @@ export class BossManager {
 
     // 3. Check hitting the main boss
     if (this.bossSprite?.active && projectile.active) {
-      const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, this.bossSprite.x, this.bossSprite.y);
-      const hitRadius = (this.currentBossConfig?.radius || 30) + 12;
-      if (dist < hitRadius) {
-        let dmg = projectile.damage;
-        if (fightPowerBonusMultiplier > 0) {
-          dmg *= (1 + fightPowerBonusMultiplier);
+      if (!projectile.hasHitTarget('boss_main')) {
+        const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, this.bossSprite.x, this.bossSprite.y);
+        const hitRadius = (this.currentBossConfig?.radius || 30) + 12;
+        if (dist < hitRadius) {
+          projectile.registerHitTarget('boss_main');
+          let dmg = projectile.damage;
+          if (fightPowerBonusMultiplier > 0) {
+            dmg *= (1 + fightPowerBonusMultiplier);
+          }
+          this.takeDamage(dmg, projectile.isCrit);
+          DamageNumberSystem.showDamage(this.bossSprite.x, this.bossSprite.y - 35, dmg, projectile.isCrit ? 'crit' : 'monster');
+          projectile.onHit();
+          return true;
         }
-        this.takeDamage(dmg, projectile.isCrit);
-        DamageNumberSystem.showDamage(this.bossSprite.x, this.bossSprite.y - 35, dmg, projectile.isCrit ? 'crit' : 'monster');
-        projectile.onHit();
-        return true;
       }
     }
 

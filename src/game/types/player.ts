@@ -33,7 +33,7 @@ export const INITIAL_PLAYER_STATS: PlayerStats = {
   hp: 100,
   maxHp: 100,
   moveSpeed: 240,
-  damage: 20,
+  damage: 15,
   attackSpeed: 1.2, // attacks per second
   projectileCount: 1,
   projectileSpeed: 450,
