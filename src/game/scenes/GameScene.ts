@@ -231,16 +231,19 @@ export class GameScene extends Phaser.Scene {
     const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0f172a, 0.45);
     introContainer.add(bg);
 
-    // Dialog Window
-    const winW = 750;
-    const winH = 500;
+    // Dialog Window (Spacious 960x590 layout on 1280x720 canvas)
+    const winW = 960;
+    const winH = 590;
+    const topY = height / 2 - winH / 2;
+    const bottomY = height / 2 + winH / 2;
+
     const winBg = this.add.rectangle(width / 2, height / 2, winW, winH, 0xffffff, 0.98);
     winBg.setStrokeStyle(2, 0x0284c7);
     introContainer.add(winBg);
 
     // Close 'X' Button at top-right
     const closeX = width / 2 + winW / 2 - 32;
-    const closeY = height / 2 - winH / 2 + 30;
+    const closeY = topY + 28;
     const closeBtnBg = this.add.circle(closeX, closeY, 16, 0xfee2e2);
     closeBtnBg.setStrokeStyle(1.5, 0xef4444);
     closeBtnBg.setInteractive({ useHandCursor: true });
@@ -256,9 +259,9 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Badge
-    const badgeBg = this.add.rectangle(width / 2, height / 2 - winH / 2 + 28, 300, 24, 0xe0f2fe, 1);
+    const badgeBg = this.add.rectangle(width / 2, topY + 26, 280, 22, 0xe0f2fe, 1);
     badgeBg.setStrokeStyle(1, 0xbae6fd);
-    const badgeText = this.add.text(width / 2, height / 2 - winH / 2 + 28, '🛡️ CẨM NANG VĂN HÓA 404', {
+    const badgeText = this.add.text(width / 2, topY + 26, '🛡️ CẨM NANG VĂN HÓA 404', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
@@ -267,7 +270,7 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Title
-    const title = this.add.text(width / 2, height / 2 - winH / 2 + 58, 'BẢNG HƯỚNG DẪN & TRA CỨU CHIẾN THUẬT', {
+    const title = this.add.text(width / 2, topY + 54, 'BẢNG HƯỚNG DẪN & TRA CỨU CHIẾN THUẬT', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -278,19 +281,20 @@ export class GameScene extends Phaser.Scene {
     introContainer.add([badgeBg, badgeText, title, closeBtnBg, closeBtnText]);
 
     // 3 Navigation Tabs
-    const tabY = height / 2 - winH / 2 + 96;
+    const tabY = topY + 92;
     const tabConfigs = [
-      { id: 1, label: '[1] Cơ Chế & Điều Khiển', w: 215 },
-      { id: 2, label: '[2] 8 Trụ Cột & Tiến Hóa', w: 220 },
-      { id: 3, label: '[3] Cột Mốc Trùm & Mẹo', w: 225 },
+      { id: 1, label: '[1] Cơ Chế & Điều Khiển', w: 260 },
+      { id: 2, label: '[2] 8 Trụ Cột & Tiến Hóa', w: 260 },
+      { id: 3, label: '[3] Cột Mốc Trùm & Mẹo', w: 260 },
     ];
 
     let currentTab = 1;
-    const tabButtons: { bg: Phaser.GameObjects.Rectangle; txt: Phaser.GameObjects.Text; id: number }[] = [];
+    const tabButtons: { bg: Phaser.GameObjects.Rectangle; txt: Phaser.GameObjects.Text; id: number; centerX: number; w: number }[] = [];
     const contentContainer = this.add.container(0, 0);
     introContainer.add(contentContainer);
 
-    let startX = width / 2 - (215 + 220 + 225 + 20) / 2;
+    const totalTabsW = tabConfigs.reduce((acc, t) => acc + t.w, 0) + (tabConfigs.length - 1) * 14;
+    let startX = width / 2 - totalTabsW / 2;
     tabConfigs.forEach(tab => {
       const tabCenterX = startX + tab.w / 2;
       const tabBg = this.add.rectangle(tabCenterX, tabY, tab.w, 32, 0xf1f5f9, 1);
@@ -306,10 +310,10 @@ export class GameScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       introContainer.add([tabBg, tabTxt]);
-      tabButtons.push({ bg: tabBg, txt: tabTxt, id: tab.id });
+      tabButtons.push({ bg: tabBg, txt: tabTxt, id: tab.id, centerX: tabCenterX, w: tab.w });
 
       tabBg.on('pointerdown', () => switchTab(tab.id));
-      startX += tab.w + 10;
+      startX += tab.w + 14;
     });
 
     const renderTabContent = (tabId: number) => {
@@ -329,150 +333,243 @@ export class GameScene extends Phaser.Scene {
       });
 
       if (tabId === 1) {
-        // Tab 1: Cơ Chế & Điều Khiển
+        // Tab 1: Cơ Chế & Điều Khiển (Spacious 2-line layout per item)
         const items = [
-          { icon: '🕹️', title: 'Di chuyển (WASD)', desc: 'Dùng các phím W, A, S, D (hoặc chạm kéo cần ảo trên màn hình).' },
-          { icon: '🎯', title: 'Ngắm bắn (Mũi tên / Tự động)', desc: 'Dùng phím Mũi tên để ngắm thủ công. Mặc định TỰ ĐỘNG ngắm mục tiêu (quái hoặc trùm) gần nhất khi không bấm phím mũi tên.' },
-          { icon: '⭐', title: 'Nhặt ngọc & Lên cấp', desc: 'Hạ quái nhặt hạt XP để thăng cấp (công thức XP lũy tiến) và chọn 1 trong 3 thẻ bài nâng cấp.' },
-          { icon: '🌐', title: 'Môi Trường Văn Hóa', desc: 'Thanh Community Meter phản ánh sức khỏe không gian số. Tránh để về 0% (bị phạt -25% sức mạnh).' },
-          { icon: '✨', title: 'Tình huống số & Buff 30s', desc: 'Bài đăng mạng xã hội xuất hiện ngẫu nhiên. Chọn giải pháp chuẩn xác nhận Buff hào quang kéo dài 30 giây!' },
+          {
+            icon: '🕹️',
+            title: 'Di chuyển: Phím W, A, S, D',
+            desc: 'Dùng cụm phím W-A-S-D để điều hướng nhân vật (hoặc chạm kéo cần ảo trên màn hình cảm ứng).',
+          },
+          {
+            icon: '🎯',
+            title: 'Ngắm bắn: Phím Mũi tên (Thủ công) / Tự động ngắm (Mặc định)',
+            desc: 'Bấm các phím Mũi tên để xả đạn theo hướng chỉ định. Thả tay sẽ TỰ ĐỘNG ngắm mục tiêu (quái hoặc trùm) gần nhất.',
+          },
+          {
+            icon: '⭐',
+            title: 'Thu thập Hạt Kinh Nghiệm & Lên cấp',
+            desc: 'Hạ thực thể tiêu cực để nhặt hạt XP, thăng cấp (công thức lũy tiến) và mở khóa 1 trong 3 thẻ bài nâng cấp sức mạnh.',
+          },
+          {
+            icon: '🌐',
+            title: 'Môi Trường Văn Hóa (Community Meter)',
+            desc: 'Thanh phản ánh sức khỏe không gian mạng. Đừng để về 0% (áp dụng phạt suy yếu -25% sức mạnh toàn diện cho tới khi hồi phục).',
+          },
+          {
+            icon: '✨',
+            title: 'Tình huống Số & Hào quang Buff 30 giây',
+            desc: 'Bài đăng mạng xã hội xuất hiện ngẫu nhiên. Chọn giải pháp chuẩn xác để kích hoạt Buff hào quang cực mạnh kéo dài 30 giây!',
+          },
         ];
 
         items.forEach((item, idx) => {
-          const cy = height / 2 - winH / 2 + 150 + idx * 56;
-          const row = this.add.rectangle(width / 2, cy, winW - 60, 48, 0xf8fafc, 1);
+          const cy = topY + 152 + idx * 64;
+          const rowLeft = width / 2 - (winW - 60) / 2;
+          const row = this.add.rectangle(width / 2, cy, winW - 60, 56, 0xf8fafc, 1);
           row.setStrokeStyle(1, 0xe2e8f0);
 
-          const ic = this.add.text(width / 2 - (winW - 60) / 2 + 25, cy, item.icon, { fontSize: '19px', resolution: 2 }).setOrigin(0.5);
-          const t = this.add.text(width / 2 - (winW - 60) / 2 + 55, cy, item.title + ':', {
+          // Icon in circular badge
+          const icBg = this.add.circle(rowLeft + 36, cy, 18, 0xe0f2fe, 1);
+          icBg.setStrokeStyle(1, 0xbae6fd);
+          const ic = this.add.text(rowLeft + 36, cy, item.icon, { fontSize: '18px', resolution: 2 }).setOrigin(0.5);
+
+          // Title on upper line
+          const t = this.add.text(rowLeft + 68, cy - 10, item.title, {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '13px',
             fontStyle: 'bold',
             color: '#0f172a',
             resolution: 2,
           }).setOrigin(0, 0.5);
-          const d = this.add.text(width / 2 - (winW - 60) / 2 + 215, cy, item.desc, {
+
+          // Description on lower line (No collision possible)
+          const d = this.add.text(rowLeft + 68, cy + 11, item.desc, {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '12px',
             color: '#475569',
-            wordWrap: { width: winW - 300 },
+            wordWrap: { width: 810 },
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          contentContainer.add([row, ic, t, d]);
+          contentContainer.add([row, icBg, ic, t, d]);
         });
       } else if (tabId === 2) {
         // Tab 2: 8 Trụ Cột & Tiến Hóa
-        const pY = height / 2 - winH / 2 + 185;
-        const pBox = this.add.rectangle(width / 2, pY, winW - 60, 115, 0xf8fafc, 1);
-        pBox.setStrokeStyle(1, 0xe2e8f0);
+        const pY = topY + 208;
+        const pBox = this.add.rectangle(width / 2, pY, winW - 60, 138, 0xf8fafc, 1);
+        pBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-        const pHeader = this.add.text(width / 2, pY - 42, '🏛️ HỆ THỐNG 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA', {
+        const pHeader = this.add.text(width / 2, pY - 50, '🏛️ HỆ THỐNG 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5)', {
           fontFamily: 'system-ui, sans-serif',
-          fontSize: '12px',
+          fontSize: '13px',
           fontStyle: 'bold',
           color: '#0369a1',
           resolution: 2,
         }).setOrigin(0.5);
 
-        const pCol1 = this.add.text(width / 2 - 310, pY - 22,
-          '• Khoa Học: +Tốc bắn & Tỉ lệ bạo kích\n• Dân Tộc: +Khiên chắn phòng ngự\n• Đại Chúng: +Tầm nhặt ngọc & Hào quang\n• Chân: +Sát thương đạn chuẩn xác',
-          { fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#1e293b', lineSpacing: 5, resolution: 2 }
+        const pCol1 = this.add.text(width / 2 - 425, pY - 30,
+          '• Khoa Học: Gia tăng Tốc độ bắn & Tỉ lệ bạo kích đạn\n• Dân Tộc: Tạo Khiên chắn phòng ngự & Tốc độ hồi phục\n• Đại Chúng: Mở rộng Bán kính hút ngọc & Hào quang làm chậm\n• Chân: Tăng Sát thương gốc chuẩn xác của vũ khí',
+          { fontFamily: 'system-ui, sans-serif', fontSize: '12px', color: '#1e293b', lineSpacing: 7, resolution: 2 }
         );
 
-        const pCol2 = this.add.text(width / 2 + 25, pY - 22,
-          '• Thiện: Tự động hồi phục máu định kỳ\n• Mỹ: +Sát thương diện rộng (AoE)\n• Xây: Hồi Môi Trường Văn Hóa & Tốc chạy\n• Chống: +Tia đạn bổ sung & Đẩy lùi quái',
-          { fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#1e293b', lineSpacing: 5, resolution: 2 }
+        const pCol2 = this.add.text(width / 2 + 25, pY - 30,
+          '• Thiện: Tự động hồi phục sinh lực HP định kỳ\n• Mỹ: Sát thương diện rộng (AoE) khi đạn trúng đích\n• Xây: Củng cố Môi Trường Văn Hóa & Tăng tốc độ chạy\n• Chống: Thêm tia đạn phụ & Đẩy lùi quái vật mạnh mẽ',
+          { fontFamily: 'system-ui, sans-serif', fontSize: '12px', color: '#1e293b', lineSpacing: 7, resolution: 2 }
         );
 
-        // Box 2: 4 Evolutions
-        const eY = height / 2 - winH / 2 + 325;
-        const eBox = this.add.rectangle(width / 2, eY, winW - 60, 140, 0xf0fdf4, 1);
+        // Box 2: 4 Evolutions formatted as a clean 2x2 grid
+        const eY = topY + 372;
+        const eBox = this.add.rectangle(width / 2, eY, winW - 60, 154, 0xf0fdf4, 1);
         eBox.setStrokeStyle(1.5, 0x86efac);
 
-        const eHeader = this.add.text(width / 2, eY - 54, '🧬 4 CÔNG THỨC TIẾN HÓA KỸ NĂNG ĐỈNH CAO', {
+        const eHeader = this.add.text(width / 2, eY - 58, '🧬 4 CÔNG THỨC TIẾN HÓA KỸ NĂNG ĐỈNH CAO (ĐẠT CẤP 5 Ở CẢ 2 TRỤ CỘT)', {
           fontFamily: 'system-ui, sans-serif',
-          fontSize: '12px',
+          fontSize: '13px',
           fontStyle: 'bold',
           color: '#15803d',
           resolution: 2,
         }).setOrigin(0.5);
 
-        const evos = [
-          '⚡ Kiểm Chứng (Khoa Học + Chân): Đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
-          '🌿 Văn Hóa Ứng Xử (Đại Chúng + Thiện): Hào quang diện rộng làm chậm quái 30% và liên tục hồi máu.',
-          '🎨 Bản Sắc Sáng Tạo (Dân Tộc + Mỹ): Sóng xung kích đẩy lùi và đánh tan nội dung sao chép đạo nhái.',
-          '🛡️ Phòng Vệ Đa Tầng (Xây + Chống): Lá chắn năng lượng kiên cố, giảm 20% mọi sát thương nhận vào.',
+        contentContainer.add([pBox, pHeader, pCol1, pCol2, eBox, eHeader]);
+
+        const evoConfigs = [
+          {
+            title: '⚡ Kiểm Chứng (Khoa Học + Chân)',
+            desc: 'Đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
+            x: width / 2 - 215,
+            y: eY - 20,
+          },
+          {
+            title: '🌿 Văn Hóa Ứng Xử (Đại Chúng + Thiện)',
+            desc: 'Hào quang làm chậm quái 30% và liên tục hồi phục sinh lực.',
+            x: width / 2 + 215,
+            y: eY - 20,
+          },
+          {
+            title: '🎨 Bản Sắc Sáng Tạo (Dân Tộc + Mỹ)',
+            desc: 'Sóng xung kích đẩy lùi và đánh tan nội dung sao chép đạo nhái.',
+            x: width / 2 - 215,
+            y: eY + 36,
+          },
+          {
+            title: '🛡️ Phòng Vệ Đa Tầng (Xây + Chống)',
+            desc: 'Lá chắn năng lượng kiên cố, giảm 20% mọi sát thương nhận vào.',
+            x: width / 2 + 215,
+            y: eY + 36,
+          },
         ];
 
-        const evoTxt = this.add.text(width / 2 - 310, eY - 34, evos.join('\n'), {
-          fontFamily: 'system-ui, sans-serif',
-          fontSize: '11px',
-          color: '#166534',
-          lineSpacing: 8,
-          resolution: 2,
-        });
+        evoConfigs.forEach(evo => {
+          const cardBg = this.add.rectangle(evo.x, evo.y, 420, 48, 0xffffff, 1);
+          cardBg.setStrokeStyle(1, 0xbbf7d0);
 
-        contentContainer.add([pBox, pHeader, pCol1, pCol2, eBox, eHeader, evoTxt]);
-      } else {
-        // Tab 3: Cột Mốc Trùm & Mẹo Vượt Ải
-        const bosses = [
-          { time: 'Phút 03:00', tier: 'Trùm Cấp 1', desc: 'Thử thách cơ động & nhặt ngọc. Hãy nâng tốc chạy và giữ cự ly an toàn.' },
-          { time: 'Phút 05:00', tier: 'Trùm Cấp 2', desc: 'Thử thách đạn xuyên thấu hoặc hồi phục trước bầy quái tí hon / vùng độc.' },
-          { time: 'Phút 07:00', tier: 'Trùm Cấp 3', desc: 'Thử thách bạo kích & chỉ số Chống để phá vỡ Khiên Ảo Ảnh phân thân.' },
-          { time: 'Phút 10:00', tier: 'Trùm Cực Đại', desc: 'Siêu Trùm Hỗn Loạn 3 giai đoạn bão đạn. Cần phát triển cân bằng cả 8 giá trị!' },
-        ];
-
-        bosses.forEach((b, idx) => {
-          const cy = height / 2 - winH / 2 + 155 + idx * 54;
-          const row = this.add.rectangle(width / 2, cy, winW - 60, 46, 0xfef2f2, 1);
-          row.setStrokeStyle(1, 0xfecaca);
-
-          const timeTxt = this.add.text(width / 2 - (winW - 60) / 2 + 25, cy, `⏱️ ${b.time}`, {
-            fontFamily: 'monospace',
-            fontSize: '13px',
+          const cardTitle = this.add.text(evo.x - 195, evo.y - 10, evo.title, {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '12px',
             fontStyle: 'bold',
-            color: '#b91c1c',
+            color: '#166534',
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          const tierTxt = this.add.text(width / 2 - (winW - 60) / 2 + 130, cy, `[${b.tier}]:`, {
+          const cardDesc = this.add.text(evo.x - 195, evo.y + 11, evo.desc, {
             fontFamily: 'system-ui, sans-serif',
+            fontSize: '11px',
+            color: '#334155',
+            resolution: 2,
+          }).setOrigin(0, 0.5);
+
+          contentContainer.add([cardBg, cardTitle, cardDesc]);
+        });
+      } else {
+        // Tab 3: Cột Mốc Trùm & Mẹo Vượt Ải (2-line layout per boss row)
+        const bosses = [
+          {
+            time: '03:00',
+            tier: 'Trùm Cấp 1 (Cột mốc 3 Phút) — Thử thách Cơ động & Giữ khoảng cách',
+            desc: 'Tốc độ di chuyển nhanh và liên tục áp sát. Hãy ưu tiên nâng tốc độ chạy và duy trì cự ly an toàn.',
+          },
+          {
+            time: '05:00',
+            tier: 'Trùm Cấp 2 (Cột mốc 5 Phút) — Thử thách Xuyên thấu & Vùng độc',
+            desc: 'Triệu hồi bầy quái tí hon đông đảo hoặc xả khí độc. Đòi hỏi người chơi có đạn xuyên thấu hoặc hồi phục sinh lực.',
+          },
+          {
+            time: '07:00',
+            tier: 'Trùm Cấp 3 (Cột mốc 7 Phút) — Thử thách Bạo kích & Phá vỡ Ảo ảnh',
+            desc: 'Tạo 2 phân thân ảo ảnh và bất ngờ lao vút tốc độ cao. Cần chỉ số Chân (bạo kích) và Chống (đẩy lùi) để tiêu diệt.',
+          },
+          {
+            time: '10:00',
+            tier: 'Siêu Trùm Cực Đại (Phút 10:00) — Trận chiến Quyết định Hỗn Loạn',
+            desc: 'Trùm 3 giai đoạn xả bão đạn và rút cạn không gian mạng. Đòi hỏi người chơi phát triển cân bằng cả 8 trụ cột văn hóa.',
+          },
+        ];
+
+        bosses.forEach((b, idx) => {
+          const cy = topY + 152 + idx * 64;
+          const rowLeft = width / 2 - (winW - 60) / 2;
+          const row = this.add.rectangle(width / 2, cy, winW - 60, 56, 0xfef2f2, 1);
+          row.setStrokeStyle(1, 0xfecaca);
+
+          // Time Badge
+          const timeBg = this.add.rectangle(rowLeft + 48, cy, 76, 28, 0xfee2e2, 1);
+          timeBg.setStrokeStyle(1, 0xf87171);
+          const timeTxt = this.add.text(rowLeft + 48, cy, `⏱️ ${b.time}`, {
+            fontFamily: 'monospace',
             fontSize: '12px',
+            fontStyle: 'bold',
+            color: '#b91c1c',
+            resolution: 2,
+          }).setOrigin(0.5);
+
+          // Title on top
+          const tierTxt = this.add.text(rowLeft + 100, cy - 10, b.tier, {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '13px',
             fontStyle: 'bold',
             color: '#991b1b',
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          const descTxt = this.add.text(width / 2 - (winW - 60) / 2 + 225, cy, b.desc, {
+          // Description on bottom
+          const descTxt = this.add.text(rowLeft + 100, cy + 11, b.desc, {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '12px',
             color: '#475569',
-            wordWrap: { width: winW - 320 },
+            wordWrap: { width: 780 },
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          contentContainer.add([row, timeTxt, tierTxt, descTxt]);
+          contentContainer.add([row, timeBg, timeTxt, tierTxt, descTxt]);
         });
 
-        const tipY = height / 2 - winH / 2 + 375;
-        const tipBox = this.add.rectangle(width / 2, tipY, winW - 60, 48, 0xfffbeb, 1);
+        // Tip box at bottom
+        const tipY = topY + 440;
+        const tipBox = this.add.rectangle(width / 2, tipY, winW - 60, 52, 0xfffbeb, 1);
         tipBox.setStrokeStyle(1, 0xfde68a);
 
-        const tipTxt = this.add.text(width / 2, tipY,
-          '💡 MẸO CHIẾN THUẬT: Đừng bỏ lỡ các Tình huống số để lấy Buff 30s trước khi Trùm xuất hiện!\nPhát triển đồng đều giữa "Xây" (hồi máu, tốc độ) và "Chống" (thêm đạn, đẩy lùi) là chìa khóa chiến thắng.',
+        const tipIcon = this.add.text(width / 2 - 425, tipY, '💡', { fontSize: '22px', resolution: 2 }).setOrigin(0.5);
+
+        const tipTitle = this.add.text(width / 2 - 400, tipY - 10, 'MẸO CHIẾN THUẬT SỐNG CÒN:', {
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: '12px',
+          fontStyle: 'bold',
+          color: '#92400e',
+          resolution: 2,
+        }).setOrigin(0, 0.5);
+
+        const tipDesc = this.add.text(width / 2 - 400, tipY + 11,
+          'Đừng bỏ lỡ các Tình huống số để lấy Buff 30s trước khi Trùm xuất hiện! Phát triển cân bằng "Xây" (hồi phục) và "Chống" (thêm đạn) là chìa khóa chiến thắng.',
           {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '11px',
-            fontStyle: 'bold',
-            color: '#92400e',
-            align: 'center',
-            lineSpacing: 3,
+            color: '#78350f',
+            wordWrap: { width: 810 },
             resolution: 2,
           }
-        ).setOrigin(0.5);
+        ).setOrigin(0, 0.5);
 
-        contentContainer.add([tipBox, tipTxt]);
+        contentContainer.add([tipBox, tipIcon, tipTitle, tipDesc]);
       }
     };
 
@@ -484,8 +581,8 @@ export class GameScene extends Phaser.Scene {
     renderTabContent(currentTab);
 
     // Close / Start Button at bottom
-    const btnY = height / 2 + winH / 2 - 34;
-    const btnBg = this.add.rectangle(width / 2, btnY, 320, 42, 0x0284c7);
+    const btnY = bottomY - 34;
+    const btnBg = this.add.rectangle(width / 2, btnY, 360, 42, 0x0284c7);
     btnBg.setStrokeStyle(1.5, 0x0369a1);
     btnBg.setInteractive({ useHandCursor: true });
     btnBg.on('pointerover', () => btnBg.setFillStyle(0x0369a1));
@@ -540,22 +637,34 @@ export class GameScene extends Phaser.Scene {
 
     // Screen-space pointer listener (Guaranteed to work regardless of camera scroll)
     const onScreenPointerDown = (pointer: Phaser.Input.Pointer) => {
-      // 1. Clicked start/close button
-      if (Math.abs(pointer.x - width / 2) < 160 && Math.abs(pointer.y - btnY) < 24) {
+      // 1. Check tab buttons click in screen-space
+      for (const tab of tabButtons) {
+        if (
+          Math.abs(pointer.x - tab.centerX) < tab.w / 2 &&
+          Math.abs(pointer.y - tabY) < 18
+        ) {
+          switchTab(tab.id);
+          SoundSystem.playGem();
+          return;
+        }
+      }
+
+      // 2. Clicked start/close button
+      if (Math.abs(pointer.x - width / 2) < 180 && Math.abs(pointer.y - btnY) < 24) {
         closeIntro();
         return;
       }
-      // 2. Clicked 'X' close button
-      if (Math.abs(pointer.x - closeX) < 24 && Math.abs(pointer.y - closeY) < 24) {
+      // 3. Clicked 'X' close button
+      if (Math.abs(pointer.x - closeX) < 20 && Math.abs(pointer.y - closeY) < 20) {
         closeIntro();
         return;
       }
-      // 3. Clicked outside modal (dimmed background)
+      // 4. Clicked outside modal (dimmed background)
       if (
         pointer.x < width / 2 - winW / 2 ||
         pointer.x > width / 2 + winW / 2 ||
-        pointer.y < height / 2 - winH / 2 ||
-        pointer.y > height / 2 + winH / 2
+        pointer.y < topY ||
+        pointer.y > bottomY
       ) {
         closeIntro();
         return;
