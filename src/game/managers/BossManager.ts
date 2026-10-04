@@ -358,11 +358,52 @@ export class BossManager {
   public pauseBossPhysics(): void {
     if (this.bossSprite?.active) {
       this.bossSprite.setVelocity(0, 0);
+      if (this.bossSprite.body) {
+        (this.bossSprite.body as Phaser.Physics.Arcade.Body).moves = false;
+      }
+      this.scene.tweens.getTweensOf(this.bossSprite).forEach(t => t.pause());
     }
+
+    for (const clone of this.clones) {
+      if (clone?.active) {
+        clone.setVelocity(0, 0);
+        if (clone.body) (clone.body as Phaser.Physics.Arcade.Body).moves = false;
+        this.scene.tweens.getTweensOf(clone).forEach(t => t.pause());
+      }
+    }
+
     const minions = this.tinySwarmGroup?.getChildren() as Phaser.Physics.Arcade.Sprite[];
     if (minions) {
       for (const m of minions) {
-        if (m.active) m.setVelocity(0, 0);
+        if (m.active) {
+          m.setVelocity(0, 0);
+          if (m.body) (m.body as Phaser.Physics.Arcade.Body).moves = false;
+        }
+      }
+    }
+  }
+
+  public resumeBossPhysics(): void {
+    if (this.bossSprite?.active) {
+      if (this.bossSprite.body) {
+        (this.bossSprite.body as Phaser.Physics.Arcade.Body).moves = true;
+      }
+      this.scene.tweens.getTweensOf(this.bossSprite).forEach(t => t.resume());
+    }
+
+    for (const clone of this.clones) {
+      if (clone?.active) {
+        if (clone.body) (clone.body as Phaser.Physics.Arcade.Body).moves = true;
+        this.scene.tweens.getTweensOf(clone).forEach(t => t.resume());
+      }
+    }
+
+    const minions = this.tinySwarmGroup?.getChildren() as Phaser.Physics.Arcade.Sprite[];
+    if (minions) {
+      for (const m of minions) {
+        if (m.active && m.body) {
+          (m.body as Phaser.Physics.Arcade.Body).moves = true;
+        }
       }
     }
   }
@@ -838,5 +879,28 @@ export class BossManager {
 
   public getBossSprite(): Phaser.Physics.Arcade.Sprite | undefined {
     return this.bossSprite;
+  }
+
+  public getPotentialTargets(): Array<{ x: number; y: number; active?: boolean }> {
+    const targets: Array<{ x: number; y: number; active?: boolean }> = [];
+    if (this.isBossActive && this.bossSprite?.active) {
+      targets.push(this.bossSprite);
+    }
+    // Also include active clones if present
+    for (const clone of this.clones) {
+      if (clone?.active) {
+        targets.push(clone);
+      }
+    }
+    // Also include active swarm minions
+    if (this.isBossActive && this.tinySwarmGroup) {
+      const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
+      for (const m of minions) {
+        if (m.active) {
+          targets.push(m);
+        }
+      }
+    }
+    return targets;
   }
 }

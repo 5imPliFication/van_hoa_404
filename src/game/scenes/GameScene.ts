@@ -331,8 +331,8 @@ export class GameScene extends Phaser.Scene {
       if (tabId === 1) {
         // Tab 1: Cơ Chế & Điều Khiển
         const items = [
-          { icon: '🕹️', title: 'Di chuyển', desc: 'Dùng WASD / Phím mũi tên, hoặc chạm kéo cần ảo trên màn hình.' },
-          { icon: '⚡', title: 'Tự động bắn', desc: 'Nhân vật tự động tìm và khai hỏa vào quái gần nhất trong tầm bắn.' },
+          { icon: '🕹️', title: 'Di chuyển (WASD)', desc: 'Dùng các phím W, A, S, D (hoặc chạm kéo cần ảo trên màn hình).' },
+          { icon: '🎯', title: 'Ngắm bắn (Mũi tên / Tự động)', desc: 'Dùng phím Mũi tên để ngắm thủ công. Mặc định TỰ ĐỘNG ngắm mục tiêu (quái hoặc trùm) gần nhất khi không bấm phím mũi tên.' },
           { icon: '⭐', title: 'Nhặt ngọc & Lên cấp', desc: 'Hạ quái nhặt hạt XP để thăng cấp (công thức XP lũy tiến) và chọn 1 trong 3 thẻ bài nâng cấp.' },
           { icon: '🌐', title: 'Môi Trường Văn Hóa', desc: 'Thanh Community Meter phản ánh sức khỏe không gian số. Tránh để về 0% (bị phạt -25% sức mạnh).' },
           { icon: '✨', title: 'Tình huống số & Buff 30s', desc: 'Bài đăng mạng xã hội xuất hiện ngẫu nhiên. Chọn giải pháp chuẩn xác nhận Buff hào quang kéo dài 30 giây!' },
@@ -634,7 +634,8 @@ export class GameScene extends Phaser.Scene {
 
     const activeEnemies = this.enemyManager.getActiveEnemies();
     this.enemyManager.update(dt, this.runSeconds);
-    this.weaponSystem.update(dt, activeEnemies);
+    const bossTargets = this.bossManager.getPotentialTargets();
+    this.weaponSystem.update(dt, activeEnemies, bossTargets);
     this.xpManager.update(dt);
 
     // 2. Bullets collision check with enemies & boss
@@ -686,6 +687,7 @@ export class GameScene extends Phaser.Scene {
 
   private pauseCombat(): void {
     this.isPaused = true;
+    this.physics.pause();
     this.player.setVelocity(0, 0);
 
     // Freeze active physics bodies
@@ -702,6 +704,8 @@ export class GameScene extends Phaser.Scene {
 
   private resumeCombat(): void {
     this.isPaused = false;
+    this.physics.resume();
+    this.bossManager.resumeBossPhysics();
     // Instantly ready weapon to fire fresh shots upon resuming
     this.weaponSystem.readyToFire();
   }

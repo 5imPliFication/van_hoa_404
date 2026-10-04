@@ -28,6 +28,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
   public lastDamagedBy: string = 'Hiện tượng tiêu cực trên mạng';
   public communityMeter?: any;
+  public manualAimAngle: number | null = null;
 
   public getStatLevel(pillar: Pillar): number {
     return this.values[pillar] || 0;
@@ -168,10 +169,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     let vx = 0;
     let vy = 0;
 
-    const left = this.cursors?.left?.isDown || this.wasdKeys?.A?.isDown;
-    const right = this.cursors?.right?.isDown || this.wasdKeys?.D?.isDown;
-    const up = this.cursors?.up?.isDown || this.wasdKeys?.W?.isDown;
-    const down = this.cursors?.down?.isDown || this.wasdKeys?.S?.isDown;
+    // Movement strictly with WASD
+    const left = this.wasdKeys?.A?.isDown;
+    const right = this.wasdKeys?.D?.isDown;
+    const up = this.wasdKeys?.W?.isDown;
+    const down = this.wasdKeys?.S?.isDown;
 
     if (left) vx -= 1;
     if (right) vx += 1;
@@ -191,8 +193,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocity(vx * this.stats.moveSpeed, vy * this.stats.moveSpeed);
 
+    // Aiming with Arrow keys (Up / Down / Left / Right)
+    let aimX = 0;
+    let aimY = 0;
+    if (this.cursors?.left?.isDown) aimX -= 1;
+    if (this.cursors?.right?.isDown) aimX += 1;
+    if (this.cursors?.up?.isDown) aimY -= 1;
+    if (this.cursors?.down?.isDown) aimY += 1;
+
+    if (aimX !== 0 || aimY !== 0) {
+      // Manual aim active: face the manual aim direction
+      this.manualAimAngle = Math.atan2(aimY, aimX);
+      this.setRotation(this.manualAimAngle + Math.PI / 2);
+    } else {
+      // No arrow keys pressed: reset manual aim so WeaponSystem defaults to auto-aim
+      this.manualAimAngle = null;
+      if (vx !== 0 || vy !== 0) {
+        this.setRotation(Math.atan2(vy, vx) + Math.PI / 2);
+      }
+    }
+
     if (vx !== 0 || vy !== 0) {
-      this.setRotation(Math.atan2(vy, vx) + Math.PI / 2);
       this.thrusterTimer += 0.016;
       if (this.thrusterTimer > 0.06) {
         this.thrusterTimer = 0;

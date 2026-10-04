@@ -4,6 +4,12 @@ import { Projectile } from '../entities/Projectile';
 import { Enemy } from '../entities/Enemy';
 import { SoundSystem } from '../systems/SoundSystem';
 
+export interface TargetPoint {
+  x: number;
+  y: number;
+  active?: boolean;
+}
+
 export class WeaponSystem {
   private player: Player;
   public projectiles: Phaser.Physics.Arcade.Group;
@@ -37,7 +43,7 @@ export class WeaponSystem {
     this.fireTimer = 999999;
   }
 
-  public update(dt: number, activeEnemies: Enemy[]): void {
+  public update(dt: number, activeEnemies: Enemy[], bossTargets: TargetPoint[] = []): void {
     if (!this.player.isAlive) return;
 
     this.fireTimer += dt;
@@ -45,13 +51,28 @@ export class WeaponSystem {
 
     if (this.fireTimer >= cooldownMs) {
       this.fireTimer = 0;
-      this.autoFire(activeEnemies);
+      this.fireWeapon(activeEnemies, bossTargets);
     }
   }
 
-  private autoFire(activeEnemies: Enemy[]): void {
-    const target = this.findNearestEnemy(activeEnemies);
-    if (!target) return;
+  private fireWeapon(activeEnemies: Enemy[], bossTargets: TargetPoint[]): void {
+    let baseAngle: number | null = null;
+
+    // Check if player is manually aiming with arrow keys
+    if (this.player.manualAimAngle !== null) {
+      baseAngle = this.player.manualAimAngle;
+    } else {
+      // Default auto-aim: target whichever is closer (mobs or boss)
+      const target = this.findNearestTarget(activeEnemies, bossTargets);
+      if (!target) return; // Do not fire if no targets in range
+
+      baseAngle = Phaser.Math.Angle.Between(this.player.x, this.player.y, target.x, target.y);
+
+      // Rotate stationary player towards target
+      if (this.player.body && (this.player.body as Phaser.Physics.Arcade.Body).velocity.lengthSq() < 1) {
+        this.player.setRotation(baseAngle + Math.PI / 2);
+      }
+    }
 
     SoundSystem.playShoot();
 
@@ -60,9 +81,8 @@ export class WeaponSystem {
     const critRoll = Math.random() < this.player.stats.critChance;
     const finalDamage = critRoll ? baseDamage * 2.0 : baseDamage;
 
-    // Direction to primary target
-    const baseAngle = Phaser.Math.Angle.Between(this.player.x, this.player.y, target.x, target.y);
-    const spreadAngle = 0.15; // radians between bullets when multi-shot
+    // Spread angle for multi-shot
+    const spreadAngle = 0.15;
 
     for (let i = 0; i < count; i++) {
       const bullet = this.projectiles.get() as Projectile;
@@ -86,16 +106,27 @@ export class WeaponSystem {
     }
   }
 
-  private findNearestEnemy(enemies: Enemy[]): Enemy | null {
-    let nearest: Enemy | null = null;
+  private findNearestTarget(enemies: Enemy[], bossTargets: TargetPoint[]): TargetPoint | null {
+    let nearest: TargetPoint | null = null;
     let minDist = this.range;
 
+    // 1. Evaluate normal enemies
     for (const enemy of enemies) {
       if (!enemy.active) continue;
       const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
       if (d < minDist) {
         minDist = d;
         nearest = enemy;
+      }
+    }
+
+    // 2. Evaluate active boss & boss summons (whichever is closer wins)
+    for (const bTarget of bossTargets) {
+      if (bTarget.active === false) continue;
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, bTarget.x, bTarget.y);
+      if (d < minDist) {
+        minDist = d;
+        nearest = bTarget;
       }
     }
 

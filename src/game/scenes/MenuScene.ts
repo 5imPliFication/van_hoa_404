@@ -69,7 +69,7 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.add.text(width / 2, height * 0.60,
-      '• Di chuyển: Phím WASD / Phím mũi tên (hoặc chạm kéo trên màn hình cảm ứng)\n• Tấn công: Nhân vật TỰ ĐỘNG BẮN mục tiêu gần nhất\n• Lên cấp: Nhặt hạt ngọc kinh nghiệm để mở khóa 1 trong 3 thẻ bài giá trị',
+      '• Di chuyển: Phím WASD (hoặc chạm kéo trên màn hình cảm ứng)\n• Tấn công: Phím Mũi tên để ngắm bắn (hoặc TỰ ĐỘNG BẮN mục tiêu gần nhất khi thả tay)\n• Lên cấp: Nhặt hạt ngọc kinh nghiệm để mở khóa 1 trong 3 thẻ bài giá trị',
       {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '13px',
