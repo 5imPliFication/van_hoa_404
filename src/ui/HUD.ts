@@ -43,16 +43,22 @@ export class HUD {
     this.container.setDepth(80);
     this.container.setScrollFactor(0); // PIN TO SCREEN!
 
-    // Top HUD Bar Background (Clean elevated light card)
-    const topBg = scene.add.rectangle(width / 2, 28, width - 32, 52, 0xffffff, 0.95);
+    // Top HUD Bar Background (Clean elevated glassmorphic light card)
+    const topBg = scene.add.rectangle(width / 2, 28, width - 32, 52, 0xffffff, 0.96);
     topBg.setStrokeStyle(1.5, 0xcbd5e1);
     this.container.add(topBg);
 
     // 1. HP & Shield Bar (Top Left)
-    const hpBg = scene.add.rectangle(140, 24, 180, 16, 0xe2e8f0);
+    const hpBg = scene.add.rectangle(138, 24, 170, 18, 0xe2e8f0);
     hpBg.setStrokeStyle(1, 0x94a3b8);
-    this.hpBarFill = scene.add.rectangle(50, 24, 180, 16, 0x10b981).setOrigin(0, 0.5);
-    this.hpText = scene.add.text(140, 24, 'HP: 100/100', {
+    this.hpBarFill = scene.add.rectangle(53, 24, 170, 18, 0x10b981).setOrigin(0, 0.5);
+
+    const heartIcon = scene.add.text(36, 24, '❤️', {
+      fontSize: '12px',
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    this.hpText = scene.add.text(138, 24, 'HP: 100/100', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
@@ -60,35 +66,42 @@ export class HUD {
       resolution: 2,
     }).setOrigin(0.5);
 
-    this.shieldText = scene.add.text(245, 24, '🛡️ 0', {
+    // Shield Pill Badge
+    const shieldPill = scene.add.rectangle(256, 24, 60, 20, 0xe0f2fe, 0.95);
+    shieldPill.setStrokeStyle(1, 0x38bdf8);
+    this.shieldText = scene.add.text(256, 24, '🛡️ 0', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '12px',
+      fontSize: '11px',
       fontStyle: 'bold',
-      color: '#0284c7',
+      color: '#0369a1',
       resolution: 2,
-    }).setOrigin(0, 0.5);
+    }).setOrigin(0.5);
 
-    this.container.add([hpBg, this.hpBarFill, this.hpText, this.shieldText]);
+    this.container.add([hpBg, this.hpBarFill, heartIcon, this.hpText, shieldPill, this.shieldText]);
 
     // 2. XP Bar & Level (Full width underneath top bar)
-    const xpBg = scene.add.rectangle(width / 2, 54, width - 32, 6, 0xe2e8f0);
-    this.xpBarFill = scene.add.rectangle(16, 54, 0, 6, 0x0284c7).setOrigin(0, 0.5);
-    this.levelText = scene.add.text(32, 38, 'LV. 1', {
+    const xpBg = scene.add.rectangle(width / 2, 54, width - 32, 7, 0xe2e8f0);
+    this.xpBarFill = scene.add.rectangle(16, 54, 0, 7, 0x0284c7).setOrigin(0, 0.5);
+
+    // Level Badge Pill (Left-aligned above XP bar)
+    const levelPill = scene.add.rectangle(52, 38, 70, 18, 0xf0f9ff, 1);
+    levelPill.setStrokeStyle(1, 0xbae6fd);
+    this.levelText = scene.add.text(52, 38, '⭐ LV. 1', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#0284c7',
       resolution: 2,
-    }).setOrigin(0, 0.5);
+    }).setOrigin(0.5);
 
-    this.container.add([xpBg, this.xpBarFill, this.levelText]);
+    this.container.add([xpBg, this.xpBarFill, levelPill, this.levelText]);
 
     // 3. Community Meter Bar (Top Right)
     const commX = width - 150;
-    const commBg = scene.add.rectangle(commX, 24, 180, 16, 0xe2e8f0);
+    const commBg = scene.add.rectangle(commX, 24, 170, 18, 0xe2e8f0);
     commBg.setStrokeStyle(1, 0x94a3b8);
-    this.communityBarFill = scene.add.rectangle(commX - 90, 24, 180, 16, 0x0891b2).setOrigin(0, 0.5);
-    this.communityText = scene.add.text(commX, 24, 'MÔI TRƯỜNG: 75%', {
+    this.communityBarFill = scene.add.rectangle(commX - 85, 24, 170, 18, 0x0891b2).setOrigin(0, 0.5);
+    this.communityText = scene.add.text(commX, 24, '🌐 MÔI TRƯỜNG: 75%', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
@@ -107,26 +120,26 @@ export class HUD {
     this.container.add([commBg, this.communityBarFill, this.communityText, this.crisisWarningText]);
 
     // 4. Timer & Wave Info (Top Center)
-    this.timerText = scene.add.text(width / 2 - 30, 18, '00:00', {
-      fontFamily: 'monospace',
-      fontSize: '19px',
+    this.timerText = scene.add.text(width / 2 - 36, 17, '⏱️ 00:00', {
+      fontFamily: 'monospace, system-ui',
+      fontSize: '18px',
       fontStyle: 'bold',
       color: '#0f172a',
       resolution: 2,
     }).setOrigin(0.5);
 
-    this.waveText = scene.add.text(width / 2 - 30, 37, 'WAVE 1', {
+    this.waveText = scene.add.text(width / 2 - 36, 37, 'LÀN SÓNG 1', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#64748b',
+      color: '#0284c7',
       resolution: 2,
     }).setOrigin(0.5);
 
     // Help Button (Open Guide anytime)
-    const helpX = width / 2 + 68;
-    const helpBg = scene.add.rectangle(helpX, 24, 98, 26, 0xf1f5f9, 1);
-    helpBg.setStrokeStyle(1.5, 0x93c5fd);
+    const helpX = width / 2 + 74;
+    const helpBg = scene.add.rectangle(helpX, 24, 102, 28, 0xf0f9ff, 1);
+    helpBg.setStrokeStyle(1.5, 0x38bdf8);
     const helpText = scene.add.text(helpX, 24, '❓ Trợ giúp [H]', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
@@ -144,8 +157,8 @@ export class HUD {
       helpText.setColor('#0369a1');
     });
     helpBg.on('pointerout', () => {
-      helpBg.setFillStyle(0xf1f5f9, 1);
-      helpBg.setStrokeStyle(1.5, 0x93c5fd);
+      helpBg.setFillStyle(0xf0f9ff, 1);
+      helpBg.setStrokeStyle(1.5, 0x38bdf8);
       helpText.setColor('#0284c7');
     });
 
@@ -158,7 +171,7 @@ export class HUD {
 
     if (onOpenGuide) {
       scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        if (Math.abs(pointer.x - helpX) < 52 && Math.abs(pointer.y - 24) < 16) {
+        if (Math.abs(pointer.x - helpX) < 54 && Math.abs(pointer.y - 24) < 16) {
           triggerOpen();
         }
       });
@@ -179,15 +192,15 @@ export class HUD {
     this.container.add([this.timerText, this.waveText, helpBg, helpText, this.activeBuffPill, this.activeBuffText]);
 
     // 5. Bottom Status Bar (Kills counter & 8 Cultural Pillars)
-    const bottomBg = scene.add.rectangle(width / 2, height - 22, width - 40, 34, 0xffffff, 0.92);
-    bottomBg.setStrokeStyle(1, 0xcbd5e1);
+    const bottomBg = scene.add.rectangle(width / 2, height - 22, width - 32, 34, 0xffffff, 0.95);
+    bottomBg.setStrokeStyle(1.5, 0xcbd5e1);
     this.container.add(bottomBg);
 
     this.killsText = scene.add.text(35, height - 22, '⚔️ ĐÃ ĐẨY LÙI: 0', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '12px',
       fontStyle: 'bold',
-      color: '#334155',
+      color: '#0f172a',
       resolution: 2,
     }).setOrigin(0, 0.5);
 
@@ -206,14 +219,14 @@ export class HUD {
     // 1. Update Timer
     const m = Math.floor(runSeconds / 60);
     const s = Math.floor(runSeconds % 60);
-    this.timerText.setText(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    this.timerText.setText(`⏱️ ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
 
     // 2. Update Wave
     this.waveText.setText(currentWave ? currentWave.id.toUpperCase().replace('_', ' ') : 'CHỐT CHẶN CUỐI');
 
     // 3. Update HP & Shield
     const hpRatio = Phaser.Math.Clamp(this.player.stats.hp / this.player.stats.maxHp, 0, 1);
-    this.hpBarFill.width = 180 * hpRatio;
+    this.hpBarFill.width = 170 * hpRatio;
     this.hpText.setText(`HP: ${Math.round(this.player.stats.hp)}/${this.player.stats.maxHp}`);
     this.shieldText.setText(`🛡️ ${Math.round(this.player.stats.shield)}`);
 
@@ -228,12 +241,12 @@ export class HUD {
     // 4. Update XP
     const xpRatio = Phaser.Math.Clamp(this.player.currentXP / this.player.nextLevelXP, 0, 1);
     this.xpBarFill.width = (this.scene.scale.width - 32) * xpRatio;
-    this.levelText.setText(`LV. ${this.player.level}`);
+    this.levelText.setText(`⭐ LV. ${this.player.level}`);
 
     // 5. Update Community Meter
     const meter = this.communityMeter.meterValue;
-    this.communityBarFill.width = 180 * (meter / 100);
-    this.communityText.setText(`MÔI TRƯỜNG: ${Math.round(meter)}%`);
+    this.communityBarFill.width = 170 * (meter / 100);
+    this.communityText.setText(`🌐 MÔI TRƯỜNG: ${Math.round(meter)}%`);
 
     if (meter <= 0) {
       this.crisisWarningText.setVisible(true);
@@ -257,7 +270,7 @@ export class HUD {
     // 7. Update Kills & Pillars
     this.killsText.setText(`⚔️ ĐÃ ĐẨY LÙI: ${kills}`);
     const v = this.player.values;
-    const summary = `DânTộc:${v.danToc}  KhoaHọc:${v.khoaHoc}  ĐạiChúng:${v.daiChung} | Chân:${v.chan}  Thiện:${v.thien}  Mỹ:${v.my} | Xây:${v.build} (P:${this.player.stats.buildPower})  Chống:${v.fight} (P:${this.player.stats.fightPower})`;
+    const summary = `🇻🇳 ${v.danToc}  🔬 ${v.khoaHoc}  👥 ${v.daiChung}  |  ⚖️ ${v.chan}  ❤️ ${v.thien}  🎨 ${v.my}  |  🏗️ ${v.build} (P:${this.player.stats.buildPower})  ⚔️ ${v.fight} (P:${this.player.stats.fightPower})`;
     this.pillarsText.setText(summary);
   }
 

@@ -21,6 +21,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private auraRing?: Phaser.GameObjects.Image;
   private buffAuraGfx?: Phaser.GameObjects.Graphics;
+  public shadow: Phaser.GameObjects.Image;
+  private thrusterTimer: number = 0;
   private healTimer: number = 0;
   public healPerInterval: number = 0;
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
@@ -41,11 +43,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       fight: 0,
     };
 
+    // Soft drop shadow beneath player
+    this.shadow = scene.add.image(x, y + 14, 'drop_shadow');
+    this.shadow.setDepth(8);
+    this.shadow.setScale(1.2, 0.7);
+
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.setCollideWorldBounds(true);
-    this.setCircle(14, 6, 6);
+    this.setCircle(15, 11, 11);
     this.setDepth(10);
 
     // Keyboard inputs
@@ -88,6 +95,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.handleMovement();
 
+    // Update shadow position to track player
+    if (this.shadow) {
+      this.shadow.setPosition(this.x, this.y + 14);
+    }
+
     // Update aura visual position
     if (this.auraRing && this.auraRing.visible) {
       this.auraRing.setPosition(this.x, this.y);
@@ -120,6 +132,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  private spawnThrusterParticle(): void {
+    const angle = this.rotation - Math.PI / 2;
+    const rearDist = 18;
+    const px = this.x + Math.cos(angle) * rearDist + Phaser.Math.Between(-3, 3);
+    const py = this.y + Math.sin(angle) * rearDist + Phaser.Math.Between(-3, 3);
+    const spark = this.scene.add.image(px, py, 'spark');
+    spark.setDepth(9);
+    spark.setScale(0.9);
+    spark.setTint(Phaser.Math.RND.pick([0x38bdf8, 0x00f0ff, 0x0284c7]));
+    this.scene.tweens.add({
+      targets: spark,
+      alpha: 0,
+      scale: 0.1,
+      duration: 240,
+      onComplete: () => spark.destroy(),
+    });
+  }
+
   private handleMovement(): void {
     let vx = 0;
     let vy = 0;
@@ -149,6 +179,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (vx !== 0 || vy !== 0) {
       this.setRotation(Math.atan2(vy, vx) + Math.PI / 2);
+      this.thrusterTimer += 0.016;
+      if (this.thrusterTimer > 0.06) {
+        this.thrusterTimer = 0;
+        this.spawnThrusterParticle();
+      }
     }
   }
 
@@ -185,6 +220,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.stats.hp <= 0) {
       this.isAlive = false;
       this.setVelocity(0, 0);
+      this.shadow?.setVisible(false);
       return true; // died
     }
 
@@ -231,6 +267,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public destroy(fromScene?: boolean): void {
+    this.shadow?.destroy();
     this.auraRing?.destroy();
     this.buffAuraGfx?.destroy();
     super.destroy(fromScene);

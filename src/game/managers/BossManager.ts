@@ -125,6 +125,7 @@ export class BossManager {
   private dashTimer: number = 0;
   private isDashing: boolean = false;
   private clones: Phaser.Physics.Arcade.Sprite[] = [];
+  private bossShadow?: Phaser.GameObjects.Image;
 
   constructor(
     scene: Phaser.Scene,
@@ -234,6 +235,12 @@ export class BossManager {
     this.bossSprite.setDepth(20);
     this.bossSprite.setCircle(radius, radius * 0.15, radius * 0.15);
 
+    // Soft drop shadow beneath boss
+    this.bossShadow = this.scene.add.image(this.player.x, this.player.y - 180 + radius + 10, 'drop_shadow');
+    this.bossShadow.setDepth(18);
+    const shadowScale = (radius / 16) * 1.5;
+    this.bossShadow.setScale(shadowScale, shadowScale * 0.55);
+
     // Initial entrance tween
     this.scene.tweens.add({
       targets: this.bossSprite,
@@ -336,6 +343,11 @@ export class BossManager {
     const mechanic = this.currentBossConfig.mechanicType;
     const bossSpeed = this.currentBossConfig.speed || 100;
     const hitRadius = (this.currentBossConfig.radius || 30) + 14;
+
+    // Track drop shadow position
+    if (this.bossShadow) {
+      this.bossShadow.setPosition(bx, by + hitRadius - 4);
+    }
 
     // 1. Contact damage between Boss body and Player
     const distToPlayer = Phaser.Math.Distance.Between(bx, by, px, py);
@@ -587,6 +599,8 @@ export class BossManager {
 
     // Cleanup boss entities
     this.bossSprite.destroy();
+    this.bossShadow?.destroy();
+    this.bossShadow = undefined;
     this.toxicAuraGfx?.destroy();
     this.toxicAuraGfx = undefined;
     this.clearClones();

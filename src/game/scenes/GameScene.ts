@@ -56,27 +56,78 @@ export class GameScene extends Phaser.Scene {
     // 1. World & Arena setup
     this.physics.world.setBounds(0, 0, this.arenaWidth, this.arenaHeight);
 
-    // Light tech arena background with grid
-    this.add.rectangle(this.arenaWidth / 2, this.arenaHeight / 2, this.arenaWidth, this.arenaHeight, 0xe8edf3);
-    const grid = this.add.grid(
-      this.arenaWidth / 2,
-      this.arenaHeight / 2,
-      this.arenaWidth,
-      this.arenaHeight,
-      60,
-      60,
-      0xe8edf3,
-      1,
-      0xcbd5e1,
-      0.65
-    );
-    grid.setDepth(1);
+    // Modern light cyber-arena floor (Clean elevated slate-50)
+    const cx = this.arenaWidth / 2;
+    const cy = this.arenaHeight / 2;
+    this.add.rectangle(cx, cy, this.arenaWidth, this.arenaHeight, 0xf1f5f9);
 
-    // Arena boundary lines
+    // Dual-tier grid for smooth depth perception
+    const subGrid = this.add.grid(cx, cy, this.arenaWidth, this.arenaHeight, 48, 48, 0xf1f5f9, 1, 0xe2e8f0, 0.7);
+    subGrid.setDepth(1);
+    const majorGrid = this.add.grid(cx, cy, this.arenaWidth, this.arenaHeight, 192, 192, 0xf1f5f9, 0, 0xcbd5e1, 0.85);
+    majorGrid.setDepth(1);
+
+    // Center Arena Cyber Dais & Concentric Cultural Rings
+    const daisGfx = this.add.graphics();
+    daisGfx.setDepth(2);
+    // Outer concentric rings
+    daisGfx.lineStyle(2, 0x0284c7, 0.35);
+    daisGfx.strokeCircle(cx, cy, 320);
+    daisGfx.lineStyle(2, 0x38bdf8, 0.5);
+    daisGfx.strokeCircle(cx, cy, 200);
+    daisGfx.lineStyle(2.5, 0x0284c7, 0.7);
+    daisGfx.strokeCircle(cx, cy, 100);
+    // Center glow disc
+    daisGfx.fillStyle(0x0284c7, 0.04);
+    daisGfx.fillCircle(cx, cy, 100);
+    // Center crosshair markings
+    daisGfx.lineStyle(1.5, 0x0369a1, 0.6);
+    daisGfx.lineBetween(cx - 120, cy, cx + 120, cy);
+    daisGfx.lineBetween(cx, cy - 120, cx, cy + 120);
+
+    // Arena Perimeter & Corner Tech Brackets
     const borderGfx = this.add.graphics();
-    borderGfx.lineStyle(4, 0x0284c7, 0.7);
-    borderGfx.strokeRect(4, 4, this.arenaWidth - 8, this.arenaHeight - 8);
-    borderGfx.setDepth(2);
+    borderGfx.setDepth(3);
+    // Outer neon barrier
+    borderGfx.lineStyle(4, 0x0284c7, 0.85);
+    borderGfx.strokeRect(6, 6, this.arenaWidth - 12, this.arenaHeight - 12);
+    borderGfx.lineStyle(1.5, 0x38bdf8, 0.5);
+    borderGfx.strokeRect(14, 14, this.arenaWidth - 28, this.arenaHeight - 28);
+
+    // Corner tech brackets
+    const bracketSize = 48;
+    const corners = [
+      { x: 14, y: 14, dx: 1, dy: 1 },
+      { x: this.arenaWidth - 14, y: 14, dx: -1, dy: 1 },
+      { x: 14, y: this.arenaHeight - 14, dx: 1, dy: -1 },
+      { x: this.arenaWidth - 14, y: this.arenaHeight - 14, dx: -1, dy: -1 },
+    ];
+    borderGfx.lineStyle(3.5, 0x0369a1, 1);
+    corners.forEach(c => {
+      borderGfx.beginPath();
+      borderGfx.moveTo(c.x, c.y + c.dy * bracketSize);
+      borderGfx.lineTo(c.x, c.y);
+      borderGfx.lineTo(c.x + c.dx * bracketSize, c.y);
+      borderGfx.strokePath();
+    });
+
+    // Ambient floating atmospheric particles
+    for (let i = 0; i < 28; i++) {
+      const rx = Phaser.Math.Between(40, this.arenaWidth - 40);
+      const ry = Phaser.Math.Between(40, this.arenaHeight - 40);
+      const mote = this.add.circle(rx, ry, Phaser.Math.Between(1.5, 3), 0x38bdf8, Phaser.Math.FloatBetween(0.15, 0.4));
+      mote.setDepth(3);
+      this.tweens.add({
+        targets: mote,
+        x: rx + Phaser.Math.Between(-40, 40),
+        y: ry + Phaser.Math.Between(-40, 40),
+        alpha: { from: 0.1, to: 0.45 },
+        duration: Phaser.Math.Between(3500, 6000),
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
 
     // 2. Instantiate Player at arena center
     this.player = new Player(this, this.arenaWidth / 2, this.arenaHeight / 2);

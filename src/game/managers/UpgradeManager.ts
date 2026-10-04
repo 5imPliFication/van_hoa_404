@@ -130,26 +130,26 @@ export class UpgradeManager {
     const bg = this.scene.add.rectangle(0, 0, w, h, 0xffffff, 1);
     bg.setStrokeStyle(1.5, 0xcbd5e1);
 
-    // Category banner colors
-    const catColors: Record<string, { bg: number; text: string }> = {
-      danToc: { bg: 0xfef3c7, text: '#b45309' },
-      khoaHoc: { bg: 0xe0f2fe, text: '#0369a1' },
-      daiChung: { bg: 0xede9fe, text: '#4338ca' },
-      chan: { bg: 0xd1fae5, text: '#047857' },
-      thien: { bg: 0xfce7f3, text: '#be185d' },
-      my: { bg: 0xffedd5, text: '#c2410c' },
-      build: { bg: 0xccfbf1, text: '#0f766e' },
-      fight: { bg: 0xfee2e2, text: '#b91c1c' },
+    // Category banner colors and friendly icons
+    const catColors: Record<string, { bg: number; text: string; label: string }> = {
+      danToc: { bg: 0xfef3c7, text: '#b45309', label: '🇻🇳 DÂN TỘC' },
+      khoaHoc: { bg: 0xe0f2fe, text: '#0369a1', label: '🔬 KHOA HỌC' },
+      daiChung: { bg: 0xede9fe, text: '#4338ca', label: '👥 ĐẠI CHÚNG' },
+      chan: { bg: 0xd1fae5, text: '#047857', label: '⚖️ CHÂN LÝ' },
+      thien: { bg: 0xfce7f3, text: '#be185d', label: '❤️ THIỆN LÀNH' },
+      my: { bg: 0xffedd5, text: '#c2410c', label: '🎨 THẨM MỸ SỐ' },
+      build: { bg: 0xccfbf1, text: '#0f766e', label: '🏗️ KIẾN TẠO (XÂY)' },
+      fight: { bg: 0xfee2e2, text: '#b91c1c', label: '⚔️ ĐẤU TRANH (CHỐNG)' },
     };
 
-    const colorConfig = catColors[upgrade.category] || { bg: 0xf1f5f9, text: '#334155' };
+    const colorConfig = catColors[upgrade.category] || { bg: 0xf1f5f9, text: '#334155', label: `TRỤ CỘT: ${upgrade.category.toUpperCase()}` };
 
     // Badge Pill
     const badgeBg = this.scene.add.rectangle(0, -h / 2 + 35, w - 40, 28, colorConfig.bg, 1);
-    badgeBg.setStrokeStyle(1, 0xe2e8f0);
+    badgeBg.setStrokeStyle(1.5, 0xcbd5e1);
 
-    const catBadge = this.scene.add.text(0, -h / 2 + 35, `TRỤ CỘT: ${upgrade.category.toUpperCase()}`, {
-      fontFamily: 'monospace',
+    const catBadge = this.scene.add.text(0, -h / 2 + 35, colorConfig.label, {
+      fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: colorConfig.text,
@@ -180,15 +180,38 @@ export class UpgradeManager {
 
     // Select Button
     const btnBox = this.scene.add.rectangle(0, h / 2 - 42, w - 40, 42, 0x0284c7);
-    btnBox.setStrokeStyle(1, 0x0369a1);
+    btnBox.setStrokeStyle(1.5, 0x0369a1);
 
     const btnText = this.scene.add.text(0, h / 2 - 42, `TIẾP NHẬN [Phím ${keyNumber}]`, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '14px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#ffffff',
       resolution: 2,
     }).setOrigin(0.5);
+
+    // Interactive card hover states
+    bg.setInteractive({ useHandCursor: true });
+    bg.on('pointerover', () => {
+      bg.setStrokeStyle(2.5, 0x0284c7);
+      btnBox.setFillStyle(0x0369a1);
+      this.scene.tweens.add({
+        targets: container,
+        scale: 1.025,
+        duration: 120,
+        ease: 'Quad.easeOut',
+      });
+    });
+    bg.on('pointerout', () => {
+      bg.setStrokeStyle(1.5, 0xcbd5e1);
+      btnBox.setFillStyle(0x0284c7);
+      this.scene.tweens.add({
+        targets: container,
+        scale: 1.0,
+        duration: 120,
+        ease: 'Quad.easeOut',
+      });
+    });
 
     container.add([bg, badgeBg, catBadge, nameText, descText, btnBox, btnText]);
     return container;

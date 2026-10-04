@@ -11,6 +11,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public speed: number = 100;
   public xpDrop: number = 1;
   public contactTimer: number = 0.75;
+  public shadow: Phaser.GameObjects.Image;
 
   // Behavior state
   private dashTimer: number = 0;
@@ -20,6 +21,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'enemy_tinGia');
+    this.shadow = scene.add.image(x, y + 10, 'drop_shadow');
+    this.shadow.setDepth(8);
+    this.shadow.setVisible(false);
+
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setDepth(11);
@@ -52,16 +57,29 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setTexture('enemy_tinGia');
     }
 
-    // Set physics body size
+    // Set physics body size & shadow scaling based on enemy type
     if (this.enemyType === 'swarm') {
-      this.setCircle(7, 1, 1);
+      this.setCircle(9, 6, 6);
+      this.shadow.setScale(0.7, 0.45);
+      this.shadow.setPosition(x, y + 10).setVisible(true);
     } else if (this.enemyType === 'elite') {
-      this.setCircle(20, 4, 4);
+      if (config.id === 'khungHoangTruyenThong') {
+        this.setCircle(24, 8, 8);
+        this.shadow.setScale(1.7, 0.9);
+        this.shadow.setPosition(x, y + 20).setVisible(true);
+      } else {
+        this.setCircle(20, 9, 9);
+        this.shadow.setScale(1.5, 0.8);
+        this.shadow.setPosition(x, y + 18).setVisible(true);
+      }
     } else {
-      this.setCircle(12, 2, 2);
+      this.setCircle(14, 7, 7);
+      this.shadow.setScale(1.1, 0.6);
+      this.shadow.setPosition(x, y + 12).setVisible(true);
     }
 
     this.clearTint();
+    this.setScale(1.0);
   }
 
   public updateAI(
@@ -151,6 +169,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
     }
 
+    // Update shadow position and subtle breathing animation pulse
+    const shadowYOffset = this.enemyType === 'elite' ? 18 : 12;
+    this.shadow.setPosition(this.x, this.y + shadowYOffset);
+    const pulse = 1.0 + Math.sin(this.scene.time.now / 200 + this.x * 0.05) * 0.04;
+    this.setScale(pulse);
+
     return result;
   }
 
@@ -187,5 +211,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setActive(false);
     this.setVisible(false);
     this.setVelocity(0, 0);
+    this.shadow?.setVisible(false);
+  }
+
+  public destroy(fromScene?: boolean): void {
+    this.shadow?.destroy();
+    super.destroy(fromScene);
   }
 }
