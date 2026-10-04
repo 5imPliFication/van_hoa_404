@@ -19,9 +19,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   };
 
   private auraRing?: Phaser.GameObjects.Image;
+  private buffAuraGfx?: Phaser.GameObjects.Graphics;
   private healTimer: number = 0;
   public healPerInterval: number = 0;
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
+  public lastDamagedBy: string = 'Hiện tượng tiêu cực trên mạng';
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -63,6 +65,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.auraRing.setVisible(false);
   }
 
+  public setBuffActive(active: boolean): void {
+    if (active) {
+      if (!this.buffAuraGfx) {
+        this.buffAuraGfx = this.scene.add.graphics();
+        this.buffAuraGfx.setDepth(9);
+      }
+      this.buffAuraGfx.setVisible(true);
+      this.setTint(0x7dd3fc); // Cyan cyber tint
+    } else {
+      if (this.buffAuraGfx) {
+        this.buffAuraGfx.clear();
+        this.buffAuraGfx.setVisible(false);
+      }
+      this.clearTint();
+    }
+  }
+
   update(dt: number): void {
     if (!this.isAlive) return;
 
@@ -72,6 +91,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.auraRing && this.auraRing.visible) {
       this.auraRing.setPosition(this.x, this.y);
       this.auraRing.rotation += 0.01;
+    }
+
+    // Update visual cue for active scenario buff
+    if (this.buffAuraGfx && this.buffAuraGfx.visible) {
+      this.buffAuraGfx.clear();
+      const pulse = 24 + Math.sin(this.scene.time.now / 130) * 4;
+      this.buffAuraGfx.lineStyle(2.5, 0xf59e0b, 0.9);
+      this.buffAuraGfx.strokeCircle(this.x, this.y, pulse);
+      this.buffAuraGfx.fillStyle(0xfef08a, 0.15);
+      this.buffAuraGfx.fillCircle(this.x, this.y, pulse);
+
+      const angle = this.scene.time.now / 220;
+      this.buffAuraGfx.fillStyle(0x06b6d4, 1);
+      this.buffAuraGfx.fillCircle(this.x + Math.cos(angle) * (pulse + 5), this.y + Math.sin(angle) * (pulse + 5), 3.5);
+      this.buffAuraGfx.fillCircle(this.x - Math.cos(angle) * (pulse + 5), this.y - Math.sin(angle) * (pulse + 5), 3.5);
     }
 
     // Passive regeneration (Thiện pillar boosted by Build power)
@@ -117,8 +151,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  public takeDamage(amount: number): boolean {
+  public takeDamage(amount: number, sourceName: string = 'Hiện tượng tiêu cực trên mạng'): boolean {
     if (!this.isAlive) return false;
+    this.lastDamagedBy = sourceName;
 
     let remaining = amount;
     if (this.stats.shield > 0) {
@@ -192,6 +227,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public destroy(fromScene?: boolean): void {
     this.auraRing?.destroy();
+    this.buffAuraGfx?.destroy();
     super.destroy(fromScene);
   }
 }

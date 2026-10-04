@@ -124,21 +124,42 @@ export class HUD {
     }).setOrigin(0.5);
 
     // Help Button (Open Guide anytime)
-    const helpX = width / 2 + 65;
-    const helpBg = scene.add.rectangle(helpX, 24, 88, 26, 0xf1f5f9, 1);
-    helpBg.setStrokeStyle(1, 0xcbd5e1);
-    const helpText = scene.add.text(helpX, 24, '❓ Trợ giúp', {
+    const helpX = width / 2 + 68;
+    const helpBg = scene.add.rectangle(helpX, 24, 98, 26, 0xf1f5f9, 1);
+    helpBg.setStrokeStyle(1.5, 0x93c5fd);
+    const helpText = scene.add.text(helpX, 24, '❓ Trợ giúp [H]', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#0369a1',
+      color: '#0284c7',
       resolution: 2,
     }).setOrigin(0.5);
 
+    helpBg.setInteractive({ useHandCursor: true });
+    helpText.setInteractive({ useHandCursor: true });
+
+    helpBg.on('pointerover', () => {
+      helpBg.setFillStyle(0xe0f2fe, 1);
+      helpBg.setStrokeStyle(1.5, 0x0284c7);
+      helpText.setColor('#0369a1');
+    });
+    helpBg.on('pointerout', () => {
+      helpBg.setFillStyle(0xf1f5f9, 1);
+      helpBg.setStrokeStyle(1.5, 0x93c5fd);
+      helpText.setColor('#0284c7');
+    });
+
+    const triggerOpen = () => {
+      if (onOpenGuide) onOpenGuide();
+    };
+
+    helpBg.on('pointerdown', triggerOpen);
+    helpText.on('pointerdown', triggerOpen);
+
     if (onOpenGuide) {
       scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        if (Math.abs(pointer.x - helpX) < 45 && Math.abs(pointer.y - 24) < 14) {
-          onOpenGuide();
+        if (Math.abs(pointer.x - helpX) < 52 && Math.abs(pointer.y - 24) < 16) {
+          triggerOpen();
         }
       });
     }
@@ -222,9 +243,10 @@ export class HUD {
       this.communityBarFill.setFillStyle(meter < 35 ? 0xf59e0b : 0x0891b2);
     }
 
-    // 6. Update Active Buff Banner
+    // 6. Update Active Buff Banner (30s Scenario Buff Countdown)
     if (buffText && buffText.length > 0) {
-      this.activeBuffText.setText(`⚡ HIỆU ỨNG SỰ KIỆN: ${buffText}`);
+      this.activeBuffText.setText(buffText);
+      this.activeBuffPill.width = Math.max(560, this.activeBuffText.width + 40);
       this.activeBuffText.setVisible(true);
       this.activeBuffPill.setVisible(true);
     } else {

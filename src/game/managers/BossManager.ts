@@ -333,7 +333,7 @@ export class BossManager {
         const dmg = this.isDashing
           ? (this.currentBossConfig.contactDamage || 20) * 1.5
           : (this.currentBossConfig.contactDamage || 15);
-        this.player.takeDamage(Math.round(dmg));
+        this.player.takeDamage(Math.round(dmg), `Cú va chạm trực diện với Trùm ${this.currentBossConfig.name}`);
       }
     } else {
       this.contactDamageTimer = 0.8;
@@ -404,7 +404,7 @@ export class BossManager {
         this.dotTimer += dtSec;
         if (this.dotTimer >= 1.5) {
           this.dotTimer = 0;
-          this.player.takeDamage(this.currentBossConfig.dotDamage || 4);
+          this.player.takeDamage(this.currentBossConfig.dotDamage || 4, `Vùng Độc Tố của Trùm ${this.currentBossConfig.name}`);
         }
       } else {
         this.dotTimer = 0;
@@ -453,6 +453,7 @@ export class BossManager {
   private updateTinySwarm(px: number, py: number): void {
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
     const minionDmg = this.currentBossConfig?.minionDamage || 4;
+    const bossName = this.currentBossConfig?.name || 'Trùm';
 
     for (const m of minions) {
       if (!m.active) continue;
@@ -465,7 +466,7 @@ export class BossManager {
       // Hit player
       const dist = Phaser.Math.Distance.Between(m.x, m.y, px, py);
       if (dist < 20) {
-        this.player.takeDamage(minionDmg);
+        this.player.takeDamage(minionDmg, `Bầy Quái Tí Hon (Trùm ${bossName})`);
         m.setActive(false).setVisible(false);
         m.setVelocity(0, 0);
       }
@@ -522,7 +523,8 @@ export class BossManager {
   private fireProjectile(fromX: number, fromY: number, angle: number, speed: number, damage: number = 10): void {
     const targetX = fromX + Math.cos(angle) * 100;
     const targetY = fromY + Math.sin(angle) * 100;
-    this.enemyManager.fireEnemyBullet(fromX, fromY, targetX, targetY, damage, speed);
+    const bossName = this.currentBossConfig?.name || 'Trùm';
+    this.enemyManager.fireEnemyBullet(fromX, fromY, targetX, targetY, damage, speed, `Bão đạn của Trùm ${bossName}`);
   }
 
   public takeDamage(amount: number, isCrit: boolean = false): boolean {

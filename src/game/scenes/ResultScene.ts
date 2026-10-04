@@ -8,6 +8,7 @@ export interface GameResultData {
   values: CulturalValues;
   isVictory: boolean;
   communityMeter: number;
+  killedBy?: string;
 }
 
 export class ResultScene extends Phaser.Scene {
@@ -34,6 +35,7 @@ export class ResultScene extends Phaser.Scene {
       },
       isVictory: false,
       communityMeter: 50,
+      killedBy: 'Hiện tượng tiêu cực trên mạng',
     };
   }
 
@@ -49,31 +51,47 @@ export class ResultScene extends Phaser.Scene {
     const headerTitle = isWin ? '🎉 HOÀN THÀNH SỨ MỆNH VĂN HÓA SỐ' : 'KẾT THÚC VÁN CHƠI';
     const headerColor = isWin ? '#059669' : '#dc2626';
 
-    this.add.text(width / 2, height * 0.11, headerTitle, {
+    this.add.text(width / 2, height * (isWin ? 0.11 : 0.08), headerTitle, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '32px',
+      fontSize: '30px',
       fontStyle: 'bold',
       color: headerColor,
       resolution: 2,
     }).setOrigin(0.5);
 
+    // If player was defeated, show prominent death cause card
+    if (!isWin) {
+      const killer = this.resultData.killedBy || 'Hiện tượng tiêu cực trên không gian mạng';
+      const deathBox = this.add.rectangle(width / 2, height * 0.155, 760, 48, 0xfef2f2, 0.98);
+      deathBox.setStrokeStyle(1.5, 0xef4444);
+
+      this.add.text(width / 2, height * 0.155, `☠️ NGUYÊN NHÂN TỬ TRẬN: Bị hạ gục bởi [ ${killer.toUpperCase()} ]`, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#b91c1c',
+        resolution: 2,
+      }).setOrigin(0.5);
+    }
+
     // Archetype calculation (Neutral perspective per GDD rules)
     const archetype = this.computeArchetype(this.resultData.values);
+    const archY = isWin ? height * 0.23 : height * 0.27;
 
-    const archetypeBox = this.add.rectangle(width / 2, height * 0.23, 760, 80, 0xffffff, 0.98);
+    const archetypeBox = this.add.rectangle(width / 2, archY, 760, 76, 0xffffff, 0.98);
     archetypeBox.setStrokeStyle(1.5, 0x0284c7);
 
-    this.add.text(width / 2, height * 0.21, `HỒ SƠ ĐỊNH HƯỚNG: ${archetype.title.toUpperCase()}`, {
+    this.add.text(width / 2, archY - 14, `HỒ SƠ ĐỊNH HƯỚNG: ${archetype.title.toUpperCase()}`, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '19px',
+      fontSize: '18px',
       fontStyle: 'bold',
       color: '#0369a1',
       resolution: 2,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.25, archetype.description, {
+    this.add.text(width / 2, archY + 14, archetype.description, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '14px',
+      fontSize: '13px',
       color: '#475569',
       resolution: 2,
     }).setOrigin(0.5);
@@ -82,26 +100,27 @@ export class ResultScene extends Phaser.Scene {
     const minutes = Math.floor(this.resultData.survivedTime / 60);
     const seconds = Math.floor(this.resultData.survivedTime % 60);
     const timeFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const statsY = isWin ? height * 0.40 : height * 0.435;
 
-    const statsBox = this.add.rectangle(width / 2, height * 0.40, 760, 85, 0xffffff, 0.98);
+    const statsBox = this.add.rectangle(width / 2, statsY, 760, 80, 0xffffff, 0.98);
     statsBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-    this.add.text(width / 2, height * 0.38,
+    this.add.text(width / 2, statsY - 16,
       `⏱ Thời gian trụ vững: ${timeFormatted}   |   ⚔ Quái vật đẩy lùi: ${this.resultData.enemiesKilled}   |   ⭐ Cấp đạt được: ${this.resultData.levelReached}`,
       {
         fontFamily: 'system-ui, sans-serif',
-        fontSize: '15px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#0f172a',
         resolution: 2,
       }
     ).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.43,
+    this.add.text(width / 2, statsY + 16,
       `🌐 Chỉ số Môi trường Văn hóa (Community Meter): ${Math.round(this.resultData.communityMeter)}%`,
       {
         fontFamily: 'system-ui, sans-serif',
-        fontSize: '14px',
+        fontSize: '13px',
         fontStyle: 'bold',
         color: this.resultData.communityMeter > 30 ? '#059669' : '#d97706',
         resolution: 2,
@@ -109,10 +128,11 @@ export class ResultScene extends Phaser.Scene {
     ).setOrigin(0.5);
 
     // Values Breakdown Card (8 Pillars)
-    const valuesBox = this.add.rectangle(width / 2, height * 0.63, 760, 160, 0xffffff, 0.98);
+    const valuesY = isWin ? height * 0.63 : height * 0.655;
+    const valuesBox = this.add.rectangle(width / 2, valuesY, 760, 150, 0xffffff, 0.98);
     valuesBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-    this.add.text(width / 2, height * 0.54, 'CHI TIẾT 8 TRỤ CỘT HỆ GIÁ TRỊ VĂN HÓA', {
+    this.add.text(width / 2, valuesY - 48, 'CHI TIẾT 8 TRỤ CỘT HỆ GIÁ TRỊ VĂN HÓA', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',

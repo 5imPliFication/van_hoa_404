@@ -106,23 +106,57 @@ graph TD
 
 ---
 
-## 4. TÌNH HUỐNG THỰC TẾ & BUFF/DEBUFF TẠM THỜI (Scenario Events)
+## 4. TÌNH HUỐNG THỰC TẾ & BUFF TẠM THỜI 30 GIÂY (Random Scenario Events)
 
 Các tình huống xuất hiện ngắt nhịp trận đấu, yêu cầu người chơi giải quyết bài toán văn hóa mạng với hệ quả trực tiếp:
 
-| Thời điểm | Tình huống | Lựa chọn ứng xử | Hiệu ứng nhận được |
-| :--- | :--- | :--- | :--- |
-| **00:45** | **Tin Đồn Chưa Kiểm Chứng** | **Kiểm chứng nguồn tin** | `+10 Khiên`, `+20% Sát thương (20s)`, `+15% Môi Trường`, `+20% XP (20s)` |
-| | | Chia sẻ cảnh báo ngay | `-5 HP`, `-15% Môi Trường`, sinh 6 quái Tin Giả tăng 20% tốc độ |
-| | | Báo cáo vi phạm | `+10% Môi Trường`, làm chậm quái 20% (15s) |
-| **02:40** | **Công Kích Hội Đồng (Cyberbullying)** | **Lên tiếng bênh vực văn minh** | `+15 Khiên`, `+10% Sát thương` & `+10% Tốc bắn (20s)`, `+20% Môi Trường`, làm chậm quái 10% (20s) |
-| | | Hùa theo bình luận ác ý | `-10 HP`, `-20% Môi Trường`, sinh 4 quái Bạo Lực Ngôn Từ tăng 25% tốc độ |
-| **05:10** | **Xuyên Tạc Di Sản Văn Hóa** | **Đính chính tư liệu chuẩn xác** | `+20 Khiên`, `+25% Sát thương (25s)`, `+25% Môi Trường`, `+15% XP (25s)` |
-| | | Thả phẫn nộ câu view | `-5 HP`, `-15% Môi Trường`, sinh 2 quái Tinh Anh Xuyên Tạc tăng 10% tốc độ |
-| **07:40** | **Đạo Nhái Tác Phẩm Sáng Tạo** | **Bảo vệ quyền tác giả gốc** | `+25 Khiên`, `+30% Sát thương` & `+10% Tốc bắn (25s)`, `+25% Môi Trường`, làm chậm quái 15% (25s) |
-| | | Thờ ơ xem như bình thường | `-10% Sát thương (15s)`, `-10% Môi Trường`, sinh 5 quái Clickbait tăng 10% tốc độ |
+### 🎲 Cơ Chế Ngẫu Nhiên Hóa Câu Hỏi & Lựa Chọn:
+* **Xuất hiện ngẫu nhiên**: Các câu hỏi tình huống được chọn ngẫu nhiên từ kho dữ liệu phong phú (Tin đồn chưa kiểm chứng, Công kích hội đồng, Xuyên tạc văn hóa, Đạo nhái sáng tạo, Video giả mạo Deepfake AI, Thuật toán kích động thù ghét Rage-bait, Tin đồn y tế trôi nổi,...).
+* **Xáo trộn đáp án**: Thứ tự các lựa chọn trong mỗi câu hỏi được xáo trộn ngẫu nhiên để tránh việc người chơi đoán trước phím bấm.
+* **Thời điểm xuất hiện**: Phân bố ngẫu nhiên dọc theo trận đấu 10 phút, tự động tránh các mốc xuất hiện Trùm (phút thứ 3, 5, 7, 10).
 
-> **Lưu ý**: Trong thời gian buff/debuff tạm thời kích hoạt, thanh HUD trên cùng sẽ hiển thị biểu tượng `⚡ HIỆU ỨNG SỰ KIỆN` với các thông số cụ thể và tự động hoàn trả chỉ số chuẩn xác khi hết thời gian `durationSeconds`.
+| Tình huống tiêu biểu | Lựa chọn ứng xử văn hóa | Hiệu ứng nhận được (Buff kéo dài 30 giây) |
+| :--- | :--- | :--- |
+| **Tin Đồn Chưa Kiểm Chứng** | **Kiểm chứng nguồn tin** | `+15 Khiên`, `+25% Sát thương (30s)`, `+15% Môi Trường`, `+20% XP (30s)` |
+| | Chia sẻ cảnh báo ngay | `-5 HP`, `-15% Môi Trường`, sinh 6 quái Tin Giả tăng 20% tốc độ |
+| | Báo cáo vi phạm | `+10 Khiên`, `+15% Môi Trường`, làm chậm quái 20% (30s) |
+| **Công Kích Hội Đồng (Cyberbullying)** | **Lên tiếng bênh vực văn minh** | `+20 Khiên`, `+15% Sát thương` & `+15% Tốc bắn (30s)`, `+20% Môi Trường`, làm chậm quái 15% (30s) |
+| | Hùa theo bình luận ác ý | `-10 HP`, `-20% Môi Trường`, sinh 4 quái Bạo Lực Ngôn Từ tăng 25% tốc độ |
+| **Xuyên Tạc Di Sản Văn Hóa** | **Đính chính tư liệu chuẩn xác** | `+25 Khiên`, `+25% Sát thương` & `+10% Tốc bắn (30s)`, `+25% Môi Trường`, `+20% XP (30s)` |
+| | Thả phẫn nộ câu view | `-5 HP`, `-15% Môi Trường`, sinh 2 quái Tinh Anh Xuyên Tạc tăng 10% tốc độ |
+| **Đạo Nhái Tác Phẩm Sáng Tạo** | **Bảo vệ quyền tác giả gốc** | `+25 Khiên`, `+30% Sát thương` & `+15% Tốc bắn (30s)`, `+25% Môi Trường`, làm chậm quái 15% (30s) |
+| | Thờ ơ xem như bình thường | `-10% Sát thương (15s)`, `-10% Môi Trường`, sinh 5 quái Clickbait tăng 10% tốc độ |
+| **Video Deepfake AI Lừa Đảo** | **Soi xét khẩu hình & Báo cáo AI** | `+25 Khiên`, `+25% Sát thương` & `+10% Tốc bắn (30s)`, `+20% Môi Trường`, `+20% XP (30s)` |
+| | Tin tưởng chuyển tiền ngay | `-10 HP`, `-20% Môi Trường`, sinh 5 quái Tin Giả tăng 20% tốc độ |
+| **Thuật Toán Kích Động Thù Ghét** | **Chọn "Không quan tâm" & Gắn kết** | `+20 Khiên`, `+20% Sát thương` & `+15% Tốc chạy (30s)`, `+25% Môi Trường`, làm chậm quái 15% (30s) |
+| | Lao vào cãi vã xả giận | `-5 HP`, `-15% Môi Trường`, sinh 2 quái Cực Đoan Mạng tăng 20% tốc độ |
+| **Tin Đồn Y Tế Trôi Nổi** | **Đối chiếu tài liệu y khoa chính thống** | `Hồi +20 HP`, `+20 Khiên`, `+20% Sát thương` & `+15% Tốc bắn (30s)`, `+20% Môi Trường`, `+20% XP (30s)` |
+| | Chia sẻ bài thuốc truyền miệng | `-10 HP`, `-10% Sát thương (15s)`, `-20% Môi Trường`, sinh 4 quái Tâm Lý Đám Đông |
+
+### ✨ Visual Cues & Cơ Chế Giới Hạn Thời Gian 30 Giây:
+1. **Visual Cue trên nhân vật**: Khi nhận buff, xung quanh người chơi xuất hiện **Vòng Hào Quang Ánh Kim & Hạt Năng Lượng Xanh Ngọc (Cyan Aura Ring)** chuyển động xoay tròn và nhấp nháy phát sáng (`Player.buffAuraGfx`), đồng thời nhân vật phát quang ánh xanh cyber.
+2. **Visual Cue trên thanh HUD**: Thanh Banner trên cùng hiển thị chi tiết các chỉ số buff cùng **đồng hồ đếm ngược trực tiếp `[Xs]`** (ví dụ: `✨ +25% Sát thương • +10% Tốc bắn [29s]`).
+3. **Hoàn trả chỉ số tự động**: Hết đúng 30 giây, vòng hào quang tự biến mất, chỉ số được hoàn trả chuẩn xác và thanh HUD tự động ẩn đi.
+
+---
+
+## 4.1. CÁC TÍNH NĂNG VÀ CẢI TIẾN TRẢI NGHIỆM ĐẶC BIỆT
+
+### 🎧 Bộ Lọc Âm Thanh Đạn Xuyên Thấu (Audio Hit Throttle):
+* Khắc phục hiện tượng khi đạn xuyên thấu bắn qua cụm quái đông hàng chục con làm hàng chục âm thanh va chạm chồng lên nhau gây chói tai và méo tiếng.
+* Tích hợp bộ **Audio Rate Limiter (giãn cách tối thiểu 75ms)** kết hợp điều chỉnh gain êm ái, mang lại trải nghiệm âm thanh gõ đòn giòn tan, thỏa mãn và dễ chịu.
+
+### ❓ Nút Trợ Giúp Đa Năng [Phím H] (Interactive Tactical Guide):
+* Nút `❓ Trợ giúp [H]` trên thanh HUD được thiết kế tương tác trực tiếp với hiệu ứng đổi màu hover và con trỏ chuột bàn tay.
+* Nhấn phím `H` hoặc click chuột để tạm dừng trận đấu và tra cứu nhanh bảng cẩm nang 3 tab:
+  * **Tab 1**: Điều khiển & Cơ chế cơ bản.
+  * **Tab 2**: Hệ thống 8 Trụ Cột Giá Trị & 4 Công thức Tiến Hóa.
+  * **Tab 3**: Cột mốc Trùm (3m, 5m, 7m, 10m) & Mẹo vượt ải.
+
+### ☠️ Bảng Tử Trận Ghi Rõ Thủ Phạm (Death Screen Attribution):
+* Khi người chơi bị hạ gục, màn hình Tổng Kết sẽ hiển thị một biểu ngữ màu đỏ nổi bật:  
+  `☠️ NGUYÊN NHÂN TỬ TRẬN: Bị hạ gục bởi [ TÊN KẺ ĐỊCH / TRÙM / BÃO ĐẠN ]`.
+* Giúp người chơi nắm bắt nguyên nhân tử trận (do đạn tầm xa, do va chạm quái lướt, do vùng độc tố, hay do hậu quả từ quyết định sự kiện sai lầm).
 
 ---
 

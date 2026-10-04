@@ -21,7 +21,14 @@ export class SoundSystem {
     return this.isMuted;
   }
 
+  private static lastHitTime: number = 0;
+  private static lastShootTime: number = 0;
+
   public static playShoot(): void {
+    const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (nowMs - this.lastShootTime < 45) return; // Prevent multi-shot bullet audio stacking
+    this.lastShootTime = nowMs;
+
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -34,7 +41,7 @@ export class SoundSystem {
       osc.frequency.setValueAtTime(650, now);
       osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
 
-      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.setValueAtTime(0.06, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
       osc.connect(gain);
@@ -48,6 +55,11 @@ export class SoundSystem {
   }
 
   public static playHit(): void {
+    const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    // Throttle hit sounds (minimum 75ms) to prevent loud clipping when piercing bullets hit clumps of enemies
+    if (nowMs - this.lastHitTime < 75) return;
+    this.lastHitTime = nowMs;
+
     const ctx = this.getContext();
     if (!ctx) return;
 
@@ -57,17 +69,17 @@ export class SoundSystem {
 
       osc.type = 'triangle';
       const now = ctx.currentTime;
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(60, now + 0.06);
+      osc.frequency.setValueAtTime(170, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.05);
 
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      gain.gain.setValueAtTime(0.06, now); // Softer volume, no ear-splitting stacking
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.06);
+      osc.stop(now + 0.05);
     } catch {
       // AudioContext policy safe
     }

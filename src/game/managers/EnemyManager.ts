@@ -78,7 +78,7 @@ export class EnemyManager {
 
       // Handle ranged projectile shoot
       if (aiResult.shouldShoot) {
-        this.fireEnemyBullet(enemy.x, enemy.y, px, py, enemy.damage);
+        this.fireEnemyBullet(enemy.x, enemy.y, px, py, enemy.damage, undefined, `Đạn của ${enemy.config.name}`);
       }
 
       // Handle duplication (Tin Giả)
@@ -89,7 +89,7 @@ export class EnemyManager {
       // Check collision with player
       const distToPlayer = Phaser.Math.Distance.Between(enemy.x, enemy.y, px, py);
       if (distToPlayer < 24) {
-        this.player.takeDamage(enemy.damage);
+        this.player.takeDamage(enemy.damage, enemy.config.name);
       }
     }
 
@@ -134,7 +134,7 @@ export class EnemyManager {
     }
   }
 
-  public fireEnemyBullet(fromX: number, fromY: number, targetX: number, targetY: number, damage: number = 10, speedOverride?: number): void {
+  public fireEnemyBullet(fromX: number, fromY: number, targetX: number, targetY: number, damage: number = 10, speedOverride?: number, sourceName?: string): void {
     const bullet = this.enemyProjectiles.get(fromX, fromY, 'enemy_bullet') as Phaser.Physics.Arcade.Image;
     if (!bullet) return;
 
@@ -142,6 +142,7 @@ export class EnemyManager {
     bullet.setVisible(true);
     bullet.setDepth(14);
     bullet.setData('damage', damage);
+    bullet.setData('sourceName', sourceName || 'Đạn của quái vật');
 
     const angle = Phaser.Math.Angle.Between(fromX, fromY, targetX, targetY);
     const speed = (speedOverride || 190) * this.globalEnemySpeedMultiplier;
@@ -164,7 +165,8 @@ export class EnemyManager {
       const d = Phaser.Math.Distance.Between(b.x, b.y, px, py);
       if (d < 18) {
         const bulletDmg = (b.getData('damage') as number) || 10;
-        this.player.takeDamage(bulletDmg);
+        const source = (b.getData('sourceName') as string) || 'Đạn của quái vật';
+        this.player.takeDamage(bulletDmg, source);
         b.setActive(false);
         b.setVisible(false);
         b.setVelocity(0, 0);
