@@ -3,7 +3,7 @@ import { Player } from '../entities/Player';
 import { WeaponSystem } from './WeaponSystem';
 import { EnemyManager } from './EnemyManager';
 import { CommunityMeterManager } from './CommunityMeterManager';
-import { EvolutionConfig } from '../types/data';
+import { ComboConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 
@@ -13,8 +13,10 @@ export class EvolutionManager {
   private weaponSystem: WeaponSystem;
   private enemyManager: EnemyManager;
   private communityMeter: CommunityMeterManager;
-  private evolutions: EvolutionConfig[] = [];
-  public activeEvolutions: Set<string> = new Set();
+  private combos: ComboConfig[] = [];
+  public activeCombos: ComboConfig[] = [];
+  public activeEvolutionIds: Set<string> = new Set();
+  public onComboUnlockedCallback?: (combo: ComboConfig) => void;
 
   constructor(
     scene: Phaser.Scene,
@@ -28,92 +30,148 @@ export class EvolutionManager {
     this.weaponSystem = weaponSystem;
     this.enemyManager = enemyManager;
     this.communityMeter = communityMeter;
-    this.evolutions = DataLoader.getEvolutions();
+    this.combos = DataLoader.getCombos();
   }
 
   public checkEvolutions(): void {
-    for (const evo of this.evolutions) {
-      if (this.activeEvolutions.has(evo.id)) continue;
+    this.checkCombos();
+  }
 
-      // Check if player has all required pillars with at least level 1 or 2
-      const satisfied = evo.requiredPillars.every(
-        p => (this.player.values[p as keyof typeof this.player.values] || 0) >= 1
+  public checkCombos(): void {
+    for (const combo of this.combos) {
+      if (this.activeEvolutionIds.has(combo.id)) continue;
+
+      // Check if all required pillars reach the required level (Level 4 for 2-stat combos)
+      const satisfied = combo.requirements.every(
+        req => (this.player.values[req.pillar] || 0) >= req.level
       );
 
       if (satisfied) {
-        this.unlockEvolution(evo);
+        this.unlockCombo(combo);
       }
     }
   }
 
-  private unlockEvolution(evo: EvolutionConfig): void {
-    this.activeEvolutions.add(evo.id);
+  private unlockCombo(combo: ComboConfig): void {
+    this.activeEvolutionIds.add(combo.id);
+    this.activeCombos.push(combo);
     SoundSystem.playEvolution();
 
-    // 1. Pierce
-    if (evo.effects.projectilePierce) {
+    // 1. Orbiting data shields
+    if (combo.effects.orbitingShields) {
+      this.weaponSystem.hasOrbitingShields = true;
+      this.weaponSystem.spawnOrbitingRelics(combo.effects.shieldCount || 3);
+    }
+
+    // 2. Piercing projectile & Tin Gia bonus
+    if (combo.effects.projectilePierce) {
       this.weaponSystem.hasPierceEvolution = true;
     }
-    // 2. Bonus vs enemy type (Tin Giả)
-    if (evo.effects.bonusVsEnemyType && evo.effects.bonusDamageMultiplier) {
-      this.weaponSystem.bonusVsTinGiaMultiplier = evo.effects.bonusDamageMultiplier;
+    if (combo.effects.bonusVsEnemyType && combo.effects.bonusDamageMultiplier) {
+      this.weaponSystem.bonusVsTinGiaMultiplier = combo.effects.bonusDamageMultiplier;
     }
-    // 3. General damage multiplier
-    if (evo.effects.damageMultiplier) {
-      this.player.stats.damage *= evo.effects.damageMultiplier;
-    }
-    // 4. Aura slow & radius bonus
-    if (evo.effects.auraSlow) {
-      this.enemyManager.auraSlowBonus += evo.effects.auraSlow;
-    }
-    if (evo.effects.auraRadius) {
-      this.enemyManager.auraRadiusBonus += Math.max(0, evo.effects.auraRadius - 130);
-    }
-    // 5. Aura heal per tick
-    if (evo.effects.auraHeal) {
-      this.player.healPerInterval += evo.effects.auraHeal;
-    }
-    // 6. Community meter buff & power bonus
-    if (evo.effects.communityMeterBuff) {
-      this.communityMeter.modify(evo.effects.communityMeterBuff);
-      this.player.stats.buildPower += 15;
-      this.player.stats.fightPower += 15;
+    if (combo.effects.critOnMarked) {
+      this.weaponSystem.critOnMarked = true;
     }
 
-    // Show Evolution Banner
+    // 3. Benevolent aura (slow, heal, community meter)
+    if (combo.effects.slowAuraRadius) {
+      this.enemyManager.auraRadiusBonus += Math.max(0, combo.effects.slowAuraRadius - 130);
+    }
+    if (combo.effects.slowPercent) {
+      this.enemyManager.auraSlowBonus += combo.effects.slowPercent;
+    }
+    if (combo.effects.auraHealPerInterval) {
+      this.player.healPerInterval += combo.effects.auraHealPerInterval;
+    }
+    if (combo.effects.communityMeterBuffPerInterval) {
+      this.communityMeter.modify(15);
+    }
+
+    // 4. Shockwave pulse
+    if (combo.effects.shockwavePulse) {
+      this.weaponSystem.hasShockwavePulse = true;
+    }
+    if (combo.effects.damageMultiplier) {
+      this.player.stats.damage *= combo.effects.damageMultiplier;
+    }
+
+    // Notify callback (for HUD and game updates)
+    if (this.onComboUnlockedCallback) {
+      this.onComboUnlockedCallback(combo);
+    }
+
+    // Show Celebratory Full-Screen Banner UI
+    this.showComboUnlockBanner(combo);
+  }
+
+  private showComboUnlockBanner(combo: ComboConfig): void {
     const { width } = this.scene.scale;
-    const banner = this.scene.add.container(width / 2, 90);
-    banner.setDepth(90);
+    const banner = this.scene.add.container(width / 2, 70);
+    banner.setDepth(130);
     banner.setScrollFactor(0); // PIN TO SCREEN
 
-    const bg = this.scene.add.rectangle(0, 0, 520, 54, 0xffffff, 0.98);
-    bg.setStrokeStyle(2, 0x7c3aed);
+    const bg = this.scene.add.rectangle(0, 0, 720, 68, 0xffffff, 0.98);
+    bg.setStrokeStyle(2.5, 0x7c3aed);
 
-    const title = this.scene.add.text(0, -10, `✨ TIẾN HÓA KỸ NĂNG: ${evo.name.toUpperCase()}`, {
+    const pillBg = this.scene.add.rectangle(0, -22, 280, 20, 0xede9fe, 1);
+    pillBg.setStrokeStyle(1, 0xc4b5fd);
+    const pillTxt = this.scene.add.text(0, -22, '✨ CỘNG HƯỞNG GIÁ TRỊ THÀNH CÔNG! ✨', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '14px',
+      fontSize: '10px',
       fontStyle: 'bold',
       color: '#6d28d9',
       resolution: 2,
     }).setOrigin(0.5);
 
-    const desc = this.scene.add.text(0, 11, evo.description, {
+    const title = this.scene.add.text(0, -3, `[${combo.formula}] — ${combo.name.toUpperCase()}`, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '12px',
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#4c1d95',
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    const desc = this.scene.add.text(0, 18, combo.description, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
       color: '#334155',
       resolution: 2,
     }).setOrigin(0.5);
 
-    banner.add([bg, title, desc]);
+    banner.add([bg, pillBg, pillTxt, title, desc]);
 
-    // Slide in and fade out
+    // Particle flare burst on player
+    for (let i = 0; i < 12; i++) {
+      const spark = this.scene.add.image(this.player.x, this.player.y, 'spark');
+      spark.setDepth(15);
+      spark.setTint(Phaser.Math.RND.pick([0xa855f7, 0x00f0ff, 0xfacc15, 0x10b981]));
+      const angle = (Math.PI * 2 * i) / 12;
+      const dist = Phaser.Math.Between(35, 75);
+      this.scene.tweens.add({
+        targets: spark,
+        x: this.player.x + Math.cos(angle) * dist,
+        y: this.player.y + Math.sin(angle) * dist,
+        alpha: 0,
+        scale: 0.2,
+        duration: 450,
+        onComplete: () => spark.destroy(),
+      });
+    }
+
+    // Slide in, hold, and fade out
     this.scene.tweens.add({
       targets: banner,
-      y: 110,
-      duration: 300,
-      hold: 3000,
+      y: 95,
+      duration: 320,
+      hold: 3500,
       yoyo: true,
+      ease: 'Back.easeOut',
       onComplete: () => banner.destroy(),
     });
+  }
+
+  public getActiveComboList(): ComboConfig[] {
+    return this.activeCombos;
   }
 }

@@ -12,6 +12,8 @@ import {
   ScenarioConfig,
   EvolutionConfig,
   BossConfig,
+  CharacterClassConfig,
+  ComboConfig,
 } from '@/game/types/data';
 
 // Default MVP fallback items when placeholder arrays are empty, ensuring combat loop is immediately playable
@@ -720,7 +722,170 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
   },
 ];
 
+export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
+  {
+    id: 'nguoiKiemChung',
+    name: 'Người Kiểm Chứng',
+    title: 'Thiện Xạ Chân Lý',
+    badgeIcon: '🔍',
+    themeColor: 0x0284c7,
+    themeHex: '#0284c7',
+    roleDescription: 'Chuyên gia thẩm định thông tin số. Phong cách tấn công tầm xa chính xác, tốc độ đạn cao và dồn sát thương mục tiêu đơn.',
+    startingWeapon: 'sniper',
+    startingWeaponName: 'Tia Sáng Kiểm Chứng',
+    startingWeaponDesc: 'Bắn tia năng lượng chính xác cao khóa mục tiêu gần nhất. Tầm bắn xa và tỷ lệ bạo kích cao.',
+    startingStats: {
+      projectileSpeed: 520,
+      critChance: 0.12,
+      damage: 18,
+    },
+    startingValues: {
+      khoaHoc: 1,
+      chan: 1,
+    },
+    affinity: ['khoaHoc', 'chan'],
+    passive: {
+      name: 'Dán Nhãn Xác Minh',
+      description: 'Kẻ địch trúng 3 phát bắn liên tiếp sẽ bị dán nhãn ĐÃ XÁC MINH, nhận thêm 30% sát thương từ mọi đòn tấn công.',
+      effectType: 'mark_verified',
+    },
+  },
+  {
+    id: 'nguoiKienTao',
+    name: 'Người Kiến Tạo',
+    title: 'Kiểm Soát Vùng Tích Cực',
+    badgeIcon: '🌐',
+    themeColor: 0x16a34a,
+    themeHex: '#16a34a',
+    roleDescription: 'Người xây dựng chuẩn mực văn hóa số. Phát tỏa xung lực bảo vệ diện rộng, dọn dẹp quái bầy đàn và duy trì sinh khí cộng đồng.',
+    startingWeapon: 'pulse',
+    startingWeaponName: 'Xung Lực Văn Hóa',
+    startingWeaponDesc: 'Phát tỏa làn sóng năng lượng định kỳ quanh thân, đẩy lùi và gây sát thương diện rộng lên mọi quái vật xung quanh.',
+    startingStats: {
+      damage: 14,
+      attackSpeed: 1.0,
+      moveSpeed: 235,
+    },
+    startingValues: {
+      daiChung: 1,
+      thien: 1,
+      build: 1,
+    },
+    affinity: ['daiChung', 'thien', 'build'],
+    passive: {
+      name: 'Sinh Khí Cộng Đồng',
+      description: 'Đứng trong vùng sóng tích cực do bản thân tạo ra tự động hồi phục 0.6% Community Meter mỗi giây.',
+      effectType: 'community_resonance',
+    },
+  },
+  {
+    id: 'nguoiGinGiu',
+    name: 'Người Gìn Giữ',
+    title: 'Hộ Vệ Bản Sắc',
+    badgeIcon: '🛡️',
+    themeColor: 0xd97706,
+    themeHex: '#d97706',
+    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Sở hữu lượng sinh lực và khiên chắn vượt trội, phản kích bằng các mảnh ngọc di sản xoay quanh.',
+    startingWeapon: 'orbit',
+    startingWeaponName: 'Mảnh Ngọc Bản Sắc',
+    startingWeaponDesc: '3 mảnh ngọc di sản quay tròn quanh nhân vật, che chắn cản đạn và gây sát thương va chạm liên tục lên quái vật áp sát.',
+    startingStats: {
+      maxHp: 130,
+      hp: 130,
+      shield: 35,
+      moveSpeed: 225,
+    },
+    startingValues: {
+      danToc: 1,
+      my: 1,
+    },
+    affinity: ['danToc', 'my', 'thien'],
+    passive: {
+      name: 'Bảo Hộ Bản Sắc',
+      description: 'Mỗi 8 giây tự động tái tạo một lớp khiên hộ mệnh, hấp thụ sát thương và triệt tiêu giật lùi.',
+      effectType: 'identity_aegis',
+    },
+  },
+];
+
+export const DEFAULT_MVP_COMBOS: ComboConfig[] = [
+  {
+    id: 'khienThongTin',
+    name: 'Khiên Thông Tin',
+    formula: 'Chân (Cấp 4) + Thiện (Cấp 4)',
+    description: '3 mảnh khiên dữ liệu xoay quanh người chơi, cản phá toàn bộ đạn địch và phản xạ sát thương.',
+    requirements: [
+      { pillar: 'chan', level: 4 },
+      { pillar: 'thien', level: 4 },
+    ],
+    effects: {
+      orbitingShields: true,
+      shieldCount: 3,
+    },
+  },
+  {
+    id: 'kiemChung',
+    name: 'Kiểm Chứng',
+    formula: 'Khoa Học (Cấp 4) + Chân (Cấp 4)',
+    description: 'Đạn xuyên thấu mọi mục tiêu, tăng 50% sát thương lên Tin Giả và 100% bạo kích lên mục tiêu Đã Xác Minh.',
+    requirements: [
+      { pillar: 'khoaHoc', level: 4 },
+      { pillar: 'chan', level: 4 },
+    ],
+    effects: {
+      projectilePierce: true,
+      bonusVsEnemyType: 'tinGia',
+      bonusDamageMultiplier: 1.5,
+      critOnMarked: true,
+    },
+  },
+  {
+    id: 'vanHoaUngXu',
+    name: 'Văn Hóa Ứng Xử',
+    formula: 'Đại Chúng (Cấp 4) + Thiện (Cấp 4)',
+    description: 'Vùng hào quang rộng lớn làm chậm quái vật 35%, liên tục hồi 4 HP mỗi 5s và củng cố Community Meter.',
+    requirements: [
+      { pillar: 'daiChung', level: 4 },
+      { pillar: 'thien', level: 4 },
+    ],
+    effects: {
+      slowAuraRadius: 220,
+      slowPercent: 0.35,
+      auraHealPerInterval: 4,
+      communityMeterBuffPerInterval: 0.8,
+    },
+  },
+  {
+    id: 'banSacSangTao',
+    name: 'Bản Sắc Sáng Tạo',
+    formula: 'Dân Tộc (Cấp 4) + Mỹ (Cấp 4)',
+    description: 'Sóng xung kích năng lượng định kỳ đánh tan các nội dung sao chép máy móc, tăng 35% sát thương toàn diện.',
+    requirements: [
+      { pillar: 'danToc', level: 4 },
+      { pillar: 'my', level: 4 },
+    ],
+    effects: {
+      shockwavePulse: true,
+      shockwaveCooldown: 2.5,
+      damageMultiplier: 1.35,
+    },
+  },
+];
+
 export class DataLoader {
+  public static getClasses(): CharacterClassConfig[] {
+    return DEFAULT_MVP_CLASSES;
+  }
+
+  public static getClassById(id: string): CharacterClassConfig {
+    const list = DataLoader.getClasses();
+    return list.find(c => c.id === id) || list[0];
+  }
+
+  public static getCombos(): ComboConfig[] {
+    return DEFAULT_MVP_COMBOS;
+  }
+
   public static getEnemies(): EnemyConfig[] {
     const list = (enemiesData as { enemies?: EnemyConfig[] }).enemies;
     return list && list.length > 0 ? list : DEFAULT_MVP_ENEMIES;

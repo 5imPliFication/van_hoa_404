@@ -13,6 +13,8 @@ import { HUD } from '../../ui/HUD';
 import { Projectile } from '../entities/Projectile';
 import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
+import { CharacterClassConfig } from '../types/data';
+import { DataLoader } from '../../data/loader';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -26,6 +28,7 @@ export class GameScene extends Phaser.Scene {
   private evolutionManager!: EvolutionManager;
   private bossManager!: BossManager;
   private hud!: HUD;
+  private classConfig!: CharacterClassConfig;
 
   public runSeconds: number = 0;
   public isPaused: boolean = false;
@@ -42,6 +45,10 @@ export class GameScene extends Phaser.Scene {
 
   constructor() {
     super('GameScene');
+  }
+
+  init(data?: { classConfig?: CharacterClassConfig }): void {
+    this.classConfig = data?.classConfig || DataLoader.getClasses()[0];
   }
 
   create(): void {
@@ -130,7 +137,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // 2. Instantiate Player at arena center
-    this.player = new Player(this, this.arenaWidth / 2, this.arenaHeight / 2);
+    this.player = new Player(this, this.arenaWidth / 2, this.arenaHeight / 2, this.classConfig);
 
     // 3. Camera setup following player
     this.cameras.main.setBounds(0, 0, this.arenaWidth, this.arenaHeight);
@@ -144,6 +151,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyManager = new EnemyManager(this, this.player, this.xpManager);
     this.weaponSystem = new WeaponSystem(this, this.player);
     this.enemyManager.weaponSystem = this.weaponSystem;
+    this.weaponSystem.enemyManager = this.enemyManager;
     this.communityMeter = new CommunityMeterManager(this, this.player);
     this.player.communityMeter = this.communityMeter;
     this.enemyManager.communityMeter = this.communityMeter;
@@ -182,6 +190,7 @@ export class GameScene extends Phaser.Scene {
         this.onBossDefeated(isFinal);
       }
     );
+    this.weaponSystem.bossManager = this.bossManager;
 
     // 5. Fixed HUD on camera
     this.hud = new HUD(this, this.player, this.communityMeter, () => {
@@ -394,91 +403,159 @@ export class GameScene extends Phaser.Scene {
           contentContainer.add([row, icBg, ic, t, d]);
         });
       } else if (tabId === 2) {
-        // Tab 2: 8 Trụ Cột & Tiến Hóa
-        const pY = topY + 208;
-        const pBox = this.add.rectangle(width / 2, pY, winW - 60, 138, 0xf8fafc, 1);
+        // Tab 2: Cẩm Nang Vai Trò, 8 Trụ Cột & 4 Cộng Hưởng Giá Trị (Live Status Tracker)
+        // 1. Current Class Banner Card
+        const classY = topY + 152;
+        const classBox = this.add.rectangle(width / 2, classY, winW - 60, 52, 0xffffff, 1);
+        classBox.setStrokeStyle(1.5, this.classConfig.themeColor || 0x0284c7);
+
+        const classIconCircle = this.add.circle(width / 2 - (winW - 60) / 2 + 32, classY, 18, this.classConfig.themeColor || 0x0284c7, 0.15);
+        classIconCircle.setStrokeStyle(1.5, this.classConfig.themeColor || 0x0284c7);
+        const classIconTxt = this.add.text(width / 2 - (winW - 60) / 2 + 32, classY, this.classConfig.badgeIcon || '🔍', { fontSize: '18px', resolution: 2 }).setOrigin(0.5);
+
+        const classTitleTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY - 10,
+          `🏛️ VAI TRÒ ĐANG CHỌN: ${this.classConfig.name.toUpperCase()} — ${this.classConfig.title.toUpperCase()}`,
+          { fontFamily: 'system-ui, sans-serif', fontSize: '12px', fontStyle: 'bold', color: this.classConfig.themeHex || '#0284c7', resolution: 2 }
+        ).setOrigin(0, 0.5);
+
+        const classSubTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY + 11,
+          `• Vũ khí: ${this.classConfig.startingWeaponName}  |  • Nội tại: ${this.classConfig.passive.name} (${this.classConfig.passive.description})`,
+          { fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#475569', resolution: 2 }
+        ).setOrigin(0, 0.5);
+
+        contentContainer.add([classBox, classIconCircle, classIconTxt, classTitleTxt, classSubTxt]);
+
+        // 2. 8 Cultural Pillars Live Level Tracker
+        const pY = topY + 238;
+        const pBox = this.add.rectangle(width / 2, pY, winW - 60, 94, 0xf8fafc, 1);
         pBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-        const pHeader = this.add.text(width / 2, pY - 50, '🏛️ HỆ THỐNG 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5)', {
+        const pHeader = this.add.text(width / 2, pY - 34, '🏛️ TIẾN ĐỘ 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5 — ĐẠT CẤP 4 ĐỂ KÍCH HOẠT CỘNG HƯỞNG)', {
           fontFamily: 'system-ui, sans-serif',
-          fontSize: '13px',
+          fontSize: '11.5px',
           fontStyle: 'bold',
           color: '#0369a1',
           resolution: 2,
         }).setOrigin(0.5);
 
-        const pCol1 = this.add.text(width / 2 - 425, pY - 30,
-          '• Khoa Học: Gia tăng Tốc độ bắn & Tỉ lệ bạo kích đạn\n• Dân Tộc: Tạo Khiên chắn phòng ngự & Tốc độ hồi phục\n• Đại Chúng: Mở rộng Bán kính hút ngọc & Hào quang làm chậm\n• Chân: Tăng Sát thương gốc chuẩn xác của vũ khí',
-          { fontFamily: 'system-ui, sans-serif', fontSize: '12px', color: '#1e293b', lineSpacing: 7, resolution: 2 }
-        );
+        contentContainer.add([pBox, pHeader]);
 
-        const pCol2 = this.add.text(width / 2 + 25, pY - 30,
-          '• Thiện: Tự động hồi phục sinh lực HP định kỳ\n• Mỹ: Sát thương diện rộng (AoE) khi đạn trúng đích\n• Xây: Củng cố Môi Trường Văn Hóa & Tăng tốc độ chạy\n• Chống: Thêm tia đạn phụ & Đẩy lùi quái vật mạnh mẽ',
-          { fontFamily: 'system-ui, sans-serif', fontSize: '12px', color: '#1e293b', lineSpacing: 7, resolution: 2 }
-        );
+        const v = this.player.values;
+        const pillarData = [
+          { name: 'Dân Tộc', lv: v.danToc || 0, icon: '🇻🇳', x: width / 2 - 338, y: pY - 10 },
+          { name: 'Khoa Học', lv: v.khoaHoc || 0, icon: '🔬', x: width / 2 - 112, y: pY - 10 },
+          { name: 'Đại Chúng', lv: v.daiChung || 0, icon: '👥', x: width / 2 + 112, y: pY - 10 },
+          { name: 'Chân', lv: v.chan || 0, icon: '🎯', x: width / 2 + 338, y: pY - 10 },
+          { name: 'Thiện', lv: v.thien || 0, icon: '❤️', x: width / 2 - 338, y: pY + 24 },
+          { name: 'Mỹ', lv: v.my || 0, icon: '🎨', x: width / 2 - 112, y: pY + 24 },
+          { name: 'Xây', lv: v.build || 0, icon: '🏗️', x: width / 2 + 112, y: pY + 24 },
+          { name: 'Chống', lv: v.fight || 0, icon: '🛡️', x: width / 2 + 338, y: pY + 24 },
+        ];
 
-        // Box 2: 4 Evolutions formatted as a clean 2x2 grid
-        const eY = topY + 372;
-        const eBox = this.add.rectangle(width / 2, eY, winW - 60, 154, 0xf0fdf4, 1);
-        eBox.setStrokeStyle(1.5, 0x86efac);
+        pillarData.forEach(p => {
+          const isSynergyReady = p.lv >= 4;
+          const isMaxed = p.lv >= 5;
+          const chipBg = this.add.rectangle(p.x, p.y, 214, 28, isMaxed ? 0xfef9c3 : isSynergyReady ? 0xdcfce7 : 0xffffff, 1);
+          chipBg.setStrokeStyle(1, isMaxed ? 0xfacc15 : isSynergyReady ? 0x86efac : 0xe2e8f0);
 
-        const eHeader = this.add.text(width / 2, eY - 58, '🧬 4 CÔNG THỨC TIẾN HÓA KỸ NĂNG ĐỈNH CAO (ĐẠT CẤP 5 Ở CẢ 2 TRỤ CỘT)', {
+          const statusStr = isMaxed ? '★ MAX 5/5' : isSynergyReady ? `✓ Cấp ${p.lv}/5` : `Cấp ${p.lv}/5`;
+          const chipTxt = this.add.text(p.x, p.y, `${p.icon} ${p.name}: ${statusStr}`, {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '11px',
+            fontStyle: 'bold',
+            color: isMaxed ? '#854d0e' : isSynergyReady ? '#15803d' : '#334155',
+            resolution: 2,
+          }).setOrigin(0.5);
+
+          contentContainer.add([chipBg, chipTxt]);
+        });
+
+        // 3. 4 Value Combos Live Tracker (2x2 Grid)
+        const eY = topY + 396;
+        const eBox = this.add.rectangle(width / 2, eY, winW - 60, 168, 0xf5f3ff, 1);
+        eBox.setStrokeStyle(1.5, 0xc4b5fd);
+
+        const eHeader = this.add.text(width / 2, eY - 68, '🧬 4 CÔNG THỨC CỘNG HƯỞNG GIÁ TRỊ VĂN HÓA (ĐẠT CẤP 4/5 Ở CẢ 2 TRỤ CỘT ĐỂ MỞ KHÓA)', {
           fontFamily: 'system-ui, sans-serif',
-          fontSize: '13px',
+          fontSize: '12px',
           fontStyle: 'bold',
-          color: '#15803d',
+          color: '#6d28d9',
           resolution: 2,
         }).setOrigin(0.5);
 
-        contentContainer.add([pBox, pHeader, pCol1, pCol2, eBox, eHeader]);
+        contentContainer.add([eBox, eHeader]);
 
-        const evoConfigs = [
+        const comboLiveList = [
           {
+            id: 'kiemChung',
             title: '⚡ Kiểm Chứng (Khoa Học + Chân)',
+            req1: `Khoa Học: ${v.khoaHoc || 0}/4`,
+            req2: `Chân: ${v.chan || 0}/4`,
             desc: 'Đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
-            x: width / 2 - 215,
-            y: eY - 20,
+            x: width / 2 - 222,
+            y: eY - 22,
           },
           {
+            id: 'khienThongTin',
+            title: '🛡️ Khiên Thông Tin (Chân + Thiện)',
+            req1: `Chân: ${v.chan || 0}/4`,
+            req2: `Thiện: ${v.thien || 0}/4`,
+            desc: '3 cổ vật quay quanh chắn đạn và gây sát thương va chạm liên tục.',
+            x: width / 2 + 222,
+            y: eY - 22,
+          },
+          {
+            id: 'vanHoaUngXu',
             title: '🌿 Văn Hóa Ứng Xử (Đại Chúng + Thiện)',
-            desc: 'Hào quang làm chậm quái 30% và liên tục hồi phục sinh lực.',
-            x: width / 2 + 215,
-            y: eY - 20,
+            req1: `Đại Chúng: ${v.daiChung || 0}/4`,
+            req2: `Thiện: ${v.thien || 0}/4`,
+            desc: 'Hào quang làm chậm quái 30%, hồi phục HP và phục hồi môi trường.',
+            x: width / 2 - 222,
+            y: eY + 40,
           },
           {
+            id: 'banSacSangTao',
             title: '🎨 Bản Sắc Sáng Tạo (Dân Tộc + Mỹ)',
-            desc: 'Sóng xung kích đẩy lùi và đánh tan nội dung sao chép đạo nhái.',
-            x: width / 2 - 215,
-            y: eY + 36,
-          },
-          {
-            title: '🛡️ Phòng Vệ Đa Tầng (Xây + Chống)',
-            desc: 'Lá chắn năng lượng kiên cố, giảm 20% mọi sát thương nhận vào.',
-            x: width / 2 + 215,
-            y: eY + 36,
+            req1: `Dân Tộc: ${v.danToc || 0}/4`,
+            req2: `Mỹ: ${v.my || 0}/4`,
+            desc: 'Sóng xung kích đẩy lùi định kỳ và tăng 25% sát thương gốc toàn diện.',
+            x: width / 2 + 222,
+            y: eY + 40,
           },
         ];
 
-        evoConfigs.forEach(evo => {
-          const cardBg = this.add.rectangle(evo.x, evo.y, 420, 48, 0xffffff, 1);
-          cardBg.setStrokeStyle(1, 0xbbf7d0);
+        comboLiveList.forEach(c => {
+          const isUnlocked = this.evolutionManager.activeEvolutionIds.has(c.id);
+          const cardBg = this.add.rectangle(c.x, c.y, 432, 54, isUnlocked ? 0xf0fdf4 : 0xffffff, 1);
+          cardBg.setStrokeStyle(1.5, isUnlocked ? 0x22c55e : 0xd1d5db);
 
-          const cardTitle = this.add.text(evo.x - 195, evo.y - 10, evo.title, {
+          const cardTitle = this.add.text(c.x - 202, c.y - 12, c.title, {
             fontFamily: 'system-ui, sans-serif',
-            fontSize: '12px',
+            fontSize: '11.5px',
             fontStyle: 'bold',
-            color: '#166534',
+            color: isUnlocked ? '#15803d' : '#1e293b',
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          const cardDesc = this.add.text(evo.x - 195, evo.y + 11, evo.desc, {
+          const statusBadge = this.add.text(c.x + 202, c.y - 12,
+            isUnlocked ? '✅ ĐÃ KÍCH HOẠT' : `🔒 [${c.req1} • ${c.req2}]`,
+            {
+              fontFamily: 'system-ui, sans-serif',
+              fontSize: '10.5px',
+              fontStyle: 'bold',
+              color: isUnlocked ? '#16a34a' : '#64748b',
+              resolution: 2,
+            }
+          ).setOrigin(1, 0.5);
+
+          const cardDesc = this.add.text(c.x - 202, c.y + 12, c.desc, {
             fontFamily: 'system-ui, sans-serif',
-            fontSize: '11px',
-            color: '#334155',
+            fontSize: '10.5px',
+            color: '#475569',
             resolution: 2,
           }).setOrigin(0, 0.5);
 
-          contentContainer.add([cardBg, cardTitle, cardDesc]);
+          contentContainer.add([cardBg, cardTitle, statusBadge, cardDesc]);
         });
       } else {
         // Tab 3: Cột Mốc Trùm & Mẹo Vượt Ải (2-line layout per boss row)
@@ -785,7 +862,8 @@ export class GameScene extends Phaser.Scene {
       this.runSeconds,
       this.enemyManager.totalKills,
       currentWave,
-      this.scenarioManager.activeBuffText
+      this.scenarioManager.activeBuffText,
+      this.evolutionManager.getActiveComboList()
     );
   }
 
@@ -833,6 +911,12 @@ export class GameScene extends Phaser.Scene {
       SoundSystem.playAlert();
     }
 
+    const activeCombos = this.evolutionManager.getActiveComboList().map(c => ({
+      name: c.name,
+      formula: c.formula,
+      description: c.description,
+    }));
+
     this.cameras.main.fadeOut(500, 241, 245, 249);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.start('ResultScene', {
@@ -845,6 +929,15 @@ export class GameScene extends Phaser.Scene {
         killedBy: isVictory ? undefined : this.player.lastDamagedBy,
         buildPower: this.player.stats.buildPower,
         fightPower: this.player.stats.fightPower,
+        className: this.classConfig.name,
+        classTitle: this.classConfig.title,
+        classIcon: this.classConfig.badgeIcon,
+        classThemeColor: this.classConfig.themeColor,
+        classThemeHex: this.classConfig.themeHex,
+        classPassiveName: this.classConfig.passive.name,
+        classPassiveDesc: this.classConfig.passive.description,
+        activeCombos: activeCombos,
+        classConfig: this.classConfig,
       });
     });
   }

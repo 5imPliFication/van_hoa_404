@@ -96,7 +96,7 @@ export class MenuScene extends Phaser.Scene {
     const startGame = () => {
       this.cameras.main.fadeOut(300, 241, 245, 249);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('GameScene');
+        this.scene.start('CharacterSelectScene');
       });
     };
 

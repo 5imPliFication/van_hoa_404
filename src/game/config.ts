@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
+import { CharacterSelectScene } from './scenes/CharacterSelectScene';
 import { GameScene } from './scenes/GameScene';
 import { ResultScene } from './scenes/ResultScene';
 
@@ -31,7 +32,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     roundPixels: true,
     powerPreference: 'high-performance',
   },
-  scene: [BootScene, MenuScene, GameScene, ResultScene],
+  scene: [BootScene, MenuScene, CharacterSelectScene, GameScene, ResultScene],
   fps: {
     target: 60,
     forceSetTimeOut: false,

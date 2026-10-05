@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PlayerStats, CulturalValues, INITIAL_PLAYER_STATS, Pillar } from '../types/player';
-import { UpgradeConfig } from '../types/data';
+import { UpgradeConfig, CharacterClassConfig } from '../types/data';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -10,6 +10,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public currentXP: number = 0;
   public nextLevelXP: number = 10;
   public isAlive: boolean = true;
+  public classConfig?: CharacterClassConfig;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasdKeys!: {
@@ -24,6 +25,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public shadow: Phaser.GameObjects.Image;
   private thrusterTimer: number = 0;
   private healTimer: number = 0;
+  private passiveShieldTimer: number = 0;
   public healPerInterval: number = 0;
   public touchVelocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
   public lastDamagedBy: string = 'Hiện tượng tiêu cực trên mạng';
@@ -43,10 +45,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return pillars.every(p => (this.values[p] || 0) >= 5);
   }
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, classConfig?: CharacterClassConfig) {
     super(scene, x, y, 'player');
+    this.classConfig = classConfig;
 
-    this.stats = { ...INITIAL_PLAYER_STATS };
+    this.stats = {
+      ...INITIAL_PLAYER_STATS,
+      ...(classConfig?.startingStats || {}),
+    };
+
     this.values = {
       danToc: 0,
       khoaHoc: 0,
@@ -56,6 +63,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       my: 0,
       build: 0,
       fight: 0,
+      ...(classConfig?.startingValues || {}),
     };
 
     // Soft drop shadow beneath player
@@ -143,6 +151,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const healAmt = this.healPerInterval * (1 + this.stats.buildPower * 0.02);
         this.heal(healAmt);
         this.healTimer = 0;
+      }
+    }
+
+    // Class Passive: Người Kiến Tạo (Sinh Khí Cộng Đồng)
+    if (this.classConfig?.passive.effectType === 'community_resonance') {
+      this.communityMeter?.modify(0.6 * (dt / 1000));
+    }
+
+    // Class Passive: Người Gìn Giữ (Bảo Hộ Bản Sắc)
+    if (this.classConfig?.passive.effectType === 'identity_aegis') {
+      this.passiveShieldTimer += dt / 1000;
+      if (this.passiveShieldTimer >= 8.0) {
+        this.passiveShieldTimer = 0;
+        if (this.stats.shield < 40) {
+          this.stats.shield = Math.min(40, this.stats.shield + 15);
+          DamageNumberSystem.showDamage(this.x, this.y - 18, 15, 'crit');
+        }
       }
     }
   }

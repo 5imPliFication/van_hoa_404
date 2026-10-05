@@ -1,4 +1,4 @@
-import { Pillar } from './player';
+import { Pillar, PlayerStats, CulturalValues } from './player';
 
 export interface Envelope<TTemplate, TItem> {
   meta: {
@@ -159,4 +159,56 @@ export interface BossConfig {
   tierLabel?: string;
   radius?: number;
   textureKey?: string;
+}
+
+export type WeaponStyle = 'sniper' | 'pulse' | 'orbit';
+
+export interface CharacterClassConfig {
+  id: string;
+  name: string;
+  title: string;
+  badgeIcon: string;
+  themeColor: number;
+  themeHex: string;
+  roleDescription: string;
+  startingWeapon: WeaponStyle;
+  startingWeaponName: string;
+  weaponName?: string;
+  startingWeaponDesc: string;
+  startingStats: Partial<PlayerStats>;
+  startingValues: Partial<CulturalValues>;
+  affinity: Pillar[];
+  passive: {
+    name: string;
+    description: string;
+    effectType: 'mark_verified' | 'community_resonance' | 'identity_aegis';
+  };
+}
+
+export interface ComboRequirement {
+  pillar: Pillar;
+  level: number;
+}
+
+export interface ComboConfig {
+  id: string;
+  name: string;
+  formula: string;
+  description: string;
+  requirements: ComboRequirement[];
+  effects: {
+    orbitingShields?: boolean;
+    shieldCount?: number;
+    projectilePierce?: boolean;
+    bonusVsEnemyType?: string;
+    bonusDamageMultiplier?: number;
+    critOnMarked?: boolean;
+    slowAuraRadius?: number;
+    slowPercent?: number;
+    auraHealPerInterval?: number;
+    communityMeterBuffPerInterval?: number;
+    shockwavePulse?: boolean;
+    shockwaveCooldown?: number;
+    damageMultiplier?: number;
+  };
 }

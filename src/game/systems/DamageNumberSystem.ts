@@ -15,16 +15,14 @@ export class DamageNumberSystem {
   public static showDamage(
     x: number,
     y: number,
-    amount: number,
+    amount: number | string,
     type: DamageTargetType
   ): void {
-    if (!this.scene || amount <= 0) return;
+    if (!this.scene) return;
+    if (typeof amount === 'number' && amount <= 0) return;
     if (this.activeCount >= this.MAX_ACTIVE && type !== 'player' && type !== 'crit') {
       return; // prevent FPS drop during heavy pierce storms
     }
-
-    const rounded = Math.round(amount);
-    if (rounded <= 0) return;
 
     const jx = x + Phaser.Math.Between(-10, 10);
     const jy = y - 10 + Phaser.Math.Between(-6, 6);
@@ -33,18 +31,35 @@ export class DamageNumberSystem {
     const strokeColor = '#000000'; // Black border
     let fontSize = '14px';
     let strokeThickness = 3.5;
-    let label = `${rounded}`;
+    let label = '';
 
-    if (type === 'crit') {
-      textColor = '#f97316'; // Orange if crit
-      fontSize = '18px';
-      strokeThickness = 4;
-      label = `${rounded}!`;
-    } else if (type === 'player') {
-      textColor = '#ef4444'; // Red for user
-      fontSize = '16px';
-      strokeThickness = 4;
-      label = `-${rounded}`;
+    if (typeof amount === 'string') {
+      label = amount;
+      if (type === 'crit') {
+        textColor = '#f97316';
+        fontSize = '15px';
+        strokeThickness = 4;
+      } else if (type === 'player') {
+        textColor = '#ef4444';
+        fontSize = '15px';
+        strokeThickness = 4;
+      }
+    } else {
+      const rounded = Math.round(amount);
+      if (rounded <= 0) return;
+      label = `${rounded}`;
+
+      if (type === 'crit') {
+        textColor = '#f97316'; // Orange if crit
+        fontSize = '18px';
+        strokeThickness = 4;
+        label = `${rounded}!`;
+      } else if (type === 'player') {
+        textColor = '#ef4444'; // Red for user
+        fontSize = '16px';
+        strokeThickness = 4;
+        label = `-${rounded}`;
+      }
     }
 
     this.activeCount++;

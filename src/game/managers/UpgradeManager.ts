@@ -283,7 +283,39 @@ export class UpgradeManager {
       }];
     }
 
-    const shuffled = [...available].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, Math.min(count, shuffled.length));
+    const affinity = this.player.classConfig?.affinity || [];
+    const weightedPool: UpgradeConfig[] = [];
+
+    // Boost frequency of affinity upgrades by 2.5x in the candidate pool
+    for (const u of available) {
+      const weight = affinity.includes(u.category) ? 3 : 1;
+      for (let w = 0; w < weight; w++) {
+        weightedPool.push(u);
+      }
+    }
+
+    const shuffled = [...weightedPool].sort(() => 0.5 - Math.random());
+    const selected: UpgradeConfig[] = [];
+    const seenCategories = new Set<string>();
+
+    for (const u of shuffled) {
+      if (!seenCategories.has(u.category)) {
+        seenCategories.add(u.category);
+        selected.push(u);
+        if (selected.length >= count) break;
+      }
+    }
+
+    // Fallback if fewer distinct categories were chosen
+    if (selected.length < count) {
+      for (const u of available) {
+        if (!selected.some(s => s.id === u.id)) {
+          selected.push(u);
+          if (selected.length >= count) break;
+        }
+      }
+    }
+
+    return selected.slice(0, count);
   }
 }

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../game/entities/Player';
 import { CommunityMeterManager } from '../game/managers/CommunityMeterManager';
-import { WaveConfig } from '../game/types/data';
+import { WaveConfig, ComboConfig } from '../game/types/data';
 
 export class HUD {
   private scene: Phaser.Scene;
@@ -27,6 +27,12 @@ export class HUD {
   private pillarsText: Phaser.GameObjects.Text;
   private activeBuffPill: Phaser.GameObjects.Rectangle;
   private activeBuffText: Phaser.GameObjects.Text;
+
+  // Class & Combo UI
+  private classBadgeBg: Phaser.GameObjects.Rectangle;
+  private classBadgeText: Phaser.GameObjects.Text;
+  private comboTrayContainer: Phaser.GameObjects.Container;
+  private lastRenderedCombosCount: number = -1;
 
   constructor(
     scene: Phaser.Scene,
@@ -77,7 +83,25 @@ export class HUD {
       resolution: 2,
     }).setOrigin(0.5);
 
-    this.container.add([hpBg, this.hpBarFill, heartIcon, this.hpText, shieldPill, this.shieldText]);
+    // Class Badge Pill (Between Shield and Timer)
+    const classConfig = this.player.classConfig;
+    const className = classConfig ? classConfig.name : 'Người Kiểm Chứng';
+    const classIcon = classConfig ? classConfig.badgeIcon : '🔍';
+    const themeColor = classConfig ? classConfig.themeColor : 0x0284c7;
+    const themeHex = classConfig ? classConfig.themeHex : '#0369a1';
+
+    const classBadgeX = 390;
+    this.classBadgeBg = scene.add.rectangle(classBadgeX, 24, 184, 24, 0xf8fafc, 1);
+    this.classBadgeBg.setStrokeStyle(1.5, themeColor);
+    this.classBadgeText = scene.add.text(classBadgeX, 24, `${classIcon} ${className}`, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: themeHex,
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    this.container.add([hpBg, this.hpBarFill, heartIcon, this.hpText, shieldPill, this.shieldText, this.classBadgeBg, this.classBadgeText]);
 
     // 2. XP Bar & Level (Full width underneath top bar)
     const xpBg = scene.add.rectangle(width / 2, 54, width - 32, 7, 0xe2e8f0);
@@ -177,11 +201,15 @@ export class HUD {
       });
     }
 
-    // Active Buff Display Banner (Under top bar)
-    this.activeBuffPill = scene.add.rectangle(width / 2, 46, 520, 22, 0xecfdf5, 0.95);
+    // Active Combos Tray (Underneath XP bar at y = 72)
+    this.comboTrayContainer = scene.add.container(0, 72);
+    this.comboTrayContainer.setVisible(false);
+
+    // Active Buff Display Banner (Under top bar / combo tray)
+    this.activeBuffPill = scene.add.rectangle(width / 2, 72, 520, 22, 0xecfdf5, 0.95);
     this.activeBuffPill.setStrokeStyle(1, 0xa7f3d0).setVisible(false);
 
-    this.activeBuffText = scene.add.text(width / 2, 46, '', {
+    this.activeBuffText = scene.add.text(width / 2, 72, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
@@ -189,7 +217,7 @@ export class HUD {
       resolution: 2,
     }).setOrigin(0.5).setVisible(false);
 
-    this.container.add([this.timerText, this.waveText, helpBg, helpText, this.activeBuffPill, this.activeBuffText]);
+    this.container.add([this.timerText, this.waveText, helpBg, helpText, this.comboTrayContainer, this.activeBuffPill, this.activeBuffText]);
 
     // 5. Bottom Status Bar (Kills counter & 8 Cultural Pillars)
     const bottomBg = scene.add.rectangle(width / 2, height - 22, width - 32, 34, 0xffffff, 0.95);
@@ -215,7 +243,13 @@ export class HUD {
     this.container.add([this.killsText, this.pillarsText]);
   }
 
-  public update(runSeconds: number, kills: number, currentWave?: WaveConfig, buffText?: string): void {
+  public update(
+    runSeconds: number,
+    kills: number,
+    currentWave?: WaveConfig,
+    buffText?: string,
+    activeCombos?: ComboConfig[]
+  ): void {
     // 1. Update Timer
     const m = Math.floor(runSeconds / 60);
     const s = Math.floor(runSeconds % 60);
@@ -265,7 +299,44 @@ export class HUD {
       this.communityBarFill.setFillStyle(0x0891b2);
     }
 
-    // 6. Update Active Buff Banner (30s Scenario Buff Countdown)
+    // 6. Update Active Combos Tray
+    const combos = activeCombos || [];
+    if (combos.length !== this.lastRenderedCombosCount) {
+      this.lastRenderedCombosCount = combos.length;
+      this.comboTrayContainer.removeAll(true);
+
+      if (combos.length > 0) {
+        this.comboTrayContainer.setVisible(true);
+        const { width } = this.scene.scale;
+        const badgeW = 168;
+        const gap = 12;
+        const totalW = combos.length * badgeW + (combos.length - 1) * gap;
+        let startX = width / 2 - totalW / 2 + badgeW / 2;
+
+        combos.forEach(c => {
+          const bg = this.scene.add.rectangle(startX, 0, badgeW, 22, 0xf5f3ff, 0.95);
+          bg.setStrokeStyle(1.5, 0x7c3aed);
+          const txt = this.scene.add.text(startX, 0, `✨ ${c.name}`, {
+            fontFamily: 'system-ui, sans-serif',
+            fontSize: '11px',
+            fontStyle: 'bold',
+            color: '#6d28d9',
+            resolution: 2,
+          }).setOrigin(0.5);
+          this.comboTrayContainer.add([bg, txt]);
+          startX += badgeW + gap;
+        });
+      } else {
+        this.comboTrayContainer.setVisible(false);
+      }
+    }
+
+    // 7. Update Active Buff Banner (30s Scenario Buff Countdown)
+    const hasCombos = combos.length > 0;
+    const buffY = hasCombos ? 100 : 72;
+    this.activeBuffPill.setY(buffY);
+    this.activeBuffText.setY(buffY);
+
     if (buffText && buffText.length > 0) {
       this.activeBuffText.setText(buffText);
       this.activeBuffPill.width = Math.max(560, this.activeBuffText.width + 40);

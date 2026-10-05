@@ -7,6 +7,7 @@ import { EnemyConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 import { WeaponSystem } from './WeaponSystem';
+import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 
 export class EnemyManager {
   private scene: Phaser.Scene;
@@ -223,9 +224,28 @@ export class EnemyManager {
           dmg *= (1 + this.player.stats.fightPower * 0.015);
         }
 
-        // Evolution: Kiem Chung bonus vs Tin Gia (+50%)
+        // Evolution / Combo: Kiem Chung bonus vs Tin Gia (+50%)
         if (this.weaponSystem?.bonusVsTinGiaMultiplier && this.weaponSystem.bonusVsTinGiaMultiplier > 1.0 && enemy.config.id === 'tinGia') {
           dmg *= this.weaponSystem.bonusVsTinGiaMultiplier;
+        }
+
+        // Class Passive: Người Kiểm Chứng (Dán Nhãn Xác Minh)
+        if (this.player.classConfig?.passive.effectType === 'mark_verified') {
+          const hits = (enemy.getData('hitCount') || 0) + 1;
+          enemy.setData('hitCount', hits);
+          if (hits >= 3 && !enemy.getData('isVerified')) {
+            enemy.setData('isVerified', true);
+            this.showVerifiedMarker(enemy);
+            DamageNumberSystem.showDamage(enemy.x, enemy.y - 22, 'XÁC MINH!', 'crit');
+          }
+        }
+
+        // Verified enemy takes +30% damage
+        if (enemy.getData('isVerified')) {
+          dmg *= 1.3;
+          if (this.weaponSystem?.critOnMarked) {
+            bullet.isCrit = true;
+          }
         }
 
         // Knockback (Chống / Fight pillar strengthens knockback)
@@ -249,6 +269,68 @@ export class EnemyManager {
         if (!bullet.active) break;
       }
     }
+  }
+
+  public damageEnemy(
+    enemy: Enemy,
+    rawDamage: number,
+    isCrit: boolean = false,
+    knockbackX: number = 0,
+    knockbackY: number = 0
+  ): boolean {
+    if (!enemy.active) return false;
+    let dmg = rawDamage;
+
+    if (enemy.config.weakAgainst?.some(pillar => this.player.values[pillar as keyof typeof this.player.values] > 0)) {
+      dmg *= 1.25;
+    }
+    if (this.player.stats.fightPower > 0) {
+      dmg *= (1 + this.player.stats.fightPower * 0.015);
+    }
+    if (enemy.getData('isVerified')) {
+      dmg *= 1.3;
+    }
+
+    if (knockbackX !== 0 || knockbackY !== 0) {
+      enemy.x += knockbackX;
+      enemy.y += knockbackY;
+    }
+
+    const isDead = enemy.takeDamage(dmg, isCrit);
+    if (isDead) {
+      this.totalKills++;
+      if (enemy.enemyType === 'elite') {
+        this.communityMeter?.modify(3.5);
+      }
+      this.spawnDeathSparks(enemy.x, enemy.y);
+      this.xpManager.dropXP(enemy.x, enemy.y, enemy.xpDrop);
+    }
+    return isDead;
+  }
+
+  public showVerifiedMarker(enemy: Enemy): void {
+    const marker = this.scene.add.image(enemy.x, enemy.y - 20, 'mark_verified');
+    marker.setDepth(16);
+    marker.setScale(0.85);
+
+    const updateListener = () => {
+      if (!enemy.active || !marker.active) {
+        this.scene.events.off('update', updateListener);
+        marker.destroy();
+        return;
+      }
+      marker.setPosition(enemy.x, enemy.y - 20);
+    };
+    this.scene.events.on('update', updateListener);
+
+    this.scene.time.delayedCall(5000, () => {
+      this.scene.events.off('update', updateListener);
+      if (marker.active) marker.destroy();
+      if (enemy.active) {
+        enemy.setData('isVerified', false);
+        enemy.setData('hitCount', 0);
+      }
+    });
   }
 
   private spawnDeathSparks(x: number, y: number): void {

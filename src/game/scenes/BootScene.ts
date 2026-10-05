@@ -677,5 +677,50 @@ export class BootScene extends Phaser.Scene {
     sparkGfx.fillCircle(5, 5, 2);
     sparkGfx.generateTexture('spark', 10, 10);
     sparkGfx.destroy();
+
+    // 20. Orbiting Cultural Relic / Shield (Người Gìn Giữ & Khiên Thông Tin - 32x32)
+    const relicGfx = this.make.graphics({ x: 0, y: 0 });
+    relicGfx.fillStyle(0xd97706, 0.95);
+    relicGfx.beginPath();
+    relicGfx.moveTo(16, 2);
+    relicGfx.lineTo(30, 16);
+    relicGfx.lineTo(16, 30);
+    relicGfx.lineTo(2, 16);
+    relicGfx.closePath();
+    relicGfx.fillPath();
+
+    relicGfx.lineStyle(2, 0xfde047, 1);
+    relicGfx.strokePath();
+
+    relicGfx.fillStyle(0x0284c7, 1);
+    relicGfx.fillCircle(16, 16, 6);
+    relicGfx.fillStyle(0x38bdf8, 1);
+    relicGfx.fillCircle(16, 16, 3);
+    relicGfx.generateTexture('relic_orbit', 32, 32);
+    relicGfx.destroy();
+
+    // 21. Cultural Pulse Shockwave (Người Kiến Tạo - 128x128)
+    const pulseWaveGfx = this.make.graphics({ x: 0, y: 0 });
+    pulseWaveGfx.fillStyle(0x16a34a, 0.15);
+    pulseWaveGfx.fillCircle(64, 64, 60);
+    pulseWaveGfx.lineStyle(3, 0x22c55e, 0.9);
+    pulseWaveGfx.strokeCircle(64, 64, 60);
+    pulseWaveGfx.lineStyle(1.5, 0x86efac, 0.7);
+    pulseWaveGfx.strokeCircle(64, 64, 52);
+    pulseWaveGfx.generateTexture('pulse_wave', 128, 128);
+    pulseWaveGfx.destroy();
+
+    // 22. Verified Target Crosshair Badge (Người Kiểm Chứng - 28x28)
+    const markGfx = this.make.graphics({ x: 0, y: 0 });
+    markGfx.lineStyle(2, 0x0284c7, 0.95);
+    markGfx.strokeCircle(14, 14, 10);
+    markGfx.lineBetween(14, 1, 14, 7);
+    markGfx.lineBetween(14, 21, 14, 27);
+    markGfx.lineBetween(1, 14, 7, 14);
+    markGfx.lineBetween(21, 14, 27, 14);
+    markGfx.fillStyle(0x00f0ff, 1);
+    markGfx.fillCircle(14, 14, 3);
+    markGfx.generateTexture('mark_verified', 28, 28);
+    markGfx.destroy();
   }
 }
