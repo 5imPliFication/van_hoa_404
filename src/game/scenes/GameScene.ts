@@ -17,6 +17,7 @@ import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 import { CharacterClassConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
+import { GameResultData } from './ResultScene';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -958,12 +959,6 @@ export class GameScene extends Phaser.Scene {
       SoundSystem.playAlert();
     }
 
-    const activeCombos = this.evolutionManager.getActiveComboList().map(c => ({
-      name: c.name,
-      formula: c.formula,
-      description: c.description,
-    }));
-
     this.cameras.main.fadeOut(500, 241, 245, 249);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.start('ResultScene', {
@@ -972,24 +967,10 @@ export class GameScene extends Phaser.Scene {
         levelReached: this.player.level,
         values: this.player.values,
         isVictory: isVictory,
-        communityMeter: this.communityMeter.meterValue,
-        killedBy: isVictory ? undefined : this.player.lastDamagedBy,
-        buildPower: this.player.stats.buildPower,
-        fightPower: this.player.stats.fightPower,
-        className: this.classConfig.name,
-        classTitle: this.classConfig.title,
-        classIcon: this.classConfig.badgeIcon,
-        classThemeColor: this.classConfig.themeColor,
-        classThemeHex: this.classConfig.themeHex,
-        classPassiveName: this.classConfig.passive.name,
-        classPassiveDesc: this.classConfig.passive.description,
-        activeCombos: activeCombos,
         classConfig: this.classConfig,
         decisions: this.scenarioManager.decisions,
         totalScenarios: this.scenarioManager.totalScenarioCount,
-        tinhHoaTaken: this.player.tinhHoaTaken,
-        tinhHoaFull: this.player.tinhHoaFull,
-      });
+      } satisfies GameResultData);
     });
   }
 

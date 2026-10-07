@@ -4,42 +4,6 @@
 
 export const LECTURE_SOURCE = 'Giáo trình Tư tưởng Hồ Chí Minh, Chương VI';
 
-export const CORE_PRINCIPLE = {
-  heading: 'ĐỀ CƯƠNG VĂN HÓA VIỆT NAM (1943)',
-  intro: 'Hồ Chí Minh khẳng định phương châm xây dựng nền văn hóa mới có tính chất:',
-};
-
-export interface CorePillarLesson {
-  icon: string;
-  label: string;
-  meaning: string;
-  inGame: string;
-}
-
-export const CORE_PILLAR_LESSONS: CorePillarLesson[] = [
-  {
-    icon: '🇻🇳',
-    label: 'DÂN TỘC',
-    meaning: 'Giữ gìn cốt cách văn hóa dân tộc, lấy văn hóa dân tộc làm gốc',
-    inGame: 'Trong game: Khiên & Máu — gốc rễ giữ bạn đứng vững',
-  },
-  {
-    icon: '🔬',
-    label: 'KHOA HỌC',
-    meaning: 'Chống giặc dốt, phát triển văn hóa, nâng cao dân trí',
-    inGame: 'Trong game: Tốc bắn & Chí mạng — hiểu biết giúp phản biện sắc bén',
-  },
-  {
-    icon: '👥',
-    label: 'ĐẠI CHÚNG',
-    meaning: '"Từ trong quần chúng ra. Về sâu trong quần chúng"',
-    inGame: 'Trong game: Hào quang & Tầm hút — văn hóa lan tỏa tới mọi người',
-  },
-];
-
-export const SUMMARY_QUOTE =
-  'Một nền văn hóa toàn diện, giữ gìn được cốt cách văn hóa dân tộc, bảo đảm tính khoa học, tiến bộ và nhân văn.';
-
 // Section (b): "Giữ gìn bản sắc và tiếp thu tinh hoa văn hóa nhân loại" (tr.121-122)
 export const TINH_HOA = {
   learnQuote: 'Có cái gì hay, cái gì tốt là ta học lấy.',
