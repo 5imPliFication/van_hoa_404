@@ -8,27 +8,30 @@ import { WeaponStyle } from '../types/data';
 
 /**
  * What one extra "attack" from Chống (stats.projectileCount) means for each starting weapon:
- * sniper fires one more bullet, pulse adds one weaker echo wave, drum adds one weaker follow-up beat.
+ * sniper fires one more bullet, pulse adds one weaker echo wave. The drum never attacks more often:
+ * each extra makes its cone bigger instead (see drumCone).
  */
 export const EXTRA_ATTACK_LABEL: Record<WeaponStyle, string> = {
   sniper: 'tia đạn',
   pulse: 'đợt sóng',
-  drum: 'nhịp trống',
+  drum: 'bậc mở rộng sóng',
 };
 
 /** Each echo wave / follow-up beat after the main attack: delay between them and damage share. */
 const PULSE_ECHO_DELAY_MS = 220;
 const PULSE_ECHO_MULTIPLIER = 0.6;
-const DRUM_FOLLOWUP_DELAY_MS = 260;
-const DRUM_FOLLOWUP_MULTIPLIER = 0.7;
-/** Drum beats are slower than bullets: cooldown = DRUM_COOLDOWN_SCALE / attackSpeed seconds. */
-export const DRUM_COOLDOWN_SCALE = 1.2;
+/** Drum beats are slow and heavy: cooldown = DRUM_COOLDOWN_SCALE / attackSpeed seconds. */
+export const DRUM_COOLDOWN_SCALE = 1.6;
 
-/** Người Gìn Giữ's Trống Đồng cone; reach and width grow with Dân tộc. */
-export function drumCone(danToc: number): { reach: number; halfAngle: number } {
+/**
+ * Người Gìn Giữ's Trống Đồng cone. Grows with Dân tộc (+8 px, +4° per level) and with each
+ * Chống extra attack (+12 px, +4°; projectileCount - 1, max 3). Base 240 px · 70°, max 316 px · 106°.
+ */
+export function drumCone(danToc: number, projectileCount: number = 1): { reach: number; halfAngle: number } {
+  const extra = Math.max(0, projectileCount - 1);
   return {
-    reach: 240 + danToc * 8,
-    halfAngle: Phaser.Math.DegToRad(35 + danToc * 2),
+    reach: 240 + danToc * 8 + extra * 12,
+    halfAngle: Phaser.Math.DegToRad(35 + danToc * 2 + extra * 2),
   };
 }
 
@@ -45,7 +48,7 @@ export class WeaponSystem {
   private fireTimer: number = 0;
   private range: number = 440;
   private weaponStyle: WeaponStyle;
-  // Countdown (ms) for each pending pulse echo / drum follow-up beat; ticked in update() so they freeze with pauseCombat()
+  // Countdown (ms) for each pending pulse echo; ticked in update() so echoes freeze with pauseCombat()
   private pendingEchoes: number[] = [];
 
   // Evolution & Combo buffs
@@ -126,16 +129,12 @@ export class WeaponSystem {
       }
     }
 
-    // 3. Pending echo waves (Người Kiến Tạo) / follow-up drum beats (Người Gìn Giữ) from Chống
+    // 3. Pending echo waves (Người Kiến Tạo + Chống)
     if (this.pendingEchoes.length > 0) {
       this.pendingEchoes = this.pendingEchoes.map(t => t - dt);
       while (this.pendingEchoes.length > 0 && this.pendingEchoes[0] <= 0) {
         this.pendingEchoes.shift();
-        if (this.weaponStyle === 'drum') {
-          this.fireDrumBeat(activeEnemies, bossTargets, DRUM_FOLLOWUP_MULTIPLIER);
-        } else {
-          this.firePulseWave(activeEnemies, PULSE_ECHO_MULTIPLIER, 0x86efac);
-        }
+        this.firePulseWave(activeEnemies, PULSE_ECHO_MULTIPLIER, 0x86efac);
       }
     }
 
@@ -216,11 +215,8 @@ export class WeaponSystem {
 
   private fireWeapon(activeEnemies: Enemy[], bossTargets: TargetPoint[]): void {
     if (this.weaponStyle === 'drum') {
-      if (!this.fireDrumBeat(activeEnemies, bossTargets, 1.0)) return;
-      // Each extra attack from Chống becomes a weaker follow-up beat, re-aimed when it lands
-      for (let i = 1; i < Math.max(1, this.player.stats.projectileCount); i++) {
-        this.pendingEchoes.push(i * DRUM_FOLLOWUP_DELAY_MS);
-      }
+      // Chống's extras widen the cone (drumCone) instead of adding beats
+      this.fireDrumBeat(activeEnemies, bossTargets);
       return;
     }
 
@@ -330,10 +326,10 @@ export class WeaponSystem {
    * Người Gìn Giữ (Trống Đồng): a sound-wave cone toward the nearest target. Damages and pushes back
    * everything inside, and silences enemy bullets in its path. Returns false when nothing is in reach.
    */
-  private fireDrumBeat(activeEnemies: Enemy[], bossTargets: TargetPoint[], multiplier: number): boolean {
+  private fireDrumBeat(activeEnemies: Enemy[], bossTargets: TargetPoint[]): boolean {
     const px = this.player.x;
     const py = this.player.y;
-    const { reach, halfAngle } = drumCone(this.player.values.danToc || 0);
+    const { reach, halfAngle } = drumCone(this.player.values.danToc || 0, this.player.stats.projectileCount);
 
     let aim = this.player.manualAimAngle;
     if (aim === null) {
@@ -357,10 +353,10 @@ export class WeaponSystem {
     };
 
     SoundSystem.playDrum();
-    this.drawDrumCone(coneAim, reach, halfAngle, multiplier < 1);
+    this.drawDrumCone(coneAim, reach, halfAngle);
 
     const critRoll = Math.random() < this.player.stats.critChance;
-    const finalDamage = this.player.stats.damage * multiplier * (critRoll ? 2 : 1);
+    const finalDamage = this.player.stats.damage * (critRoll ? 2 : 1);
     const kb = 28 + (this.player.stats.fightPower || 0) * 1.5;
 
     for (const enemy of activeEnemies) {
@@ -386,14 +382,14 @@ export class WeaponSystem {
     return true;
   }
 
-  private drawDrumCone(aim: number, reach: number, halfAngle: number, isFollowUp: boolean): void {
+  private drawDrumCone(aim: number, reach: number, halfAngle: number): void {
     const g = this.scene.add.graphics({ x: this.player.x, y: this.player.y });
     g.setDepth(12);
-    g.fillStyle(0xf59e0b, isFollowUp ? 0.2 : 0.32);
+    g.fillStyle(0xf59e0b, 0.32);
     g.slice(0, 0, reach, aim - halfAngle, aim + halfAngle, false);
     g.fillPath();
     // Three bronze sound-wave arcs, like rings spreading from a drum
-    g.lineStyle(isFollowUp ? 3 : 4, 0xb45309, 0.9);
+    g.lineStyle(4, 0xb45309, 0.9);
     for (const f of [0.45, 0.7, 0.95]) {
       g.beginPath();
       g.arc(0, 0, reach * f, aim - halfAngle * 0.9, aim + halfAngle * 0.9, false);

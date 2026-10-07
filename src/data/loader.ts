@@ -252,7 +252,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'fight',
     level: 1,
     maxLevel: 5,
-    description: '+1 đòn đánh (tia đạn / sóng dư chấn / nhịp trống tùy vai trò), +10 Sức mạnh Chống',
+    description: '+1 tia đạn / sóng dư chấn, hoặc sóng trống lớn hơn (tùy vai trò), +10 Sức mạnh Chống',
     effects: {
       projectileCountAdd: 1,
       damageAdd: 5,
@@ -967,7 +967,7 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Sinh lực và khiên vượt trội, đáp trả bằng tiếng trống đồng: sóng âm vang xa, đẩy lùi kẻ địch và dập tắt lời xuyên tạc.',
     startingWeapon: 'drum',
     startingWeaponName: 'Trống Đồng Âm Vang',
-    startingWeaponDesc: 'Gõ trống đồng: sóng âm hình nón lan về phía kẻ địch gần nhất, gây sát thương, đẩy lùi và dập tắt đạn địch trên đường lan. Chống thêm nhịp trống, Dân tộc mở rộng sóng âm.',
+    startingWeaponDesc: 'Gõ trống đồng: sóng âm hình nón lan về phía kẻ địch gần nhất, gây sát thương, đẩy lùi và dập tắt đạn địch trên đường lan. Chống và Dân tộc mở rộng sóng âm.',
     startingStats: {
       maxHp: 130,
       hp: 130,

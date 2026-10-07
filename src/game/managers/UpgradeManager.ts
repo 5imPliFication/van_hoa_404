@@ -159,14 +159,14 @@ export class UpgradeManager {
     } else if (upgrade.id === 'sustain_mastery') {
       dynamicDesc = upgrade.description;
     } else if (upgrade.category === 'fight') {
-      // The "+1" at levels 1/3/5 depends on the class weapon (bullet / echo wave / relic)
+      // The "+1" at levels 1/3/5 depends on the class weapon (bullet / echo wave / bigger drum cone)
       const style = this.player.classConfig?.startingWeapon || 'sniper';
       const unit = EXTRA_ATTACK_LABEL[style];
       const nextCount = this.player.stats.projectileCount + 1;
       const extra = style === 'pulse'
         ? `+1 Sóng dư chấn 60% (${nextCount} ${unit})`
         : style === 'drum'
-          ? `+1 Nhịp trống 70% (${nextCount} ${unit})`
+          ? 'Sóng trống xa hơn 12 px, rộng hơn 4°'
           : `+1 Tia đạn bổ sung (${nextCount} ${unit})`;
       if (nextLvl === 1) dynamicDesc = `${extra}, +2 Sát thương, +5 Sức mạnh Chống`;
       else if (nextLvl === 2) dynamicDesc = '+2 Sát thương chuẩn xác, +6 Sức mạnh Chống';

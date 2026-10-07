@@ -105,7 +105,7 @@ export class PauseMenu {
     const fightBonus = s.fightPower * 0.015;
     const heal = this.player.healPerInterval * (1 + s.buildPower * 0.02);
     const style = this.player.classConfig?.startingWeapon || 'sniper';
-    const cone = drumCone(this.player.values.danToc || 0);
+    const cone = drumCone(this.player.values.danToc || 0, s.projectileCount);
     const rows: [string, string][] = [
       ['Máu', `${Math.ceil(s.hp)} / ${Math.round(s.maxHp)}`],
       ['Khiên', `${Math.round(s.shield)}`],
@@ -114,7 +114,8 @@ export class PauseMenu {
       style === 'drum'
         ? ['Nhịp trống', `${(s.attackSpeed / DRUM_COOLDOWN_SCALE).toFixed(2)} lần/giây`]
         : [style === 'pulse' ? 'Nhịp phát sóng' : 'Tốc độ bắn', `${s.attackSpeed.toFixed(2)} lần/giây`],
-      [`Số ${EXTRA_ATTACK_LABEL[style]}`, `${s.projectileCount}`],
+      // The drum's extras show up in the cone size row instead
+      ...(style === 'drum' ? [] : [[`Số ${EXTRA_ATTACK_LABEL[style]}`, `${s.projectileCount}`] as [string, string]]),
       ['Tỉ lệ chí mạng', `${Math.round(s.critChance * 100)}% (×2 sát thương)`],
       // Only the sniper fires bullets; the drum shows its cone instead
       ...(style === 'sniper' ? [['Tốc độ đạn', `${Math.round(s.projectileSpeed)}`] as [string, string]] : []),
