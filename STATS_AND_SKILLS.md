@@ -27,6 +27,20 @@ Tài liệu chi tiết toàn bộ các cơ chế chỉ số nhân vật, hệ th
 
 Mỗi chỉ số trụ cột có **giới hạn tối đa là Cấp 5 (Level Cap: 5/5)**. Khi một trụ cột đạt Cấp 5, các thẻ bài của trụ cột đó sẽ không còn xuất hiện trong danh sách lựa chọn thăng cấp, khuyến khích người chơi xây dựng bộ chỉ số cân bằng, đa dạng thay vì dồn toàn lực vào một chỉ số duy nhất.
 
+### 🧱 Luật Nền Móng: vì sao Dân tộc, Khoa học, Đại chúng là "cốt lõi"
+Ba tính chất dân tộc, khoa học, đại chúng là **nền móng** của nền văn hóa mới. Mỗi giá trị Chân, Thiện, Mỹ đứng trên một trụ cột cốt lõi và **chỉ được cao hơn nền của mình tối đa 1 cấp** (`VALUE_FOUNDATION`, `FOUNDATION_LEAD` trong `src/data/lesson.ts`; kiểm tra ở `Player.pillarCap`):
+
+| Giá trị | Đứng trên nền | Ví dụ |
+| :--- | :--- | :--- |
+| Chân | Khoa học | Khoa học cấp 2 → Chân tối đa cấp 3 |
+| Thiện | Đại chúng | Đại chúng cấp 0 → Thiện tối đa cấp 1 |
+| Mỹ | Dân tộc | Dân tộc cấp 4 → Mỹ tối đa cấp 5 |
+
+* Thẻ của giá trị đã chạm nền sẽ không được rút; màn lên cấp ghi rõ "Chân chờ Khoa học cấp N", thẻ trụ cột cốt lõi ghi giá trị nó mở đường.
+* Luật áp dụng cả khi lựa chọn tích cực ở tình huống nâng trụ cột (trụ cột cốt lõi được cộng trước).
+* Màn tạm dừng hiện ô bị khóa và dòng "nền ...", cẩm nang hiện "🔒 chờ ...".
+* Các cặp ghép theo cộng hưởng sẵn có: Kiểm Chứng (Khoa học + Chân), Văn Hóa Ứng Xử (Đại chúng + Thiện), Bản Sắc Sáng Tạo (Dân tộc + Mỹ).
+
 Nếu người chơi tối đa hóa toàn bộ 8 trụ cột (tổng 40 cấp), thẻ bài đặc biệt **Đại Viên Mãn Giá Trị (Hồi Phục)** sẽ được kích hoạt để hồi phục sinh lực và khiên chắn.
 
 ### 1. Tư Duy Phản Biện (Khoa Học: 1 → 5)

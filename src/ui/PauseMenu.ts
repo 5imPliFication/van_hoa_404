@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { Player } from '../game/entities/Player';
 import { CommunityMeterManager } from '../game/managers/CommunityMeterManager';
 import { isClassMode } from '../game/settings';
-import { TINH_HOA } from '../data/lesson';
+import { TINH_HOA, VALUE_FOUNDATION, PILLAR_LABELS } from '../data/lesson';
 import { EXTRA_ATTACK_LABEL, DRUM_COOLDOWN_SCALE, drumCone } from '../game/managers/WeaponSystem';
 
 export interface PauseSnapshot {
@@ -146,10 +146,19 @@ export class PauseMenu {
     PILLAR_ROWS.forEach((p, i) => {
       const ry = y + 50 + i * 26;
       const lv = this.player.values[p.key] || 0;
-      c.add(this.text(x + 20, ry, p.label, 13, p.core ? '#b45309' : '#334155', p.core).setOrigin(0, 0.5));
+      const cap = this.player.pillarCap(p.key);
+      const label = this.text(x + 20, ry, p.label, 13, p.core ? '#b45309' : '#334155', p.core).setOrigin(0, 0.5);
+      c.add(label);
+      const core = VALUE_FOUNDATION[p.key];
+      if (core) {
+        // Which core pillar this value stands on (strip the emoji)
+        c.add(this.text(x + 24 + label.width, ry, `nền ${PILLAR_LABELS[core].replace(/^\S+\s/, '')}`, 11, '#94a3b8').setOrigin(0, 0.5));
+      }
       for (let seg = 0; seg < 5; seg++) {
         const filled = seg < lv;
-        c.add(this.scene.add.rectangle(x + 196 + seg * 40, ry, 34, 12, filled ? (p.core ? 0xd97706 : 0x0284c7) : 0xe2e8f0)
+        const locked = !filled && seg >= cap; // above the foundation: not reachable yet
+        const fill = filled ? (p.core ? 0xd97706 : 0x0284c7) : locked ? 0x94a3b8 : 0xe2e8f0;
+        c.add(this.scene.add.rectangle(x + 196 + seg * 40, ry, 34, 12, fill, locked ? 0.35 : 1)
           .setStrokeStyle(1, filled ? (p.core ? 0xb45309 : 0x0369a1) : 0xcbd5e1));
       }
       c.add(this.text(x + w - 20, ry, `${lv}/5`, 13, '#0f172a', true).setOrigin(1, 0.5));

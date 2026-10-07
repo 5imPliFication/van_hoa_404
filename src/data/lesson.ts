@@ -14,6 +14,17 @@ export const TINH_HOA = {
   minPlayerLevel: 3,
 };
 
+// Dân tộc, Khoa học, Đại chúng are the foundation (nền móng) of the new culture: each value pillar
+// stands on one core pillar and can rise at most FOUNDATION_LEAD level(s) above it.
+// Pairs follow the combos: Kiểm Chứng (Khoa học + Chân), Văn Hóa Ứng Xử (Đại chúng + Thiện),
+// Bản Sắc Sáng Tạo (Dân tộc + Mỹ).
+export const VALUE_FOUNDATION: Record<string, string> = {
+  chan: 'khoaHoc',
+  thien: 'daiChung',
+  my: 'danToc',
+};
+export const FOUNDATION_LEAD = 1;
+
 export const ARCHETYPE_QUOTES: Record<string, { quote: string; source: string }> = {
   'Người Kiểm Chứng': {
     quote: 'Cả cuộc đời Người chú trọng chống giặc dốt, phát triển văn hóa, nâng cao dân trí.',

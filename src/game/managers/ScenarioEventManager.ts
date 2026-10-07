@@ -317,11 +317,13 @@ export class ScenarioEventManager {
       };
     }
 
-    // Record learning pillars only for the choice that reflects the lesson (capped at level 5)
+    // Record learning pillars only for the choice that reflects the lesson. Cores go first, so a
+    // value raised in the same scenario can use its freshly raised foundation (Player.pillarCap).
     const aligned = isAlignedChoice(choice);
     if (aligned) {
       for (const pillar of [...scenario.learning.cores, ...scenario.learning.values]) {
-        this.player.values[pillar] = Math.min(5, (this.player.values[pillar] || 0) + 1);
+        const current = this.player.values[pillar] || 0;
+        this.player.values[pillar] = Math.max(current, Math.min(this.player.pillarCap(pillar), current + 1));
       }
     }
     this.decisions.push({

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { PlayerStats, CulturalValues, INITIAL_PLAYER_STATS, Pillar } from '../types/player';
 import { UpgradeConfig, CharacterClassConfig } from '../types/data';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
-import { TINH_HOA } from '../../data/lesson';
+import { TINH_HOA, VALUE_FOUNDATION, FOUNDATION_LEAD } from '../../data/lesson';
 import { isClassMode, CLASS_MODE_DAMAGE_MULTIPLIER } from '../settings';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -36,6 +36,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public tinhHoaTaken: number = 0;
   private classMode: boolean = isClassMode();
   public tinhHoaFull: number = 0;
+
+  /** Highest level this pillar may reach now: 5, or for Chân/Thiện/Mỹ its core pillar's level + FOUNDATION_LEAD. */
+  public pillarCap(pillar: Pillar): number {
+    const core = VALUE_FOUNDATION[pillar] as Pillar | undefined;
+    if (!core) return 5;
+    return Math.min(5, (this.values[core] || 0) + FOUNDATION_LEAD);
+  }
 
   public getStatLevel(pillar: Pillar): number {
     return this.values[pillar] || 0;
@@ -313,7 +320,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     const cat = upgrade.category as Pillar;
     const currentLevel = this.values[cat] || 0;
-    if (currentLevel >= 5) return; // Hard level cap of 5!
+    if (currentLevel >= this.pillarCap(cat)) return; // Level 5, or the value's core-pillar foundation
 
     const nextLvl = currentLevel + 1;
     this.values[cat] = nextLvl;

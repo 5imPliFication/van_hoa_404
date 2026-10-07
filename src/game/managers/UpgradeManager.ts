@@ -3,7 +3,8 @@ import { Player } from '../entities/Player';
 import { UpgradeConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
-import { TINH_HOA, PILLAR_MEANINGS } from '../../data/lesson';
+import { TINH_HOA, PILLAR_MEANINGS, PILLAR_LABELS, VALUE_FOUNDATION, FOUNDATION_LEAD } from '../../data/lesson';
+import { Pillar } from '../types/player';
 
 import { CommunityMeterManager } from './CommunityMeterManager';
 import { EXTRA_ATTACK_LABEL } from './WeaponSystem';
@@ -68,6 +69,24 @@ export class UpgradeManager {
     }).setOrigin(0.5);
 
     this.overlayContainer.add([title, sub]);
+
+    // Values held back by their core-pillar foundation (Player.pillarCap)
+    const blocked = Object.entries(VALUE_FOUNDATION)
+      .filter(([value]) => {
+        const lv = this.player.values[value as Pillar] || 0;
+        return lv < 5 && lv >= this.player.pillarCap(value as Pillar);
+      })
+      .map(([value, core]) => `${PILLAR_LABELS[value]} chờ ${PILLAR_LABELS[core]} cấp ${(this.player.values[value as Pillar] || 0) + 1 - FOUNDATION_LEAD}`);
+    if (blocked.length > 0) {
+      this.overlayContainer.add(this.scene.add.text(width / 2, height / 2 + winHeight / 2 - 26,
+        `🧱 Giá trị cần nền móng: ${blocked.join('  ·  ')}`, {
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: '13px',
+          fontStyle: 'bold',
+          color: '#b45309',
+          resolution: 2,
+        }).setOrigin(0.5));
+    }
 
     // Render 3 cards
     const cardWidth = 280;
@@ -279,6 +298,21 @@ export class UpgradeManager {
       }).setOrigin(0.5));
     }
 
+    // Core card: show which value this level lets grow further
+    const foundationOf = Object.entries(VALUE_FOUNDATION).find(([, core]) => core === upgrade.category)?.[0];
+    if (!isTinhHoa && upgrade.id !== 'sustain_mastery' && foundationOf) {
+      const newCap = Math.min(5, nextLvl + FOUNDATION_LEAD);
+      container.add(this.scene.add.text(0, h / 2 - 88, `🧱 Nền móng: ${PILLAR_LABELS[foundationOf]} được lên tới cấp ${newCap}`, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '12px',
+        fontStyle: 'bold',
+        color: '#b45309',
+        align: 'center',
+        wordWrap: { width: w - 30 },
+        resolution: 2,
+      }).setOrigin(0.5));
+    }
+
     if (isTinhHoa) {
       const quote = this.scene.add.text(0, h / 2 - 90, `“${TINH_HOA.learnQuote}”\nnhưng lấy văn hóa dân tộc làm gốc`, {
         fontFamily: 'system-ui, sans-serif',
@@ -309,10 +343,10 @@ export class UpgradeManager {
   }
 
   private getRandomUpgrades(count: number): UpgradeConfig[] {
-    // Filter only upgrades whose category is below the level cap of 5!
+    // Only pillars below their cap: level 5, or for Chân/Thiện/Mỹ their core-pillar foundation
     const available = this.allUpgrades.filter(u => {
-      const cat = u.category as any;
-      return (this.player.values as any)[cat] < 5;
+      const cat = u.category as Pillar;
+      return (this.player.values[cat] || 0) < this.player.pillarCap(cat);
     });
 
     if (available.length === 0) {

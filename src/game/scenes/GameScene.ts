@@ -475,7 +475,7 @@ export class GameScene extends Phaser.Scene {
         const pBox = this.add.rectangle(width / 2, pY, winW - 60, 94, 0xf8fafc, 1);
         pBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-        const pHeader = this.add.text(width / 2, pY - 34, '🏛️ TIẾN ĐỘ 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5 — ĐẠT CẤP YÊU CẦU ĐỂ KÍCH HOẠT CỘNG HƯỞNG)', {
+        const pHeader = this.add.text(width / 2, pY - 34, '🏛️ 8 TRỤ CỘT (TỐI ĐA CẤP 5) — CHÂN · THIỆN · MỸ ĐỨNG TRÊN NỀN KHOA HỌC · ĐẠI CHÚNG · DÂN TỘC, CHỈ VƯỢT NỀN 1 CẤP', {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '11.5px',
           fontStyle: 'bold',
@@ -490,9 +490,9 @@ export class GameScene extends Phaser.Scene {
           { name: 'Dân Tộc', lv: v.danToc || 0, icon: '🇻🇳', x: width / 2 - 338, y: pY - 10 },
           { name: 'Khoa Học', lv: v.khoaHoc || 0, icon: '🔬', x: width / 2 - 112, y: pY - 10 },
           { name: 'Đại Chúng', lv: v.daiChung || 0, icon: '👥', x: width / 2 + 112, y: pY - 10 },
-          { name: 'Chân', lv: v.chan || 0, icon: '🎯', x: width / 2 + 338, y: pY - 10 },
-          { name: 'Thiện', lv: v.thien || 0, icon: '❤️', x: width / 2 - 338, y: pY + 24 },
-          { name: 'Mỹ', lv: v.my || 0, icon: '🎨', x: width / 2 - 112, y: pY + 24 },
+          { name: 'Chân', lv: v.chan || 0, icon: '🎯', x: width / 2 + 338, y: pY - 10, cap: this.player.pillarCap('chan'), core: 'Khoa Học' },
+          { name: 'Thiện', lv: v.thien || 0, icon: '❤️', x: width / 2 - 338, y: pY + 24, cap: this.player.pillarCap('thien'), core: 'Đại Chúng' },
+          { name: 'Mỹ', lv: v.my || 0, icon: '🎨', x: width / 2 - 112, y: pY + 24, cap: this.player.pillarCap('my'), core: 'Dân Tộc' },
           { name: 'Xây', lv: v.build || 0, icon: '🏗️', x: width / 2 + 112, y: pY + 24 },
           { name: 'Chống', lv: v.fight || 0, icon: '🛡️', x: width / 2 + 338, y: pY + 24 },
         ];
@@ -503,7 +503,9 @@ export class GameScene extends Phaser.Scene {
           const chipBg = this.add.rectangle(p.x, p.y, 214, 28, isMaxed ? 0xfef9c3 : isSynergyReady ? 0xdcfce7 : 0xffffff, 1);
           chipBg.setStrokeStyle(1, isMaxed ? 0xfacc15 : isSynergyReady ? 0x86efac : 0xe2e8f0);
 
-          const statusStr = isMaxed ? '★ MAX 5/5' : isSynergyReady ? `✓ Cấp ${p.lv}/5` : `Cấp ${p.lv}/5`;
+          // Values held at their foundation say which core pillar to raise
+          const isHeld = 'cap' in p && !isMaxed && p.lv >= (p.cap ?? 5);
+          const statusStr = isMaxed ? '★ MAX 5/5' : isHeld ? `🔒 ${p.lv}/5, chờ ${p.core}` : isSynergyReady ? `✓ Cấp ${p.lv}/5` : `Cấp ${p.lv}/5`;
           const chipTxt = this.add.text(p.x, p.y, `${p.icon} ${p.name}: ${statusStr}`, {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '11px',
@@ -536,7 +538,7 @@ export class GameScene extends Phaser.Scene {
             title: '⚡ Kiểm Chứng (Khoa Học + Chân)',
             req1: `Khoa Học: ${v.khoaHoc || 0}/4`,
             req2: `Chân: ${v.chan || 0}/4`,
-            desc: 'Riêng Người Kiểm Chứng: đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
+            desc: 'Riêng Kiểm Chứng: đạn xuyên thấu, +50% sát thương lên Tin Giả.',
             classOnly: 'nguoiKiemChung',
             x: width / 2 - 222,
             y: eY - 40,
