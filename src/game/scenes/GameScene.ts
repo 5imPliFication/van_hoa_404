@@ -636,7 +636,7 @@ export class GameScene extends Phaser.Scene {
           {
             time: '10:00',
             tier: 'Hiện Thân Lệch Chuẩn Văn Hóa Số (10 phút) — Trận chiến Quyết định',
-            desc: 'Trùm 3 giai đoạn xả bão đạn và rút cạn không gian mạng. Đòi hỏi người chơi phát triển cân bằng cả 8 trụ cột văn hóa.',
+            desc: '3 giai đoạn: mưa đạn xoáy và vòng đỏ tin giả → lao theo vệt đỏ, gọi bầy đám đông → mọi chiêu cùng lúc kèm vùng độc. Né, đừng đứng yên.',
           },
         ];
 

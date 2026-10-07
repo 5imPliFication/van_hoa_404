@@ -41,7 +41,7 @@ export class EnemyManager {
 
     this.enemyProjectiles = scene.physics.add.group({
       defaultKey: 'enemy_bullet',
-      maxSize: 40,
+      maxSize: 140, // the final boss's spiral and rings need room
     });
 
     // Cache enemy configurations

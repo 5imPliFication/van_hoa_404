@@ -93,6 +93,37 @@ export const BOSS_TIERS: BossTierConfig[] = [
   },
 ];
 
+/**
+ * Final boss (Hiện Thân Lệch Chuẩn Văn Hóa Số): a scripted three-act fight built from telegraphed attacks.
+ * It embodies every earlier phenomenon at once, so later acts borrow the swarm (boss 1) and toxic aura (boss 2).
+ */
+type FinalAttack = 'spiral' | 'strikes' | 'charge' | 'spiralStrikes';
+const FINAL = {
+  strikeWarn: 1.1, // seconds of red-circle warning before a "tin giả" strike lands
+  strikeRadius: 60,
+  spiralDuration: 2.6,
+  spiralInterval: 0.11,
+  spiralStep: 0.32, // radians the spiral turns per volley
+  chargeWindup: 0.85, // red lane shown; aim locks 0.25 s before the dash
+  chargeDuration: 0.55,
+  chargeSpeed: 460,
+  phaseShift: 1.6, // invulnerable roar between acts
+  auraRadius: 190,
+  swarmEvery: 6,
+};
+// Attack cycle per act and the breather between attacks
+const FINAL_CYCLES: FinalAttack[][] = [
+  ['spiral', 'strikes'],
+  ['charge', 'strikes', 'charge', 'spiral'],
+  ['charge', 'spiralStrikes', 'charge', 'strikes'],
+];
+const FINAL_GAP = [1.6, 1.2, 0.9];
+const FINAL_ACT_HINTS = [
+  'Nhiễu thông tin: né vòng đỏ "tin giả" và mưa đạn xoáy',
+  'Cực hóa: trùm lao theo vệt đỏ và gọi bầy đám đông. Né sang ngang!',
+  'Khủng hoảng toàn diện: mọi chiêu cùng lúc, vùng độc quanh trùm. Giữ khoảng cách!',
+];
+
 export class BossManager {
   private scene: Phaser.Scene;
   private player: Player;
@@ -126,6 +157,19 @@ export class BossManager {
   private isDashing: boolean = false;
   private clones: Phaser.Physics.Arcade.Sprite[] = [];
   private bossShadow?: Phaser.GameObjects.Image;
+
+  // Final boss state; everything ticks in update(), so it freezes with pauseCombat()
+  private finalGfx?: Phaser.GameObjects.Graphics;
+  private finalMove: 'chase' | 'spiral' | 'windup' | 'charge' = 'chase';
+  private finalMoveTimer: number = 0;
+  private finalNextAttack: number = 0;
+  private finalAttackStep: number = 0;
+  private spiralAngle: number = 0;
+  private spiralShotTimer: number = 0;
+  private chargeAngle: number = 0;
+  private strikes: { x: number; y: number; t: number }[] = [];
+  private phaseShiftTimer: number = 0;
+  private finalSwarmTimer: number = 0;
 
   // Boss Top Health Bar
   private bossBarContainer?: Phaser.GameObjects.Container;
@@ -225,6 +269,13 @@ export class BossManager {
     this.dashTimer = 0;
     this.contactDamageTimer = 0.8;
     this.isDashing = false;
+    this.finalMove = 'chase';
+    this.finalMoveTimer = 0;
+    this.finalNextAttack = 2.5; // let the entrance finish first
+    this.finalAttackStep = 0;
+    this.strikes = [];
+    this.phaseShiftTimer = 0;
+    this.finalSwarmTimer = 0;
 
     SoundSystem.playBossAlarm();
 
@@ -326,6 +377,18 @@ export class BossManager {
     // Spawn 2 phantom illusion clones if mechanic is shield_dash
     if (config.mechanicType === 'shield_dash') {
       this.spawnClones();
+    }
+
+    if (config.mechanicType === 'final') {
+      this.finalGfx = this.scene.add.graphics();
+      this.finalGfx.setDepth(17);
+      this.scene.cameras.main.shake(600, 0.008);
+      // After the arrival banner fades
+      this.scene.time.delayedCall(3000, () => {
+        if (this.isBossActive && this.currentPhaseIndex === 0) {
+          this.announcePhase(`GIAI ĐOẠN 1: ${(config.phases[0]?.name || '').toUpperCase()}`, FINAL_ACT_HINTS[0]);
+        }
+      });
     }
   }
 
@@ -468,12 +531,11 @@ export class BossManager {
           clone.setPosition(bx + Math.cos(orbitAngle) * 85, by + Math.sin(orbitAngle) * 85);
         }
       });
+    } else if (mechanic === 'final') {
+      this.updateFinalBoss(dtSec, bx, by, px, py, bossSpeed, distToPlayer);
     } else {
-      // Standard chase towards player (accelerates in phase 2 and 3)
       const angle = Phaser.Math.Angle.Between(bx, by, px, py);
-      const phaseSpeedMult = this.currentPhaseIndex === 1 ? 1.3 : this.currentPhaseIndex === 2 ? 1.5 : 1.0;
-      const speed = bossSpeed * phaseSpeedMult;
-      this.bossSprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+      this.bossSprite.setVelocity(Math.cos(angle) * bossSpeed, Math.sin(angle) * bossSpeed);
     }
 
     // 3. Swarm Mechanic: Spawn fast tiny runners every 3.5s
@@ -508,14 +570,15 @@ export class BossManager {
       }
     }
 
-    // 5. Attack pattern timer
-    this.attackTimer += dtSec;
+    // 5. Attack pattern timer (the final boss runs its own script in updateFinalBoss)
     const currentPhase = this.currentBossConfig.phases[this.currentPhaseIndex] || this.currentBossConfig.phases[0];
-    const cd = currentPhase?.attackCooldown || 2.5;
-
-    if (this.attackTimer >= cd) {
-      this.attackTimer = 0;
-      this.performBossAttack(bx, by, px, py, mechanic);
+    if (mechanic !== 'final') {
+      this.attackTimer += dtSec;
+      const cd = currentPhase?.attackCooldown || 2.5;
+      if (this.attackTimer >= cd) {
+        this.attackTimer = 0;
+        this.performBossAttack(bx, by, px, py, mechanic);
+      }
     }
 
     // Community drain in later phases or final boss
@@ -593,28 +656,221 @@ export class BossManager {
         this.fireProjectile(bx, by, angle, bSpeed, bDamage);
       }
     } else {
-      // Final / Chaos Archetype: Phase-based attacks
-      if (this.currentPhaseIndex === 0) {
-        // 8-way spread
-        for (let i = 0; i < 8; i++) {
-          const angle = (Math.PI * 2 * i) / 8;
-          this.fireProjectile(bx, by, angle, bSpeed * 0.9, bDamage);
-        }
-      } else if (this.currentPhaseIndex === 1) {
-        // Rapid aimed tri-shot
-        const targetAngle = Phaser.Math.Angle.Between(bx, by, px, py);
-        for (const off of [-0.2, 0, 0.2]) {
-          this.fireProjectile(bx, by, targetAngle + off, bSpeed * 1.15, bDamage);
-        }
-      } else {
-        // 12-way apocalyptic spread + minion spawns
-        for (let i = 0; i < 12; i++) {
-          const angle = (Math.PI * 2 * i) / 12;
-          this.fireProjectile(bx, by, angle, bSpeed, bDamage);
-        }
-        this.enemyManager.spawnEnemy('xuyenTacVanHoa', bx + 30, by);
+      // Fallback for unknown mechanics: 8-way spread
+      for (let i = 0; i < 8; i++) {
+        this.fireProjectile(bx, by, (Math.PI * 2 * i) / 8, bSpeed * 0.9, bDamage);
       }
     }
+  }
+
+  private updateFinalBoss(dtSec: number, bx: number, by: number, px: number, py: number, bossSpeed: number, distToPlayer: number): void {
+    const sprite = this.bossSprite!;
+    const cfg = this.currentBossConfig!;
+    const act = this.currentPhaseIndex;
+    const bSpeed = cfg.bulletSpeed || 190;
+    const bDamage = cfg.bulletDamage || 10;
+
+    // Strikes and the swarm keep going even during a roar
+    this.updateStrikes(dtSec, px, py);
+    if (act >= 1) {
+      this.finalSwarmTimer += dtSec;
+      if (this.finalSwarmTimer >= FINAL.swarmEvery) {
+        this.finalSwarmTimer = 0;
+        this.spawnTinySwarm(Math.ceil((cfg.minionCount || 10) / 2));
+      }
+    }
+    this.updateTinySwarm(px, py);
+
+    // Act 3: toxic aura borrowed from boss 2
+    if (act >= 2 && distToPlayer <= FINAL.auraRadius) {
+      this.dotTimer += dtSec;
+      if (this.dotTimer >= 1.5) {
+        this.dotTimer = 0;
+        this.player.takeDamage(cfg.dotDamage || 4, `Vùng Độc Tố của Trùm ${cfg.name}`);
+      }
+    }
+
+    // Roar between acts: stands still, cannot be hurt
+    if (this.phaseShiftTimer > 0) {
+      this.phaseShiftTimer -= dtSec;
+      sprite.setVelocity(0, 0);
+      this.drawFinalTelegraphs(bx, by);
+      return;
+    }
+
+    this.finalMoveTimer -= dtSec;
+    switch (this.finalMove) {
+      case 'spiral': {
+        sprite.setVelocity(0, 0);
+        this.spiralShotTimer -= dtSec;
+        const arms = act === 0 ? 2 : 3;
+        while (this.spiralShotTimer <= 0) {
+          this.spiralShotTimer += FINAL.spiralInterval;
+          for (let a = 0; a < arms; a++) {
+            this.fireProjectile(bx, by, this.spiralAngle + (a * Math.PI * 2) / arms, bSpeed * 0.75, bDamage * 0.6);
+          }
+          this.spiralAngle += FINAL.spiralStep;
+        }
+        if (this.finalMoveTimer <= 0) this.finalMove = 'chase';
+        break;
+      }
+      case 'windup': {
+        sprite.setVelocity(0, 0);
+        // Tracks the player, then locks so a sidestep dodges it
+        if (this.finalMoveTimer > 0.25) this.chargeAngle = Phaser.Math.Angle.Between(bx, by, px, py);
+        if (this.finalMoveTimer <= 0) {
+          this.finalMove = 'charge';
+          this.finalMoveTimer = FINAL.chargeDuration;
+          this.isDashing = true;
+          sprite.setTint(0xdc2626);
+        }
+        break;
+      }
+      case 'charge': {
+        sprite.setVelocity(Math.cos(this.chargeAngle) * FINAL.chargeSpeed, Math.sin(this.chargeAngle) * FINAL.chargeSpeed);
+        if (this.finalMoveTimer <= 0) {
+          this.finalMove = 'chase';
+          this.isDashing = false;
+          sprite.clearTint();
+          sprite.setVelocity(0, 0);
+          // Landing shockwave
+          const ring = act >= 2 ? 14 : 10;
+          for (let i = 0; i < ring; i++) {
+            this.fireProjectile(bx, by, (Math.PI * 2 * i) / ring, bSpeed * 0.85, bDamage * 0.7);
+          }
+          this.scene.cameras.main.shake(180, 0.005);
+        }
+        break;
+      }
+      default: {
+        const angle = Phaser.Math.Angle.Between(bx, by, px, py);
+        const speed = bossSpeed * (cfg.phases[act]?.speedMultiplier || 1);
+        sprite.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        this.finalNextAttack -= dtSec;
+        if (this.finalNextAttack <= 0) this.startFinalAttack(px, py);
+      }
+    }
+
+    this.drawFinalTelegraphs(this.bossSprite!.x, this.bossSprite!.y);
+  }
+
+  private startFinalAttack(px: number, py: number): void {
+    const act = this.currentPhaseIndex;
+    const cycle = FINAL_CYCLES[act] || FINAL_CYCLES[0];
+    const attack = cycle[this.finalAttackStep % cycle.length];
+    this.finalAttackStep++;
+    this.finalNextAttack = FINAL_GAP[act] ?? 1.2;
+
+    if (attack === 'spiral' || attack === 'spiralStrikes') {
+      this.finalMove = 'spiral';
+      this.finalMoveTimer = FINAL.spiralDuration;
+      this.spiralShotTimer = 0;
+    }
+    if (attack === 'strikes' || attack === 'spiralStrikes') {
+      this.queueStrikes(px, py, attack === 'spiralStrikes' ? 3 : 3 + act);
+    }
+    if (attack === 'charge') {
+      this.finalMove = 'windup';
+      this.finalMoveTimer = FINAL.chargeWindup;
+      SoundSystem.playAlert();
+    }
+  }
+
+  /** "Tin giả lan truyền": red circles on and around the player that blow up after a warning. */
+  private queueStrikes(px: number, py: number, count: number): void {
+    SoundSystem.playAlert();
+    for (let i = 0; i < count; i++) {
+      const onPlayer = i === 0;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = onPlayer ? 0 : Phaser.Math.Between(90, 210);
+      this.strikes.push({
+        x: px + Math.cos(angle) * dist,
+        y: py + Math.sin(angle) * dist,
+        t: FINAL.strikeWarn + i * 0.12,
+      });
+    }
+  }
+
+  private updateStrikes(dtSec: number, px: number, py: number): void {
+    if (this.strikes.length === 0) return;
+    const cfg = this.currentBossConfig!;
+    for (const s of this.strikes) s.t -= dtSec;
+    const landed = this.strikes.filter(s => s.t <= 0);
+    this.strikes = this.strikes.filter(s => s.t > 0);
+    for (const s of landed) {
+      if (Phaser.Math.Distance.Between(s.x, s.y, px, py) < FINAL.strikeRadius) {
+        this.player.takeDamage(Math.round((cfg.contactDamage || 20) * 0.8), `Tin giả lan truyền (Trùm ${cfg.name})`);
+      }
+      const flash = this.scene.add.circle(s.x, s.y, FINAL.strikeRadius, 0xdc2626, 0.45).setDepth(17);
+      this.scene.tweens.add({ targets: flash, alpha: 0, scale: 1.25, duration: 260, onComplete: () => flash.destroy() });
+    }
+    if (landed.length > 0) SoundSystem.playHit();
+  }
+
+  private drawFinalTelegraphs(bx: number, by: number): void {
+    const g = this.finalGfx;
+    if (!g) return;
+    g.clear();
+
+    for (const s of this.strikes) {
+      const p = Phaser.Math.Clamp(1 - s.t / FINAL.strikeWarn, 0, 1);
+      g.fillStyle(0xdc2626, 0.1 + 0.15 * p);
+      g.fillCircle(s.x, s.y, FINAL.strikeRadius);
+      g.fillStyle(0xdc2626, 0.35);
+      g.fillCircle(s.x, s.y, FINAL.strikeRadius * p);
+      g.lineStyle(3, 0xdc2626, 0.9);
+      g.strokeCircle(s.x, s.y, FINAL.strikeRadius);
+    }
+
+    if (this.finalMove === 'windup') {
+      // Red lane showing where the charge will go
+      const len = FINAL.chargeSpeed * FINAL.chargeDuration + 60;
+      const half = (this.currentBossConfig?.radius || 40) + 6;
+      const c = Math.cos(this.chargeAngle);
+      const s = Math.sin(this.chargeAngle);
+      const locked = this.finalMoveTimer <= 0.25;
+      g.fillStyle(0xdc2626, locked ? 0.4 : 0.2);
+      g.fillPoints([
+        new Phaser.Math.Vector2(bx - s * half, by + c * half),
+        new Phaser.Math.Vector2(bx + c * len - s * half, by + s * len + c * half),
+        new Phaser.Math.Vector2(bx + c * len + s * half, by + s * len - c * half),
+        new Phaser.Math.Vector2(bx + s * half, by - c * half),
+      ], true);
+    }
+
+    if (this.currentPhaseIndex >= 2) {
+      g.lineStyle(2, 0x16a34a, 0.6);
+      g.strokeCircle(bx, by, FINAL.auraRadius);
+      g.fillStyle(0x22c55e, 0.08);
+      g.fillCircle(bx, by, FINAL.auraRadius);
+    }
+
+    if (this.phaseShiftTimer > 0) {
+      const p = 1 - this.phaseShiftTimer / FINAL.phaseShift;
+      g.lineStyle(4, 0xf59e0b, 1 - p);
+      g.strokeCircle(bx, by, 60 + p * 260);
+    }
+  }
+
+  /** Between acts: roar, shake, clear telegraphs, short invulnerability, then a banner on how to survive. */
+  private startPhaseShift(act: number): void {
+    const cfg = this.currentBossConfig!;
+    this.phaseShiftTimer = FINAL.phaseShift;
+    this.finalMove = 'chase';
+    this.isDashing = false;
+    this.bossSprite?.clearTint();
+    this.finalAttackStep = 0;
+    this.finalNextAttack = 0.6;
+    this.strikes = [];
+    SoundSystem.playBossAlarm();
+    this.scene.cameras.main.shake(500, 0.01);
+    this.scene.cameras.main.flash(250, 255, 255, 255);
+    if (this.bossSprite) {
+      for (let i = 0; i < 16; i++) {
+        this.fireProjectile(this.bossSprite.x, this.bossSprite.y, (Math.PI * 2 * i) / 16, (cfg.bulletSpeed || 190) * 0.7, (cfg.bulletDamage || 10) * 0.5);
+      }
+    }
+    this.announcePhase(`GIAI ĐOẠN ${act + 1}: ${(cfg.phases[act]?.name || '').toUpperCase()}`, FINAL_ACT_HINTS[act]);
   }
 
   private fireProjectile(fromX: number, fromY: number, angle: number, speed: number, damage: number = 10): void {
@@ -624,8 +880,14 @@ export class BossManager {
     this.enemyManager.fireEnemyBullet(fromX, fromY, targetX, targetY, damage, speed, `Bão đạn của Trùm ${bossName}`);
   }
 
+  /** True while the final boss roars between acts (ignores all damage). */
+  public get isInvulnerable(): boolean {
+    return this.phaseShiftTimer > 0;
+  }
+
   public takeDamage(amount: number, isCrit: boolean = false): boolean {
     if (!this.isBossActive || !this.bossSprite?.active || !this.currentBossConfig) return false;
+    if (this.isInvulnerable) return false;
 
     // Phantom Shield: Reduces non-crit damage by 50% unless player has high Fight Power
     if (this.currentBossConfig.mechanicType === 'shield_dash') {
@@ -651,14 +913,14 @@ export class BossManager {
 
     const hpPercent = (this.bossHp / this.bossMaxHp) * 100;
 
-    // Check phase transition for 10-minute boss or final mechanic archetype
-    if (this.currentBossIndex === 3 || this.currentBossConfig.mechanicType === 'final') {
+    // Final boss acts: 65% -> act 2, 30% -> act 3
+    if (this.currentBossConfig.mechanicType === 'final') {
       if (this.currentPhaseIndex === 0 && hpPercent <= 65) {
         this.currentPhaseIndex = 1;
-        this.announcePhase('GIAI ĐOẠN 2: BẠO LỰC & CỰC HÓA');
+        this.startPhaseShift(1);
       } else if (this.currentPhaseIndex === 1 && hpPercent <= 30) {
         this.currentPhaseIndex = 2;
-        this.announcePhase('GIAI ĐOẠN 3: KHỦNG HOẢNG TOÀN DIỆN');
+        this.startPhaseShift(2);
       }
     }
 
@@ -683,6 +945,10 @@ export class BossManager {
     this.bossShadow = undefined;
     this.toxicAuraGfx?.destroy();
     this.toxicAuraGfx = undefined;
+    this.finalGfx?.destroy();
+    this.finalGfx = undefined;
+    this.strikes = [];
+    this.phaseShiftTimer = 0;
     this.clearClones();
 
     // Fade out and cleanup top boss health bar
@@ -730,20 +996,37 @@ export class BossManager {
     }
   }
 
-  private announcePhase(text: string): void {
+  private announcePhase(text: string, hint?: string): void {
     const { width, height } = this.scene.scale;
-    const banner = this.scene.add.text(width / 2, height * 0.25, text, {
+    const banner = this.scene.add.container(width / 2, height * 0.3).setScrollFactor(0).setDepth(105);
+    const title = this.scene.add.text(0, 0, text, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '18px',
+      fontSize: '26px',
       fontStyle: 'bold',
-      color: '#b45309',
+      color: '#dc2626',
+      stroke: '#ffffff',
+      strokeThickness: 5,
       resolution: 2,
-    }).setOrigin(0.5).setScrollFactor(0);
-
+    }).setOrigin(0.5);
+    banner.add(title);
+    if (hint) {
+      banner.add(this.scene.add.text(0, 32, hint, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '15px',
+        fontStyle: 'bold',
+        color: '#7f1d1d',
+        stroke: '#ffffff',
+        strokeThickness: 4,
+        resolution: 2,
+      }).setOrigin(0.5));
+    }
+    banner.setScale(1.3);
+    this.scene.tweens.add({ targets: banner, scale: 1, duration: 250, ease: 'Back.easeOut' });
     this.scene.tweens.add({
       targets: banner,
       alpha: 0,
-      duration: 1200,
+      delay: 2200,
+      duration: 600,
       onComplete: () => banner.destroy(),
     });
   }
@@ -797,8 +1080,8 @@ export class BossManager {
       }
     }
 
-    // 3. Check hitting the main boss
-    if (this.bossSprite?.active && projectile.active) {
+    // 3. Check hitting the main boss (bullets pass through while it roars between acts)
+    if (this.bossSprite?.active && projectile.active && !this.isInvulnerable) {
       if (!projectile.hasHitTarget('boss_main')) {
         const dist = Phaser.Math.Distance.Between(projectile.x, projectile.y, this.bossSprite.x, this.bossSprite.y);
         const hitRadius = (this.currentBossConfig?.radius || 30) + 12;
@@ -848,7 +1131,7 @@ export class BossManager {
       }
     }
 
-    if (this.bossSprite?.active) {
+    if (this.bossSprite?.active && !this.isInvulnerable) {
       const bossRadius = this.currentBossConfig?.radius || 30;
       if (isInside(this.bossSprite.x, this.bossSprite.y, bossRadius)) {
         const dmg = damage * (1 + this.player.stats.fightPower * 0.015);

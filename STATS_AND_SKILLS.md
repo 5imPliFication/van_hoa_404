@@ -267,7 +267,12 @@ $$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số 
 1. **Trùm Bầy Đàn (`swarm`)**: Triệu hồi đàn quái tí hon lao thần tốc bổ nhào vào người chơi, bắn chùm đạn quạt 5 hướng.
 2. **Trùm Vùng Độc Tố (`dot`)**: Tỏa ra vòng tròn độc tố bán kính 280px gây sát thương liên tục theo thời gian, bắn cầu độc tầm xa.
 3. **Trùm Khiên Ảo Ảnh & Lướt Kích (`shield_dash`)**: 2 phân thân ảo ảnh bay quanh làm bia đỡ đạn, giảm 50% sát thương từ đòn đánh thường (bị khắc chế bởi bạo kích hoặc `fightPower >= 10`), tung cú lướt thần tốc `320 px/s` kèm bão đạn 8 hướng.
-4. **Trùm Lệch Chuẩn Hỗn Loạn (`final`)**: Biến chuyển 3 giai đoạn (Bão đạn 8 hướng → Tăng tốc độ & đạn liên thanh 3 tia → Bão đạn 12 hướng toàn màn hình + triệu hồi Tinh Anh Xuyên Tạc tiếp viện).
+4. **Hiện Thân Lệch Chuẩn Văn Hóa Số (`final`)**: trận đấu kịch bản 3 giai đoạn, mọi chiêu đều có cảnh báo trước để người chơi né (hằng số `FINAL`, `FINAL_CYCLES` trong `BossManager.ts`):
+   * **Giai đoạn 1 – Nhiễu Thông Tin (100–65% máu)**: đứng yên xả **đạn xoáy 2 nhánh** (2.6 giây); **vòng đỏ "tin giả"** (3 vòng, 1 vòng ngay dưới chân người chơi) nổ sau 1.1 giây cảnh báo, gây 80% sát thương va chạm.
+   * **Giai đoạn 2 – Bạo Lực & Cực Hóa (65–30%)**: **cú lao**: vệt đỏ hiện 0.85 giây, khóa hướng 0.25 giây trước khi lao (460 px/s), tiếp đất bắn vòng 10 đạn; 4 vòng tin giả; đạn xoáy 3 nhánh; gọi **bầy đám đông** (chiêu của trùm phút 3) mỗi 6 giây.
+   * **Giai đoạn 3 – Khủng Hoảng Toàn Diện (30–0%)**: mọi chiêu nhanh hơn và chồng lên nhau (đạn xoáy kèm vòng tin giả), vòng 14 đạn khi tiếp đất, thêm **vùng độc** bán kính 190 px quanh trùm (chiêu của trùm phút 5).
+   * **Chuyển giai đoạn**: trùm gầm 1.6 giây (miễn nhiễm sát thương, rung màn hình, vòng 16 đạn), banner ghi tên giai đoạn và cách sống sót.
+   * Ý nghĩa: trùm cuối là mọi hiện tượng lệch chuẩn cùng lúc, nên cần một nền văn hóa toàn diện.
 
 ---
 

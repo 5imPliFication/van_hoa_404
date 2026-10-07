@@ -866,7 +866,7 @@ const DEFAULT_MVP_BOSSES: BossConfig[] = [
     name: 'HIỆN THÂN LỆCH CHUẨN VĂN HÓA SỐ (CHAOS & CRISIS)',
     maxHp: 18000,
     speed: 95,
-    testDescription: 'Thử thách tối hậu: Cân bằng toàn diện 8 trụ cột & Kỹ năng Tiến Hóa (Evolutions)',
+    testDescription: 'Trùm cuối 3 giai đoạn: né vòng đỏ, tránh cú lao, sống sót qua mọi hiện tượng cùng lúc',
     mechanicType: 'final',
     textureKey: 'boss_10min',
     phases: [
