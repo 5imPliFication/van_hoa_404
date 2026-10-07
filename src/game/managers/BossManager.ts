@@ -680,7 +680,6 @@ export class BossManager {
     const bx = this.bossSprite.x;
     const by = this.bossSprite.y;
     const isFinal = this.currentBossIndex === 3;
-    const bossName = this.currentBossConfig.name;
 
     // Cleanup boss entities
     this.bossSprite.destroy();
@@ -729,35 +728,8 @@ export class BossManager {
       // 10-minute boss defeated -> Victory!
       this.onBossDefeatedCallback(true);
     } else {
-      // Milestone Boss (3m, 5m, 7m) defeated -> Celebrate & continue run!
+      // Milestone Boss (3m, 5m, 7m) defeated -> GameScene shows the next history card, then the run continues
       SoundSystem.playLevelUp();
-
-      const { width, height } = this.scene.scale;
-      const toast = this.scene.add.container(width / 2, height * 0.22);
-      toast.setDepth(110);
-      toast.setScrollFactor(0);
-
-      const bg = this.scene.add.rectangle(0, 0, 720, 62, 0xdcfce7, 0.96);
-      bg.setStrokeStyle(2, 0x16a34a);
-
-      const text = this.scene.add.text(0, 0, `✨ ĐÃ ĐẨY LÙI ${bossName}! CHIẾN TRƯỜNG TIẾP TỤC! ✨`, {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: '14px',
-        fontStyle: 'bold',
-        color: '#15803d',
-        resolution: 2,
-      }).setOrigin(0.5);
-
-      toast.add([bg, text]);
-
-      this.scene.tweens.add({
-        targets: toast,
-        alpha: 0,
-        duration: 800,
-        delay: 2400,
-        onComplete: () => toast.destroy(),
-      });
-
       this.onBossDefeatedCallback(false);
     }
   }

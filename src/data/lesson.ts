@@ -71,3 +71,40 @@ export const ENEMY_LESSONS: Record<string, string> = {
   cucDoanMang: 'Quan điểm cực đoan, kích động thù ghét và chia rẽ',
   khungHoangTruyenThong: 'Khủng hoảng thông tin khiến cộng đồng hoang mang',
 };
+
+// Section 3 (tr.125–126): the three historical stages, shown one per milestone boss defeated.
+// Wording follows the lecture; `bridge` is our own line tying the stage to the game.
+export interface HistoryMilestone {
+  era: string;
+  title: string;
+  items?: [string, string][];
+  body?: string;
+  bridge: string;
+}
+
+export const HISTORY_MILESTONES: HistoryMilestone[] = [
+  {
+    era: 'Trước Cách mạng Tháng Tám — tháng 8-1943',
+    title: 'Năm nội dung xây dựng nền văn hóa dân tộc',
+    items: [
+      ['Tâm lý', 'Tinh thần độc lập tự cường'],
+      ['Luân lý', 'Biết hy sinh mình, làm lợi cho quần chúng'],
+      ['Xã hội', 'Mọi sự nghiệp liên quan đến phúc lợi của nhân dân'],
+      ['Chính trị', 'Dân quyền'],
+      ['Kinh tế', 'Xây dựng kinh tế'],
+    ],
+    bridge: 'Văn hóa không đứng riêng: nó gắn với mọi mặt của đời sống.',
+  },
+  {
+    era: 'Trong kháng chiến chống thực dân Pháp',
+    title: 'Nền văn hóa có tính chất dân tộc, khoa học và đại chúng',
+    body: 'Hồ Chí Minh khẳng định lại phương châm của Đề cương văn hóa Việt Nam năm 1943 về xây dựng nền văn hóa mới.',
+    bridge: 'Đó chính là ba trụ cột cốt lõi bạn đang nâng cấp.',
+  },
+  {
+    era: 'Thời kỳ xây dựng chủ nghĩa xã hội',
+    title: 'Nội dung xã hội chủ nghĩa và tính chất dân tộc',
+    body: 'Khi miền Bắc quá độ lên chủ nghĩa xã hội, Hồ Chí Minh chủ trương xây dựng nền văn hóa có nội dung xã hội chủ nghĩa và tính chất dân tộc.',
+    bridge: 'Trùm cuối đang chờ: chỉ một nền văn hóa toàn diện mới vượt qua được.',
+  },
+];

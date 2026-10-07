@@ -12,6 +12,7 @@ import { BossManager } from '../managers/BossManager';
 import { HUD } from '../../ui/HUD';
 import { PhenomenonToast } from '../../ui/PhenomenonToast';
 import { PauseMenu } from '../../ui/PauseMenu';
+import { MilestoneCard } from '../../ui/MilestoneCard';
 import { Projectile } from '../entities/Projectile';
 import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
@@ -32,6 +33,7 @@ export class GameScene extends Phaser.Scene {
   private bossManager!: BossManager;
   private hud!: HUD;
   private pauseMenu!: PauseMenu;
+  private milestoneCard!: MilestoneCard;
   private classConfig!: CharacterClassConfig;
 
   public runSeconds: number = 0;
@@ -211,6 +213,7 @@ export class GameScene extends Phaser.Scene {
 
     // ESC: pause screen with detailed stats. Registered before the opening guide so that, while the
     // guide is open, this listener runs first and sees isIntroOpen (the guide's own ESC closes it).
+    this.milestoneCard = new MilestoneCard(this);
     this.pauseMenu = new PauseMenu(this, this.player, this.communityMeter, () => this.togglePause());
     this.input.keyboard?.on('keydown-ESC', () => {
       this.togglePause();
@@ -243,6 +246,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   public toggleGuide(): void {
+    // Another overlay (level-up, scenario, history card, game over) owns the pause: closing the guide
+    // would resume combat underneath it, so the guide waits
+    if (this.isPaused && !this.isIntroOpen && !this.pauseMenu?.isOpen) return;
     // Opening the guide from the pause screen swaps one overlay for the other
     if (this.pauseMenu?.isOpen) {
       this.pauseMenu.hide();
@@ -948,6 +954,12 @@ export class GameScene extends Phaser.Scene {
   private onBossDefeated(isFinal: boolean): void {
     if (isFinal) {
       this.onGameOver(true);
+      return;
+    }
+    // Each milestone boss opens the next historical stage of the lesson
+    this.pauseCombat();
+    if (!this.milestoneCard.show(this.bossManager.currentBossIndex, () => this.resumeCombat())) {
+      this.resumeCombat();
     }
   }
 
