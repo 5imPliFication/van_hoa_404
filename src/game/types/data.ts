@@ -205,6 +205,8 @@ export interface ComboConfig {
   formula: string;
   description: string;
   requirements: ComboRequirement[];
+  // Only this class id can unlock the combo (e.g. piercing bullets are Người Kiểm Chứng's)
+  classOnly?: string;
   // Optional lecture quote shown when the combo unlocks
   quote?: string;
   effects: {

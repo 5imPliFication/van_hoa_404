@@ -40,6 +40,7 @@ export class EvolutionManager {
   public checkCombos(): void {
     for (const combo of this.combos) {
       if (this.activeEvolutionIds.has(combo.id)) continue;
+      if (combo.classOnly && combo.classOnly !== this.player.classConfig?.id) continue;
 
       // Check if all required pillars reach the required level (Level 4 for 2-stat combos)
       const satisfied = combo.requirements.every(

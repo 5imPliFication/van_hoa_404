@@ -99,6 +99,7 @@ graph TD
 ### 1. Kiểm Chứng (Khoa học + Chân)
 * **Mô tả**: *"Đạn xuyên thấu mọi mục tiêu và gây thêm 50% sát thương lên Tin Giả."*
 * **Cơ chế**: Đạn không còn biến mất khi chạm quái vật đầu tiên mà bay thẳng xuyên suốt đội hình địch; quái vật `tinGia` nhận sát thương nhân thêm hệ số `1.5x`.
+* **Giới hạn vai trò**: Chỉ **Người Kiểm Chứng** mở khóa được (`classOnly` trong `DEFAULT_MVP_COMBOS`), vì đây là vai trò duy nhất bắn đạn. Cẩm nang hiển thị "Chỉ Người Kiểm Chứng" với các vai trò khác.
 
 ### 2. Văn Hóa Ứng Xử (Đại chúng + Thiện)
 * **Mô tả**: *"Hào quang xung quanh làm chậm quái 30% và hồi máu đều đặn (+3 HP mỗi 5s)."*

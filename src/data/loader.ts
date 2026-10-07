@@ -1007,6 +1007,7 @@ export const DEFAULT_MVP_COMBOS: ComboConfig[] = [
     name: 'Kiểm Chứng',
     formula: 'Khoa Học (Cấp 4) + Chân (Cấp 4)',
     description: 'Đạn xuyên thấu mọi mục tiêu, tăng 50% sát thương lên Tin Giả và 100% bạo kích lên mục tiêu Đã Xác Minh.',
+    classOnly: 'nguoiKiemChung',
     requirements: [
       { pillar: 'khoaHoc', level: 4 },
       { pillar: 'chan', level: 4 },

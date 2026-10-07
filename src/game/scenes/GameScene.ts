@@ -536,7 +536,8 @@ export class GameScene extends Phaser.Scene {
             title: '⚡ Kiểm Chứng (Khoa Học + Chân)',
             req1: `Khoa Học: ${v.khoaHoc || 0}/4`,
             req2: `Chân: ${v.chan || 0}/4`,
-            desc: 'Đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
+            desc: 'Riêng Người Kiểm Chứng: đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
+            classOnly: 'nguoiKiemChung',
             x: width / 2 - 222,
             y: eY - 40,
           },
@@ -580,6 +581,7 @@ export class GameScene extends Phaser.Scene {
 
         comboLiveList.forEach(c => {
           const isUnlocked = this.evolutionManager.activeEvolutionIds.has(c.id);
+          const isOtherClass = 'classOnly' in c && c.classOnly !== this.classConfig.id;
           const cardBg = this.add.rectangle(c.x, c.y, 432, 54, isUnlocked ? 0xf0fdf4 : 0xffffff, 1);
           cardBg.setStrokeStyle(1.5, isUnlocked ? 0x22c55e : 0xd1d5db);
 
@@ -592,7 +594,7 @@ export class GameScene extends Phaser.Scene {
           }).setOrigin(0, 0.5);
 
           const statusBadge = this.add.text(c.x + 202, c.y - 12,
-            isUnlocked ? '✅ ĐÃ KÍCH HOẠT' : `🔒 [${c.req1} • ${c.req2}]`,
+            isUnlocked ? '✅ ĐÃ KÍCH HOẠT' : isOtherClass ? '🚫 Chỉ Người Kiểm Chứng' : `🔒 [${c.req1} • ${c.req2}]`,
             {
               fontFamily: 'system-ui, sans-serif',
               fontSize: '10.5px',
@@ -622,7 +624,7 @@ export class GameScene extends Phaser.Scene {
           {
             time: '05:00',
             tier: 'Trùm Cấp 2 (Cột mốc 5 Phút) — Thử thách Xuyên thấu & Vùng độc',
-            desc: 'Triệu hồi bầy quái tí hon đông đảo hoặc xả khí độc. Đòi hỏi người chơi có đạn xuyên thấu hoặc hồi phục sinh lực.',
+            desc: 'Triệu hồi bầy quái tí hon đông đảo hoặc xả khí độc. Đòi hỏi đòn đánh diện rộng, đạn xuyên thấu hoặc hồi phục sinh lực.',
           },
           {
             time: '07:00',
