@@ -690,7 +690,7 @@ export class GameScene extends Phaser.Scene {
         }).setOrigin(0, 0.5);
 
         const tipDesc = this.add.text(width / 2 - 400, tipY + 11,
-          'Đừng bỏ lỡ các Tình huống số để lấy Buff 30s trước khi Trùm xuất hiện! Phát triển cân bằng "Xây" (hồi phục) và "Chống" (thêm đạn) là chìa khóa chiến thắng.',
+          'Đừng bỏ lỡ các Tình huống số để lấy Buff 30s trước khi Trùm xuất hiện! Phát triển cân bằng "Xây" (hồi phục) và "Chống" (thêm đòn đánh) là chìa khóa chiến thắng.',
           {
             fontFamily: 'system-ui, sans-serif',
             fontSize: '11px',

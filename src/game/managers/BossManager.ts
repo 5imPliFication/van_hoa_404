@@ -819,6 +819,36 @@ export class BossManager {
     return false;
   }
 
+  /**
+   * Area / contact damage (Kiến Tạo pulse, Gìn Giữ relics) against swarm minions and the boss.
+   * Phantom clones are decoys for bullets only and ignore it.
+   */
+  public damageInRadius(x: number, y: number, radius: number, damage: number, isCrit: boolean): void {
+    if (!this.isBossActive) return;
+
+    const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
+    for (const m of minions) {
+      if (!m.active) continue;
+      if (Phaser.Math.Distance.Between(x, y, m.x, m.y) < radius + 6) {
+        const hp = (m.getData('hp') ?? 16) - damage;
+        m.setData('hp', hp);
+        if (hp <= 0) {
+          m.setActive(false).setVisible(false).setVelocity(0, 0);
+          this.xpManager.dropXP(m.x, m.y, 1);
+        }
+      }
+    }
+
+    if (this.bossSprite?.active) {
+      const bossRadius = this.currentBossConfig?.radius || 30;
+      if (Phaser.Math.Distance.Between(x, y, this.bossSprite.x, this.bossSprite.y) < radius + bossRadius) {
+        const dmg = damage * (1 + this.player.stats.fightPower * 0.015);
+        this.takeDamage(dmg, isCrit);
+        DamageNumberSystem.showDamage(this.bossSprite.x, this.bossSprite.y - 35, dmg, isCrit ? 'crit' : 'monster');
+      }
+    }
+  }
+
   private showDamageText(x: number, y: number, text: string | number, isCrit: boolean = false, customColor?: string): void {
     const dmgText = this.scene.add.text(
       x + Phaser.Math.Between(-8, 8),

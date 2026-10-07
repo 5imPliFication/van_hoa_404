@@ -59,8 +59,8 @@ export class EvolutionManager {
 
     // 1. Orbiting data shields
     if (combo.effects.orbitingShields) {
+      // WeaponSystem adds the relics on its next update
       this.weaponSystem.hasOrbitingShields = true;
-      this.weaponSystem.spawnOrbitingRelics(combo.effects.shieldCount || 3);
     }
 
     // 2. Piercing projectile & Tin Gia bonus

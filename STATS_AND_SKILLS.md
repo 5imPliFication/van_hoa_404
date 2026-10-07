@@ -13,7 +13,7 @@ Tài liệu chi tiết toàn bộ các cơ chế chỉ số nhân vật, hệ th
 | **`moveSpeed`** | 240 | Tốc độ di chuyển tính theo pixel/giây (hỗ trợ phím WASD, mũi tên, hoặc kéo ngón tay trên màn cảm ứng). | Nâng cấp thẻ Xây (+12/cấp, tối đa cấp 5), buff Môi Trường Trong Lành (+8%). |
 | **`damage`** | 15 | Sát thương cơ bản của mỗi phát đạn bắn ra. | Nâng cấp thẻ Chân (+2.5/cấp), thẻ Chống (+2/cấp), thẻ Mỹ (+1.8/cấp), Tiến Hóa, và buff tạm thời. |
 | **`attackSpeed`** | 1.2 | Tốc độ bắn (số phát bắn mỗi giây). Thời gian giãn cách giữa 2 loạt bắn: `cooldown = 1000 / attackSpeed` ms. | Nâng cấp thẻ Khoa Học (+0.1/cấp, tối đa cấp 5), sự kiện tích cực. |
-| **`projectileCount`**| 1 | Số lượng tia đạn phát ra trong mỗi đòn tấn công. Đạn tỏa đều hình nón `0.15 rad`. | Nâng cấp thẻ Chống (+1 tia tại các mốc Cấp 1, Cấp 3, Cấp 5; tối đa 4 tia). |
+| **`projectileCount`**| 1 | Số "đòn đánh" mỗi lượt, tùy vai trò: **Người Kiểm Chứng** = số tia đạn (tỏa hình nón `0.15 rad`); **Người Kiến Tạo** = số đợt sóng (mỗi đợt thêm là sóng dư chấn 60% sát thương, cách nhau 0.22 giây); **Người Gìn Giữ** = số mảnh ngọc trừ 2 (bắt đầu 3 mảnh, +2 mảnh khi có combo Khiên Thông Tin). | Nâng cấp thẻ Chống (+1 tại các mốc Cấp 1, Cấp 3, Cấp 5; tối đa 4 tia / 4 đợt sóng / 6 mảnh ngọc). |
 | **`projectileSpeed`**| 450 | Vận tốc bay của viên đạn (pixel/giây). Giúp đạn bay nhanh đến mục tiêu di động. | Chỉ số cơ bản của vũ khí. |
 | **`pickupRadius`** | 90 | Bán kính hút ngọc kinh nghiệm XP (Magnet Radius). Ngọc trong phạm vi này sẽ tự động lướt mượt mà về phía người chơi. | Nâng cấp thẻ Đại Chúng (+22px/cấp, tối đa cấp 5). |
 | **`critChance`** | 5% (0.05) | Tỉ lệ đòn đánh gây sát thương chí mạng (**x2.0 sát thương**, hiển thị số damage màu vàng cam nổi bật). | Nâng cấp thẻ Khoa Học (+4%/cấp, tối đa 25%). |
@@ -62,12 +62,13 @@ Nếu người chơi tối đa hóa toàn bộ 8 trụ cột (tổng 40 cấp), 
 ### 7. Tường Lửa Chống Lệch Chuẩn (Chống: 1 → 5)
 * **Trụ cột**: `fight` (+1 cấp, tối đa 5)
 * **Phân phối cấp độ chuẩn xác**:
-  * **Cấp 1**: `+1 Tia đạn (Tổng 2 tia)`, `+2 Sát thương`, `+5 Sức mạnh Chống`
+  * **Cấp 1**: `+1 đòn đánh` (tia đạn / sóng dư chấn / mảnh ngọc), `+2 Sát thương`, `+5 Sức mạnh Chống`
   * **Cấp 2**: `+2 Sát thương chuẩn`, `+6 Sức mạnh Chống`
-  * **Cấp 3**: `+1 Tia đạn (Tổng 3 tia)`, `+2 Sát thương`, `+7 Sức mạnh Chống`
+  * **Cấp 3**: `+1 đòn đánh`, `+2 Sát thương`, `+7 Sức mạnh Chống`
   * **Cấp 4**: `+2 Sát thương chuẩn`, `+8 Sức mạnh Chống`
-  * **Cấp 5 (Tối Đa)**: `+1 Tia đạn tối thượng (Tổng 4 tia)`, `+2 Sát thương`, `+9 Sức mạnh Chống`
-* **Ý nghĩa**: Khống chế số lượng tia đạn ở mức tối đa 4 tia, ngăn chặn việc xả đạn vô tận làm mất cân bằng trận đấu.
+  * **Cấp 5 (Tối Đa)**: `+1 đòn đánh`, `+2 Sát thương`, `+9 Sức mạnh Chống`
+* **Ý nghĩa**: Khống chế số đòn đánh ở mức tối đa +3, ngăn chặn việc xả đạn vô tận làm mất cân bằng trận đấu. Thẻ nâng cấp hiển thị đúng loại đòn đánh theo vai trò đang chơi.
+* **Vũ khí theo vai trò**: Người Kiểm Chứng là vai trò duy nhất bắn đạn. Người Kiến Tạo chỉ phát sóng quanh thân. Người Gìn Giữ không bắn: các mảnh ngọc xoay quanh là vũ khí duy nhất (100% sát thương mỗi lần chạm, chặn đạn địch). Sóng và mảnh ngọc đều gây sát thương lên Trùm và bầy quái nhỏ của Trùm.
 
 ### 8. Kiến Tạo Giá Trị Tích Cực (Xây: 1 → 5)
 * **Trụ cột**: `build` (+1 cấp, tối đa 5)

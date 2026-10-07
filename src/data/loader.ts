@@ -252,7 +252,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'fight',
     level: 1,
     maxLevel: 5,
-    description: '+1 Tia đạn bổ sung cho mỗi đòn đánh, +10 Sức mạnh Chống',
+    description: '+1 đòn đánh (tia đạn / sóng dư chấn / mảnh ngọc tùy vai trò), +10 Sức mạnh Chống',
     effects: {
       projectileCountAdd: 1,
       damageAdd: 5,
@@ -912,7 +912,7 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     roleDescription: 'Chuyên gia thẩm định thông tin số. Phong cách tấn công tầm xa chính xác, tốc độ đạn cao và dồn sát thương mục tiêu đơn.',
     startingWeapon: 'sniper',
     startingWeaponName: 'Tia Sáng Kiểm Chứng',
-    startingWeaponDesc: 'Bắn tia năng lượng chính xác cao khóa mục tiêu gần nhất. Tầm bắn xa và tỷ lệ bạo kích cao.',
+    startingWeaponDesc: 'Bắn tia năng lượng chính xác cao khóa mục tiêu gần nhất. Tầm bắn xa, bạo kích cao. Nâng Chống để bắn thêm tia.',
     startingStats: {
       projectileSpeed: 520,
       critChance: 0.12,
@@ -939,7 +939,7 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     roleDescription: 'Người xây dựng chuẩn mực văn hóa số. Phát tỏa xung lực bảo vệ diện rộng, dọn dẹp quái bầy đàn và duy trì sinh khí cộng đồng.',
     startingWeapon: 'pulse',
     startingWeaponName: 'Xung Lực Văn Hóa',
-    startingWeaponDesc: 'Phát tỏa làn sóng năng lượng định kỳ quanh thân, đẩy lùi và gây sát thương diện rộng lên mọi quái vật xung quanh.',
+    startingWeaponDesc: 'Phát tỏa làn sóng năng lượng định kỳ quanh thân, đẩy lùi và gây sát thương mọi quái vật xung quanh. Nâng Chống để thêm sóng dư chấn.',
     startingStats: {
       damage: 14,
       attackSpeed: 1.0,
@@ -964,10 +964,10 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     badgeIcon: '🛡️',
     themeColor: 0xd97706,
     themeHex: '#d97706',
-    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Sở hữu lượng sinh lực và khiên chắn vượt trội, phản kích bằng các mảnh ngọc di sản xoay quanh.',
+    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Không bắn đạn: lao vào giữa đám đông, để các mảnh ngọc di sản xoay quanh nghiền nát kẻ địch áp sát.',
     startingWeapon: 'orbit',
     startingWeaponName: 'Mảnh Ngọc Bản Sắc',
-    startingWeaponDesc: '3 mảnh ngọc di sản quay tròn quanh nhân vật, che chắn cản đạn và gây sát thương va chạm liên tục lên quái vật áp sát.',
+    startingWeaponDesc: '3 mảnh ngọc di sản quay quanh nhân vật, gây sát thương va chạm và chặn đạn địch. Nâng Chống để thêm mảnh ngọc.',
     startingStats: {
       maxHp: 130,
       hp: 130,

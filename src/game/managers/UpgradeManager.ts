@@ -6,6 +6,7 @@ import { SoundSystem } from '../systems/SoundSystem';
 import { TINH_HOA, PILLAR_MEANINGS } from '../../data/lesson';
 
 import { CommunityMeterManager } from './CommunityMeterManager';
+import { EXTRA_ATTACK_LABEL, ORBIT_BASE_RELICS } from './WeaponSystem';
 
 export class UpgradeManager {
   private scene: Phaser.Scene;
@@ -158,11 +159,18 @@ export class UpgradeManager {
     } else if (upgrade.id === 'sustain_mastery') {
       dynamicDesc = upgrade.description;
     } else if (upgrade.category === 'fight') {
-      if (nextLvl === 1) dynamicDesc = '+1 Tia đạn bổ sung (2 tia), +2 Sát thương, +5 Sức mạnh Chống';
+      // The "+1" at levels 1/3/5 depends on the class weapon (bullet / echo wave / relic)
+      const style = this.player.classConfig?.startingWeapon || 'sniper';
+      const unit = EXTRA_ATTACK_LABEL[style];
+      const nextCount = this.player.stats.projectileCount + 1 + (style === 'orbit' ? ORBIT_BASE_RELICS : 0);
+      const extra = style === 'pulse'
+        ? `+1 Sóng dư chấn 60% (${nextCount} ${unit})`
+        : `+1 ${unit.charAt(0).toUpperCase() + unit.slice(1)} (${nextCount} ${unit})`;
+      if (nextLvl === 1) dynamicDesc = `${extra}, +2 Sát thương, +5 Sức mạnh Chống`;
       else if (nextLvl === 2) dynamicDesc = '+2 Sát thương chuẩn xác, +6 Sức mạnh Chống';
-      else if (nextLvl === 3) dynamicDesc = '+1 Tia đạn bổ sung (3 tia), +2 Sát thương, +7 Sức mạnh Chống';
+      else if (nextLvl === 3) dynamicDesc = `${extra}, +2 Sát thương, +7 Sức mạnh Chống`;
       else if (nextLvl === 4) dynamicDesc = '+2 Sát thương chuẩn xác, +8 Sức mạnh Chống';
-      else if (nextLvl === 5) dynamicDesc = '★ CẤP TỐI ĐA: +1 Tia đạn (4 tia), +2 Sát thương, +9 Sức mạnh Chống';
+      else if (nextLvl === 5) dynamicDesc = `★ CẤP TỐI ĐA: ${extra}, +2 Sát thương, +9 Sức mạnh Chống`;
     } else if (upgrade.category === 'chan') {
       dynamicDesc = '+15% Sát thương đòn đánh chuẩn xác (+2.5 sát thương)';
     } else if (upgrade.category === 'khoaHoc') {

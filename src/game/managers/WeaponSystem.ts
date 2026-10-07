@@ -4,6 +4,23 @@ import { Projectile } from '../entities/Projectile';
 import { Enemy } from '../entities/Enemy';
 import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
+import { WeaponStyle } from '../types/data';
+
+/**
+ * What one extra "attack" from Chống (stats.projectileCount) means for each starting weapon:
+ * sniper fires one more bullet, pulse adds one weaker echo wave, orbit adds one more relic.
+ */
+export const EXTRA_ATTACK_LABEL: Record<WeaponStyle, string> = {
+  sniper: 'tia đạn',
+  pulse: 'đợt sóng',
+  orbit: 'mảnh ngọc',
+};
+
+/** Người Gìn Giữ relic count = ORBIT_BASE_RELICS + projectileCount (3 at start). */
+export const ORBIT_BASE_RELICS = 2;
+/** Each echo wave after the main pulse: delay between waves and damage share. */
+const PULSE_ECHO_DELAY_MS = 220;
+const PULSE_ECHO_MULTIPLIER = 0.6;
 
 export interface TargetPoint {
   x: number;
@@ -17,6 +34,9 @@ export class WeaponSystem {
   public projectiles: Phaser.Physics.Arcade.Group;
   private fireTimer: number = 0;
   private range: number = 440;
+  private weaponStyle: WeaponStyle;
+  // Countdown (ms) for each pending pulse echo; ticked in update() so echoes freeze with pauseCombat()
+  private pendingEchoes: number[] = [];
 
   // Evolution & Combo buffs
   public hasPierceEvolution: boolean = false;
@@ -45,21 +65,28 @@ export class WeaponSystem {
       runChildUpdate: true,
     });
 
-    if (this.player.classConfig?.startingWeapon === 'sniper') {
+    this.weaponStyle = this.player.classConfig?.startingWeapon || 'sniper';
+    if (this.weaponStyle === 'sniper') {
       this.range = 520;
-    } else if (this.player.classConfig?.startingWeapon === 'pulse') {
+    } else if (this.weaponStyle === 'pulse') {
       this.range = 280;
     }
 
-    // Initialize orbiting relics if player is Người Gìn Giữ
-    if (this.player.classConfig?.startingWeapon === 'orbit') {
-      this.spawnOrbitingRelics(3);
-    }
+    // Người Gìn Giữ: the relics ARE the weapon (no bullets)
+    this.syncOrbitingRelics();
   }
 
-  public spawnOrbitingRelics(count: number = 3): void {
-    if (this.orbitingRelics.length > 0) return;
-    for (let i = 0; i < count; i++) {
+  /** Relics wanted right now: Gìn Giữ scales with Chống (+ Khiên Thông Tin combo), other classes get 3 from the combo. */
+  private targetRelicCount(): number {
+    if (this.weaponStyle === 'orbit') {
+      return ORBIT_BASE_RELICS + Math.max(1, this.player.stats.projectileCount) + (this.hasOrbitingShields ? 2 : 0);
+    }
+    return this.hasOrbitingShields ? 3 : 0;
+  }
+
+  private syncOrbitingRelics(): void {
+    const target = this.targetRelicCount();
+    while (this.orbitingRelics.length < target) {
       const relic = this.scene.add.image(this.player.x, this.player.y, 'relic_orbit');
       relic.setDepth(14);
       relic.setScale(0.9);
@@ -83,10 +110,8 @@ export class WeaponSystem {
   public update(dt: number, activeEnemies: Enemy[], bossTargets: TargetPoint[] = []): void {
     if (!this.player.isAlive) return;
 
-    // Check if combo unlocked orbiting shields
-    if (this.hasOrbitingShields && this.orbitingRelics.length === 0) {
-      this.spawnOrbitingRelics(3);
-    }
+    // Add relics when Chống or the Khiên Thông Tin combo raised the count
+    this.syncOrbitingRelics();
 
     // 1. Update Orbiting Relics (Người Gìn Giữ & Khiên Thông Tin combo)
     if (this.orbitingRelics.length > 0) {
@@ -98,11 +123,23 @@ export class WeaponSystem {
       this.shockwaveTimer += dt / 1000;
       if (this.shockwaveTimer >= 2.5) {
         this.shockwaveTimer = 0;
-        this.firePulseWave(activeEnemies, bossTargets, 1.35, true);
+        this.firePulseWave(activeEnemies, 1.35, 0xf59e0b);
       }
     }
 
-    // 3. Primary Weapon Attack Timer
+    // 3. Pending echo waves (Người Kiến Tạo + Chống)
+    if (this.pendingEchoes.length > 0) {
+      this.pendingEchoes = this.pendingEchoes.map(t => t - dt);
+      while (this.pendingEchoes.length > 0 && this.pendingEchoes[0] <= 0) {
+        this.pendingEchoes.shift();
+        this.firePulseWave(activeEnemies, PULSE_ECHO_MULTIPLIER, 0x86efac);
+      }
+    }
+
+    // Người Gìn Giữ has no primary shot: the relics deal all of its damage
+    if (this.weaponStyle === 'orbit') return;
+
+    // 4. Primary Weapon Attack Timer
     this.fireTimer += dt;
     const cooldownMs = 1000 / Math.max(0.2, this.player.stats.attackSpeed);
 
@@ -135,9 +172,12 @@ export class WeaponSystem {
     this.relicContactTimer += dt / 1000;
     if (this.relicContactTimer >= 0.28) {
       this.relicContactTimer = 0;
-      const relicDmg = this.player.stats.damage * 0.75;
+      // Full damage when the relics are Gìn Giữ's only weapon, a lighter touch for the combo shields
+      const relicDmg = this.player.stats.damage * (this.weaponStyle === 'orbit' ? 1.0 : 0.75);
+      const relicCrit = Math.random() < this.player.stats.critChance;
 
       for (const relic of this.orbitingRelics) {
+        this.bossManager?.damageInRadius(relic.x, relic.y, 20, relicCrit ? relicDmg * 2 : relicDmg, relicCrit);
         for (const enemy of activeEnemies) {
           if (!enemy.active) continue;
           const dist = Phaser.Math.Distance.Between(relic.x, relic.y, enemy.x, enemy.y);
@@ -175,14 +215,16 @@ export class WeaponSystem {
   }
 
   private fireWeapon(activeEnemies: Enemy[], bossTargets: TargetPoint[]): void {
-    const weaponStyle = this.player.classConfig?.startingWeapon || 'sniper';
-
-    if (weaponStyle === 'pulse') {
-      this.firePulseWave(activeEnemies, bossTargets);
+    if (this.weaponStyle === 'pulse') {
+      this.firePulseWave(activeEnemies);
+      // Each extra attack from Chống becomes a weaker echo wave right after the main one
+      for (let i = 1; i < Math.max(1, this.player.stats.projectileCount); i++) {
+        this.pendingEchoes.push(i * PULSE_ECHO_DELAY_MS);
+      }
       return;
     }
 
-    // Sniper / Orbit / Default Projectile firing
+    // Sniper / Default Projectile firing
     let baseAngle: number | null = null;
 
     if (this.player.manualAimAngle !== null) {
@@ -228,12 +270,7 @@ export class WeaponSystem {
     }
   }
 
-  public firePulseWave(
-    activeEnemies: Enemy[],
-    bossTargets: TargetPoint[],
-    multiplier: number = 1.0,
-    isComboPulse: boolean = false
-  ): void {
+  public firePulseWave(activeEnemies: Enemy[], multiplier: number = 1.0, tint?: number): void {
     SoundSystem.playShoot();
 
     const baseRadius = 175 * (1 + (this.player.stats.buildPower || 0) * 0.015);
@@ -246,8 +283,8 @@ export class WeaponSystem {
     pulseImg.setDepth(12);
     pulseImg.setScale(0.2);
     pulseImg.setAlpha(0.9);
-    if (isComboPulse) {
-      pulseImg.setTint(0xf59e0b); // Gold pulse for combo
+    if (tint !== undefined) {
+      pulseImg.setTint(tint); // Gold for the combo pulse, pale green for echo waves
     }
 
     this.scene.tweens.add({
@@ -276,17 +313,8 @@ export class WeaponSystem {
       }
     }
 
-    // Damage boss / summons in radius
-    for (const bTarget of bossTargets) {
-      if (bTarget.active === false) continue;
-      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, bTarget.x, bTarget.y);
-      if (d <= baseRadius) {
-        if (this.bossManager?.bossSprite === bTarget) {
-          this.bossManager.takeDamage(finalDamage, critRoll);
-          DamageNumberSystem.showDamage(bTarget.x, bTarget.y - 35, finalDamage, critRoll ? 'crit' : 'monster');
-        }
-      }
-    }
+    // Damage boss + swarm minions in radius
+    this.bossManager?.damageInRadius(this.player.x, this.player.y, baseRadius, finalDamage, critRoll);
   }
 
   private findNearestTarget(enemies: Enemy[], bossTargets: TargetPoint[]): TargetPoint | null {
