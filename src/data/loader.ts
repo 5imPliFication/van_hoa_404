@@ -953,7 +953,7 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     affinity: ['daiChung', 'thien', 'build'],
     passive: {
       name: 'Sinh Khí Cộng Đồng',
-      description: 'Đứng trong vùng sóng tích cực do bản thân tạo ra tự động hồi phục 0.6% Community Meter mỗi giây.',
+      description: 'Đứng trong vùng sóng tích cực do bản thân tạo ra tự động hồi phục 0.6% Môi Trường Văn Hóa mỗi giây.',
       effectType: 'community_resonance',
     },
   },

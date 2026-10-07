@@ -618,22 +618,22 @@ export class GameScene extends Phaser.Scene {
         const bosses = [
           {
             time: '03:00',
-            tier: 'Trùm Cấp 1 (Cột mốc 3 Phút) — Thử thách Cơ động & Giữ khoảng cách',
-            desc: 'Tốc độ di chuyển nhanh và liên tục áp sát. Hãy ưu tiên nâng tốc độ chạy và duy trì cự ly an toàn.',
+            tier: 'Cơn Bão Tâm Lý Đám Đông (3 phút) — Thử thách Đông đảo',
+            desc: 'Liên tục triệu hồi bầy quái tí hon lao thẳng vào bạn và bắn đạn 5 hướng. Cần đòn đánh diện rộng hoặc đạn xuyên thấu.',
           },
           {
             time: '05:00',
-            tier: 'Trùm Cấp 2 (Cột mốc 5 Phút) — Thử thách Xuyên thấu & Vùng độc',
-            desc: 'Triệu hồi bầy quái tí hon đông đảo hoặc xả khí độc. Đòi hỏi đòn đánh diện rộng, đạn xuyên thấu hoặc hồi phục sinh lực.',
+            tier: 'Lưới Độc Bạo Lực Mạng & Miệt Thị (5 phút) — Thử thách Bền bỉ',
+            desc: 'Vùng độc quanh trùm rút máu liên tục. Giữ cự ly, nâng Thiện (hồi máu) và Dân tộc (khiên) để trụ vững.',
           },
           {
             time: '07:00',
-            tier: 'Trùm Cấp 3 (Cột mốc 7 Phút) — Thử thách Bạo kích & Phá vỡ Ảo ảnh',
+            tier: 'Ảo Ảnh Xuyên Tạc & Đạo Nhái (7 phút) — Thử thách Bạo kích & Phá Ảo ảnh',
             desc: 'Tạo 2 phân thân ảo ảnh và bất ngờ lao vút tốc độ cao. Cần chỉ số Chân (bạo kích) và Chống (đẩy lùi) để tiêu diệt.',
           },
           {
             time: '10:00',
-            tier: 'Siêu Trùm Cực Đại (Phút 10:00) — Trận chiến Quyết định Hỗn Loạn',
+            tier: 'Hiện Thân Lệch Chuẩn Văn Hóa Số (10 phút) — Trận chiến Quyết định',
             desc: 'Trùm 3 giai đoạn xả bão đạn và rút cạn không gian mạng. Đòi hỏi người chơi phát triển cân bằng cả 8 trụ cột văn hóa.',
           },
         ];

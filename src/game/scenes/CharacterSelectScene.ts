@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CharacterClassConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
+import { PILLAR_LABELS } from '../../data/lesson';
 
 export class CharacterSelectScene extends Phaser.Scene {
   private classes: CharacterClassConfig[] = [];
@@ -104,7 +105,7 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     // Bottom Confirm Button
     const confirmY = height - 42;
-    this.confirmBtnBg = this.add.rectangle(width / 2, confirmY, 440, 48, 0x0284c7);
+    this.confirmBtnBg = this.add.rectangle(width / 2, confirmY, 520, 48, 0x0284c7);
     this.confirmBtnBg.setStrokeStyle(2, 0x0369a1);
     this.confirmBtnBg.setInteractive({ useHandCursor: true });
 
@@ -255,7 +256,7 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     const valueParts: string[] = [];
     Object.entries(config.startingValues).forEach(([k, v]) => {
-      valueParts.push(`${k}: +${v}`);
+      valueParts.push(`${PILLAR_LABELS[k] ?? k} +${v}`);
     });
 
     const statText = this.add.text(-w / 2 + 25, statY + 8, `• ${statParts.join('  •  ')}\n• Trụ cột: ${valueParts.join(', ')}`, {
@@ -371,7 +372,7 @@ export class CharacterSelectScene extends Phaser.Scene {
     // Update bottom confirm button text with active selection name
     const selected = this.classes[this.selectedIndex] || this.classes[0];
     if (this.confirmBtnText && this.confirmBtnBg) {
-      this.confirmBtnText.setText(`TIẾP NHẬN ${selected.name.toUpperCase()} & VÀO TRẬN (SPACE / ENTER) →`);
+      this.confirmBtnText.setText(`VÀO TRẬN: ${selected.name.toUpperCase()} (SPACE / ENTER) →`);
       this.confirmBtnBg.setFillStyle(selected.themeColor);
     }
   }
