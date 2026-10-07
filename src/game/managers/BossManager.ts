@@ -153,25 +153,21 @@ export class BossManager {
       maxSize: 60,
     });
 
-    // Initialize randomized boss order with strict tier scaling (10m > 7m > 5m > 3m)
-    this.initializeRandomizedBosses();
+    // Fixed boss order with strict tier scaling (10m > 7m > 5m > 3m)
+    this.initializeBosses();
   }
 
   /**
-   * Shuffles boss archetypes randomly and applies strict stat scaling per tier.
+   * Assigns boss archetypes to tiers in DataLoader order (swarm 3m, dot 5m,
+   * shield_dash 7m, final 10m) and applies strict stat scaling per tier.
+   * The order is fixed so the 10m final boss lines up with the third history card.
    * Guarantees: 10m boss (3600 HP, 36 Contact Dmg, 28 Bullet Dmg)
    *             > 7m boss (2350 HP, 26 Contact Dmg, 20 Bullet Dmg)
    *             > 5m boss (1450 HP, 18 Contact Dmg, 14 Bullet Dmg)
    *             > 3m boss (750 HP, 12 Contact Dmg, 8 Bullet Dmg)
    */
-  public initializeRandomizedBosses(): void {
-    const archetypes = [...DataLoader.getBosses()];
-
-    // Fisher-Yates Shuffle for true randomness on each run
-    for (let i = archetypes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [archetypes[i], archetypes[j]] = [archetypes[j], archetypes[i]];
-    }
+  public initializeBosses(): void {
+    const archetypes = DataLoader.getBosses();
 
     this.allBossConfigs = archetypes.map((archetype, idx) => {
       const tier = BOSS_TIERS[idx] || BOSS_TIERS[0];

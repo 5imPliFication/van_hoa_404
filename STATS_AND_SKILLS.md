@@ -219,11 +219,20 @@ Trận đấu được cấu trúc thành 4 mốc thử thách trùm then chốt
 * Trước đây, đạn xuyên thấu khi bay qua thân trùm khổng lồ (bán kính 40px) kích hoạt va chạm trên từng khung hình (60 frame/s), gây ra hàng chục lần sát thương trong chớp mắt khiến trùm bị "one-shot".
 * **Giải pháp**: Mỗi viên đạn tích hợp cơ chế `hitTargetIds: Set<string>`. Một viên đạn chỉ có thể gây sát thương lên thân trùm hoặc cùng 1 quái vật **duy nhất 1 lần trong suốt đường bay**, giữ vững tính thử thách và yêu cầu người chơi phải né đòn, câu kéo và phối hợp kỹ năng thực thụ.
 
-### 🎲 Cơ Chế Ngẫu Nhiên Thứ Tự Trùm (Randomized Boss Order):
-Trong mỗi ván chơi mới, thứ tự xuất hiện của 4 chủng loại trùm sẽ được **xáo trộn ngẫu nhiên hoàn toàn** (Fisher-Yates Shuffle). Người chơi không thể đoán trước trùm nào sẽ xuất hiện ở phút nào (tổng cộng 24 hoán vị chiến trường khác nhau).
+### 📌 Thứ Tự Trùm Cố Định (Fixed Boss Order):
+Thứ tự 4 chủng loại trùm là **cố định** mỗi ván, theo thứ tự khai báo trong `DEFAULT_MVP_BOSSES` (`src/data/loader.ts`):
+
+| Mốc | Trùm |
+| :--- | :--- |
+| 3 phút | Cơn Bão Tâm Lý Đám Đông (`boss_swarm`) |
+| 5 phút | Lưới Độc Bạo Lực Mạng & Miệt Thị (`boss_dot`) |
+| 7 phút | Ảo Ảnh Xuyên Tạc & Đạo Nhái (`boss_shield_dash`) |
+| 10 phút | Hiện Thân Lệch Chuẩn Văn Hóa Số (`boss_final`) |
+
+Thứ tự cố định giúp trùm cuối nhiều pha luôn xuất hiện ở phút 10, khớp với thẻ "Dấu mốc lịch sử" thứ ba ("trùm cuối đang chờ").
 
 ### ⚖️ Quy Tắc Phân Cấp Chỉ Số Bắt Buộc (Strict Stat Scaling):
-Bất kể chủng loại trùm nào xuất hiện ở mốc thời gian nào, chỉ số Máu (HP) và Sát thương (Damage) của trùm **bắt buộc tuân thủ nguyên tắc tăng dần nghiêm ngặt theo thời gian**:
+Chỉ số Máu (HP) và Sát thương (Damage) của trùm **bắt buộc tuân thủ nguyên tắc tăng dần nghiêm ngặt theo thời gian**:
 $$\text{Chỉ số (10 phút)} > \text{Chỉ số (7 phút)} > \text{Chỉ số (5 phút)} > \text{Chỉ số (3 phút)}$$
 
 | Thông số | Mốc 3 Phút (Cấp I) | Mốc 5 Phút (Cấp II) | Mốc 7 Phút (Cấp III) | Mốc 10 Phút (Đại Trùm Tối Hậu) |
