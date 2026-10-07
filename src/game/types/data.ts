@@ -92,6 +92,15 @@ export interface ScenarioChoice {
   label: string;
   effects: ScenarioChoiceEffects;
   feedback: string;
+  // Whether this choice reflects the scenario's lesson. Defaults to `communityDelta > 0` when omitted.
+  aligned?: boolean;
+}
+
+export interface ScenarioDecision {
+  title: string;
+  choiceLabel: string;
+  aligned: boolean;
+  note: string;
 }
 
 export interface ScenarioConfig {

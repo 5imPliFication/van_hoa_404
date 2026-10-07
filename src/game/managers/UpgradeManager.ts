@@ -3,6 +3,7 @@ import { Player } from '../entities/Player';
 import { UpgradeConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
+import { TINH_HOA } from '../../data/lesson';
 
 import { CommunityMeterManager } from './CommunityMeterManager';
 
@@ -148,7 +149,13 @@ export class UpgradeManager {
     const nextLvl = currentLevel + 1;
 
     let dynamicDesc = upgrade.description;
-    if (upgrade.id === 'sustain_mastery') {
+    const isTinhHoa = upgrade.id === 'tinhHoaNhanLoai';
+    if (isTinhHoa) {
+      const d = this.player.values.danToc || 0;
+      dynamicDesc = this.player.hasTinhHoaRoot()
+        ? `✓ Gốc Dân tộc vững (cấp ${d}) — tiếp thu trọn vẹn:\n+3 Sát thương, +0.08 Tốc bắn, +3% Chí mạng`
+        : `⚠ Dân tộc mới cấp ${d}/${TINH_HOA.requiredDanToc} — thiếu gốc, chỉ tiếp thu hời hợt:\n+1 Sát thương`;
+    } else if (upgrade.id === 'sustain_mastery') {
       dynamicDesc = upgrade.description;
     } else if (upgrade.category === 'fight') {
       if (nextLvl === 1) dynamicDesc = '+1 Tia đạn bổ sung (2 tia), +2 Sát thương, +5 Sức mạnh Chống';
@@ -172,17 +179,19 @@ export class UpgradeManager {
       dynamicDesc = '+12 Tốc độ di chuyển, hồi ngay +10% Môi Trường, +4 Sức mạnh Xây';
     }
 
-    const badgeLabel = upgrade.id === 'sustain_mastery' ? '⭐ TỐI ĐA HÓA' : `${colorConfig.label} • CẤP ${nextLvl}/5`;
+    const badgeLabel = isTinhHoa
+      ? `🌏 TINH HOA NHÂN LOẠI • ${this.player.tinhHoaTaken + 1}/${TINH_HOA.maxStacks}`
+      : upgrade.id === 'sustain_mastery' ? '⭐ TỐI ĐA HÓA' : `${colorConfig.label} • CẤP ${nextLvl}/5`;
 
     // Badge Pill
-    const badgeBg = this.scene.add.rectangle(0, -h / 2 + 35, w - 40, 28, colorConfig.bg, 1);
+    const badgeBg = this.scene.add.rectangle(0, -h / 2 + 35, w - 40, 28, isTinhHoa ? 0xf3e8ff : colorConfig.bg, 1);
     badgeBg.setStrokeStyle(1.5, 0xcbd5e1);
 
     const catBadge = this.scene.add.text(0, -h / 2 + 35, badgeLabel, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: colorConfig.text,
+      color: isTinhHoa ? '#7e22ce' : colorConfig.text,
       resolution: 2,
     }).setOrigin(0.5);
 
@@ -244,6 +253,20 @@ export class UpgradeManager {
     });
 
     container.add([bg, badgeBg, catBadge, nameText, descText, btnBox, btnText]);
+
+    if (isTinhHoa) {
+      const quote = this.scene.add.text(0, h / 2 - 90, `“${TINH_HOA.learnQuote}”\nnhưng lấy văn hóa dân tộc làm gốc`, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '11px',
+        fontStyle: 'italic',
+        color: '#6b21a8',
+        align: 'center',
+        wordWrap: { width: w - 30 },
+        lineSpacing: 3,
+        resolution: 2,
+      }).setOrigin(0.5);
+      container.add(quote);
+    }
     return container;
   }
 
@@ -316,6 +339,26 @@ export class UpgradeManager {
       }
     }
 
-    return selected.slice(0, count);
+    const result = selected.slice(0, count);
+    if (
+      this.player.level >= TINH_HOA.minPlayerLevel &&
+      this.player.tinhHoaTaken < TINH_HOA.maxStacks &&
+      result.length > 0 &&
+      Math.random() < 0.35
+    ) {
+      result[result.length - 1] = UpgradeManager.TINH_HOA_CARD;
+    }
+    return result;
   }
+
+  private static readonly TINH_HOA_CARD: UpgradeConfig = {
+    id: 'tinhHoaNhanLoai',
+    name: 'Tiếp Thu Tinh Hoa Nhân Loại (Đông, Tây, kim, cổ)',
+    category: 'danToc',
+    level: 1,
+    maxLevel: TINH_HOA.maxStacks,
+    description: '',
+    effects: {},
+    tags: ['tinhHoa'],
+  };
 }

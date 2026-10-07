@@ -2,11 +2,15 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { CommunityMeterManager } from './CommunityMeterManager';
 import { EnemyManager } from './EnemyManager';
-import { ScenarioConfig, ScenarioChoice } from '../types/data';
+import { ScenarioConfig, ScenarioChoice, ScenarioDecision } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 
 import { XPManager } from './XPManager';
+
+export function isAlignedChoice(choice: ScenarioChoice): boolean {
+  return choice.aligned ?? (choice.effects.world?.communityDelta ?? 0) > 0;
+}
 
 export class ScenarioEventManager {
   private scene: Phaser.Scene;
@@ -23,6 +27,7 @@ export class ScenarioEventManager {
   private isShowing: boolean = false;
   private cleanupListeners?: () => void;
   public activeBuffText: string = '';
+  public decisions: ScenarioDecision[] = [];
 
   // 30s Temporary buff tracking
   private buffRemainingSeconds: number = 0;
@@ -45,6 +50,10 @@ export class ScenarioEventManager {
     this.onResumeCallback = onResume;
     this.scenarios = DataLoader.getScenarios();
     this.initRandomSchedule();
+  }
+
+  public get totalScenarioCount(): number {
+    return this.scenarios.length;
   }
 
   private initRandomSchedule(): void {
@@ -308,39 +317,98 @@ export class ScenarioEventManager {
       };
     }
 
-    // Record learning pillars
-    for (const core of scenario.learning.cores) {
-      this.player.values[core] = (this.player.values[core] || 0) + 1;
+    // Record learning pillars only for the choice that reflects the lesson (capped at level 5)
+    const aligned = isAlignedChoice(choice);
+    if (aligned) {
+      for (const pillar of [...scenario.learning.cores, ...scenario.learning.values]) {
+        this.player.values[pillar] = Math.min(5, (this.player.values[pillar] || 0) + 1);
+      }
     }
-    for (const val of scenario.learning.values) {
-      this.player.values[val] = (this.player.values[val] || 0) + 1;
-    }
+    this.decisions.push({
+      title: scenario.title,
+      choiceLabel: choice.label,
+      aligned,
+      note: scenario.learning.note,
+    });
 
-    // 2. Show 1-sentence feedback toast per CONTENT_GUIDE
+    this.showFeedback(choice.feedback, scenario.learning.note, aligned);
+  }
+
+  private showFeedback(feedback: string, note: string, aligned: boolean): void {
     this.overlayContainer?.removeAll(true);
 
     const { width, height } = this.scale;
-    const toast = this.scene.add.rectangle(width / 2, height / 2, 620, 100, 0xffffff, 0.98);
-    toast.setStrokeStyle(2, 0x059669);
+    const boxW = 640;
+    const boxH = 200;
+    const top = height / 2 - boxH / 2;
+    const accent = aligned ? 0x059669 : 0xd97706;
+    const accentHex = aligned ? '#065f46' : '#92400e';
 
-    const feedbackText = this.scene.add.text(width / 2, height / 2, choice.feedback, {
+    const toast = this.scene.add.rectangle(width / 2, height / 2, boxW, boxH, 0xffffff, 0.98);
+    toast.setStrokeStyle(2, accent);
+
+    const header = this.scene.add.text(width / 2, top + 24, aligned ? '✓ LỰA CHỌN TÍCH CỰC' : '⚠ HẬU QUẢ CỦA LỰA CHỌN', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '15px',
+      fontSize: '12px',
       fontStyle: 'bold',
-      color: '#065f46',
-      align: 'center',
-      wordWrap: { width: 560 },
+      color: accentHex,
       resolution: 2,
     }).setOrigin(0.5);
 
-    this.overlayContainer?.add([toast, feedbackText]);
+    const feedbackText = this.scene.add.text(width / 2, top + 64, feedback, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#0f172a',
+      align: 'center',
+      wordWrap: { width: boxW - 60 },
+      resolution: 2,
+    }).setOrigin(0.5);
 
-    // Resume after 1.8 seconds
-    this.scene.time.delayedCall(1800, () => {
-      this.overlayContainer?.destroy();
-      this.overlayContainer = undefined;
+    const noteBg = this.scene.add.rectangle(width / 2, top + 124, boxW - 40, 44, 0xf0f9ff, 1);
+    noteBg.setStrokeStyle(1, 0xbae6fd);
+
+    const noteText = this.scene.add.text(width / 2, top + 124, `📌 Bài học: ${note}`, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+      color: '#0c4a6e',
+      align: 'center',
+      wordWrap: { width: boxW - 70 },
+      resolution: 2,
+    }).setOrigin(0.5);
+
+    const hint = this.scene.add.text(width / 2, top + boxH - 18, 'Bấm chuột / SPACE / ENTER để tiếp tục', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      color: '#64748b',
+      resolution: 2,
+    }).setOrigin(0.5).setAlpha(0);
+
+    this.overlayContainer?.add([toast, header, feedbackText, noteBg, noteText, hint]);
+
+    // Hold the feedback long enough to read; then allow dismissal, with an auto-resume fallback
+    const container = this.overlayContainer;
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      this.scene.input.off('pointerdown', close);
+      this.scene.input.keyboard?.off('keydown-SPACE', close);
+      this.scene.input.keyboard?.off('keydown-ENTER', close);
+      autoClose.remove(false);
+      container?.destroy();
+      if (this.overlayContainer === container) this.overlayContainer = undefined;
       this.onResumeCallback();
+    };
+
+    this.scene.time.delayedCall(1500, () => {
+      if (closed) return;
+      hint.setAlpha(1);
+      this.scene.input.on('pointerdown', close);
+      this.scene.input.keyboard?.on('keydown-SPACE', close);
+      this.scene.input.keyboard?.on('keydown-ENTER', close);
     });
+    const autoClose = this.scene.time.delayedCall(8000, close);
   }
 
   private get scale(): Phaser.Scale.ScaleManager {

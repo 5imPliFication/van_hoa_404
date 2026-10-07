@@ -938,6 +938,10 @@ export class GameScene extends Phaser.Scene {
         classPassiveDesc: this.classConfig.passive.description,
         activeCombos: activeCombos,
         classConfig: this.classConfig,
+        decisions: this.scenarioManager.decisions,
+        totalScenarios: this.scenarioManager.totalScenarioCount,
+        tinhHoaTaken: this.player.tinhHoaTaken,
+        tinhHoaFull: this.player.tinhHoaFull,
       });
     });
   }

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PlayerStats, CulturalValues, INITIAL_PLAYER_STATS, Pillar } from '../types/player';
 import { UpgradeConfig, CharacterClassConfig } from '../types/data';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
+import { TINH_HOA } from '../../data/lesson';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   public stats: PlayerStats;
@@ -31,6 +32,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public lastDamagedBy: string = 'Hiện tượng tiêu cực trên mạng';
   public communityMeter?: any;
   public manualAimAngle: number | null = null;
+  public tinhHoaTaken: number = 0;
+  public tinhHoaFull: number = 0;
 
   public getStatLevel(pillar: Pillar): number {
     return this.values[pillar] || 0;
@@ -300,6 +303,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
+    if (upgrade.id === 'tinhHoaNhanLoai') {
+      this.absorbTinhHoa();
+      return;
+    }
+
     const cat = upgrade.category as Pillar;
     const currentLevel = this.values[cat] || 0;
     if (currentLevel >= 5) return; // Hard level cap of 5!
@@ -357,6 +365,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Enable aura ring visual if Dai Chung, Thien, My, or Build is leveled up
     if (this.values.daiChung > 0 || this.values.thien > 0 || this.values.my > 0 || this.values.build > 0) {
       this.auraRing?.setVisible(true);
+    }
+  }
+
+  // "Lấy văn hóa dân tộc làm gốc": world culture only fully pays off on a solid Dân tộc base
+  public hasTinhHoaRoot(): boolean {
+    return (this.values.danToc || 0) >= TINH_HOA.requiredDanToc;
+  }
+
+  private absorbTinhHoa(): void {
+    this.tinhHoaTaken++;
+    if (this.hasTinhHoaRoot()) {
+      this.tinhHoaFull++;
+      this.stats.damage += 3;
+      this.stats.attackSpeed += 0.08;
+      this.stats.critChance += 0.03;
+      DamageNumberSystem.showDamage(this.x, this.y - 44, 'TIẾP THU TRỌN VẸN!', 'crit');
+    } else {
+      this.stats.damage += 1;
+      DamageNumberSystem.showDamage(this.x, this.y - 44, 'THIẾU GỐC DÂN TỘC!', 'player');
     }
   }
 

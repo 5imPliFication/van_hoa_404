@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { CulturalValues } from '../types/player';
+import { ScenarioDecision } from '../types/data';
+import { ARCHETYPE_QUOTES, SUMMARY_QUOTE, TINH_HOA } from '../../data/lesson';
 
 export interface GameResultData {
   survivedTime: number; // in seconds
@@ -20,10 +22,15 @@ export interface GameResultData {
   classPassiveDesc?: string;
   activeCombos?: { name: string; formula: string; description: string }[];
   classConfig?: any;
+  decisions?: ScenarioDecision[];
+  totalScenarios?: number;
+  tinhHoaTaken?: number;
+  tinhHoaFull?: number;
 }
 
 export class ResultScene extends Phaser.Scene {
   private resultData!: GameResultData;
+  private lessonPanel?: Phaser.GameObjects.Container;
 
   constructor() {
     super('ResultScene');
@@ -393,10 +400,155 @@ export class ResultScene extends Phaser.Scene {
     selectClassBg.on('pointerdown', changeClass);
     menuBg.on('pointerdown', returnToMenu);
 
-    this.input.keyboard?.once('keydown-SPACE', restartGame);
-    this.input.keyboard?.once('keydown-ENTER', restartGame);
-    this.input.keyboard?.once('keydown-TAB', changeClass);
-    this.input.keyboard?.once('keydown-ESC', returnToMenu);
+    // Keys are ignored while the lesson panel is open (SPACE/ENTER close it instead)
+    const unlessLesson = (fn: () => void) => () => { if (!this.lessonPanel) fn(); };
+    this.input.keyboard?.on('keydown-SPACE', unlessLesson(restartGame));
+    this.input.keyboard?.on('keydown-ENTER', unlessLesson(restartGame));
+    this.input.keyboard?.on('keydown-TAB', unlessLesson(changeClass));
+    this.input.keyboard?.on('keydown-ESC', unlessLesson(returnToMenu));
+
+    // Reopen lesson recap
+    const lessonBtnY = 646;
+    const lessonBg = this.add.rectangle(cx, lessonBtnY, 300, 36, 0xfef3c7);
+    lessonBg.setStrokeStyle(1.5, 0xd97706);
+    lessonBg.setInteractive({ useHandCursor: true });
+    this.add.text(cx, lessonBtnY, '📖 XEM LẠI BÀI HỌC RÚT RA (B)', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#92400e',
+      resolution: 2,
+    }).setOrigin(0.5);
+    lessonBg.on('pointerdown', () => this.showLessonPanel());
+    this.input.keyboard?.on('keydown-B', unlessLesson(() => this.showLessonPanel()));
+
+    // The lesson recap is the point of the run: show it first
+    this.showLessonPanel();
+  }
+
+  private showLessonPanel(): void {
+    if (this.lessonPanel) return;
+    const { width, height } = this.scale;
+    const cx = width / 2;
+    const panelW = 1000;
+    const panelH = 660;
+    const top = height / 2 - panelH / 2;
+    const left = cx - panelW / 2 + 40;
+    const font = 'system-ui, sans-serif';
+
+    const panel = this.add.container(0, 0).setDepth(50);
+    this.lessonPanel = panel;
+
+    // Interactive backdrop blocks clicks on the buttons underneath
+    const backdrop = this.add.rectangle(cx, height / 2, width, height, 0x0f172a, 0.5).setInteractive();
+    const box = this.add.rectangle(cx, height / 2, panelW, panelH, 0xffffff, 1);
+    box.setStrokeStyle(2, 0xd97706);
+    panel.add([backdrop, box]);
+
+    panel.add(this.add.text(cx, top + 30, '📖 BÀI HỌC RÚT RA TỪ VÁN CHƠI', {
+      fontFamily: font, fontSize: '20px', fontStyle: 'bold', color: '#0f172a', resolution: 2,
+    }).setOrigin(0.5));
+
+    const decisions = this.resultData.decisions || [];
+    const total = this.resultData.totalScenarios || decisions.length;
+    const alignedCount = decisions.filter(d => d.aligned).length;
+
+    panel.add(this.add.text(left, top + 62,
+      `TÌNH HUỐNG ĐÃ GẶP: ${decisions.length}/${total}  •  Lựa chọn tích cực: ${alignedCount}/${decisions.length}`, {
+        fontFamily: font, fontSize: '12px', fontStyle: 'bold', color: '#475569', resolution: 2,
+      }));
+
+    let y = top + 88;
+    const rowH = 64;
+    if (decisions.length === 0) {
+      panel.add(this.add.text(left, y + 8, 'Bạn chưa gặp tình huống nào. Hãy trụ lâu hơn để đối mặt với các tình huống văn hóa số.', {
+        fontFamily: font, fontSize: '13px', color: '#64748b', resolution: 2,
+      }));
+      y += 40;
+    }
+    for (const d of decisions) {
+      const rowBg = this.add.rectangle(cx, y + rowH / 2 - 4, panelW - 60, rowH - 8, d.aligned ? 0xf0fdf4 : 0xfffbeb, 1);
+      rowBg.setStrokeStyle(1, d.aligned ? 0xbbf7d0 : 0xfde68a);
+      const titleText = this.add.text(left + 8, y + 4, `${d.aligned ? '✓' : '⚠'} ${d.title}`, {
+        fontFamily: font, fontSize: '13px', fontStyle: 'bold', color: d.aligned ? '#065f46' : '#92400e', resolution: 2,
+      });
+      const choiceText = this.add.text(left + 8, y + 22, `Bạn chọn: ${d.choiceLabel}`, {
+        fontFamily: font, fontSize: '11.5px', color: '#334155', resolution: 2,
+        wordWrap: { width: panelW - 100 },
+      });
+      const noteText = this.add.text(left + 8, y + 39, `📌 ${d.note}`, {
+        fontFamily: font, fontSize: '11.5px', fontStyle: 'bold', color: '#0c4a6e', resolution: 2,
+        wordWrap: { width: panelW - 100 },
+      });
+      panel.add([rowBg, titleText, choiceText, noteText]);
+      y += rowH;
+    }
+    if (decisions.length < total) {
+      panel.add(this.add.text(left, y + 2, `🔍 Còn ${total - decisions.length} tình huống chưa gặp — chơi lại để khám phá thêm.`, {
+        fontFamily: font, fontSize: '12px', fontStyle: 'italic', color: '#64748b', resolution: 2,
+      }));
+      y += 24;
+    }
+
+    const taken = this.resultData.tinhHoaTaken || 0;
+    if (taken > 0) {
+      const full = this.resultData.tinhHoaFull || 0;
+      const verdict = full === taken
+        ? 'có gốc Dân tộc vững nên tiếp thu trọn vẹn.'
+        : 'có lần thiếu gốc Dân tộc nên chỉ tiếp thu hời hợt.';
+      panel.add(this.add.text(left, y + 4,
+        `🌏 Tiếp thu tinh hoa nhân loại ${taken} lần (trọn vẹn ${full} lần) — ${verdict}`, {
+          fontFamily: font, fontSize: '12px', fontStyle: 'bold', color: '#6b21a8', resolution: 2,
+          wordWrap: { width: panelW - 80 },
+        }));
+      panel.add(this.add.text(left, y + 22, `“${TINH_HOA.rootQuote}”`, {
+        fontFamily: font, fontSize: '11.5px', fontStyle: 'italic', color: '#6b21a8', resolution: 2,
+        wordWrap: { width: panelW - 80 },
+      }));
+    }
+
+    // Archetype quote + lecture summary, anchored above the close button
+    const archetype = this.computeArchetype(this.resultData.values);
+    const aq = ARCHETYPE_QUOTES[archetype.title];
+    const quoteY = top + panelH - 150;
+    const quoteBg = this.add.rectangle(cx, quoteY + 40, panelW - 60, 92, 0xf0f9ff, 1);
+    quoteBg.setStrokeStyle(1, 0xbae6fd);
+    panel.add(quoteBg);
+    panel.add(this.add.text(left + 8, quoteY + 2, `🌟 HỒ SƠ CỦA BẠN: ${archetype.title.toUpperCase()}`, {
+      fontFamily: font, fontSize: '12px', fontStyle: 'bold', color: '#0369a1', resolution: 2,
+    }));
+    if (aq) {
+      panel.add(this.add.text(left + 8, quoteY + 22, `“${aq.quote}”`, {
+        fontFamily: font, fontSize: '12.5px', fontStyle: 'italic', color: '#0f172a', resolution: 2,
+        wordWrap: { width: panelW - 100 },
+      }));
+      panel.add(this.add.text(cx + panelW / 2 - 48, quoteY + 70, `— ${aq.source}`, {
+        fontFamily: font, fontSize: '10.5px', color: '#64748b', resolution: 2,
+      }).setOrigin(1, 0));
+    }
+
+    panel.add(this.add.text(cx, top + panelH - 50, `Quan điểm Hồ Chí Minh về nền văn hóa mới: ${SUMMARY_QUOTE}`, {
+      fontFamily: font, fontSize: '11px', color: '#475569', align: 'center', resolution: 2,
+      wordWrap: { width: panelW - 80 },
+    }).setOrigin(0.5));
+
+    const btnY = top + panelH - 22;
+    const btn = this.add.rectangle(cx, btnY, 300, 32, 0x0284c7).setInteractive({ useHandCursor: true });
+    const btnText = this.add.text(cx, btnY, 'XEM BẢNG THÀNH TÍCH ▸ (SPACE)', {
+      fontFamily: font, fontSize: '12px', fontStyle: 'bold', color: '#ffffff', resolution: 2,
+    }).setOrigin(0.5);
+    panel.add([btn, btnText]);
+
+    const close = () => {
+      this.input.keyboard?.off('keydown-SPACE', close);
+      this.input.keyboard?.off('keydown-ENTER', close);
+      panel.destroy();
+      // Defer clearing so the same key press doesn't also trigger the result-screen shortcuts
+      this.time.delayedCall(0, () => { this.lessonPanel = undefined; });
+    };
+    btn.on('pointerdown', close);
+    this.input.keyboard?.on('keydown-SPACE', close);
+    this.input.keyboard?.on('keydown-ENTER', close);
   }
 
   private computeArchetype(v: CulturalValues): { title: string; description: string } {
