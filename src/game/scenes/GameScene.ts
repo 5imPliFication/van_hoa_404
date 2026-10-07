@@ -10,6 +10,7 @@ import { CommunityMeterManager } from '../managers/CommunityMeterManager';
 import { EvolutionManager } from '../managers/EvolutionManager';
 import { BossManager } from '../managers/BossManager';
 import { HUD } from '../../ui/HUD';
+import { PhenomenonToast } from '../../ui/PhenomenonToast';
 import { Projectile } from '../entities/Projectile';
 import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
@@ -149,6 +150,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.enemyManager = new EnemyManager(this, this.player, this.xpManager);
+    this.enemyManager.phenomenonToast = new PhenomenonToast(this);
     this.weaponSystem = new WeaponSystem(this, this.player);
     this.enemyManager.weaponSystem = this.weaponSystem;
     this.weaponSystem.enemyManager = this.enemyManager;
@@ -430,7 +432,7 @@ export class GameScene extends Phaser.Scene {
         const pBox = this.add.rectangle(width / 2, pY, winW - 60, 94, 0xf8fafc, 1);
         pBox.setStrokeStyle(1.5, 0xcbd5e1);
 
-        const pHeader = this.add.text(width / 2, pY - 34, '🏛️ TIẾN ĐỘ 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5 — ĐẠT CẤP 4 ĐỂ KÍCH HOẠT CỘNG HƯỞNG)', {
+        const pHeader = this.add.text(width / 2, pY - 34, '🏛️ TIẾN ĐỘ 8 TRỤ CỘT GIÁ TRỊ VĂN HÓA (MỖI TRỤ CỘT TỐI ĐA CẤP 5 — ĐẠT CẤP YÊU CẦU ĐỂ KÍCH HOẠT CỘNG HƯỞNG)', {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '11.5px',
           fontStyle: 'bold',
@@ -472,10 +474,10 @@ export class GameScene extends Phaser.Scene {
 
         // 3. 4 Value Combos Live Tracker (2x2 Grid)
         const eY = topY + 396;
-        const eBox = this.add.rectangle(width / 2, eY, winW - 60, 168, 0xf5f3ff, 1);
+        const eBox = this.add.rectangle(width / 2, eY + 8, winW - 60, 200, 0xf5f3ff, 1);
         eBox.setStrokeStyle(1.5, 0xc4b5fd);
 
-        const eHeader = this.add.text(width / 2, eY - 68, '🧬 4 CÔNG THỨC CỘNG HƯỞNG GIÁ TRỊ VĂN HÓA (ĐẠT CẤP 4/5 Ở CẢ 2 TRỤ CỘT ĐỂ MỞ KHÓA)', {
+        const eHeader = this.add.text(width / 2, eY - 78, '🧬 5 CÔNG THỨC CỘNG HƯỞNG GIÁ TRỊ VĂN HÓA (ĐẠT CẤP YÊU CẦU Ở CẢ 2 TRỤ CỘT ĐỂ MỞ KHÓA)', {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '12px',
           fontStyle: 'bold',
@@ -493,7 +495,7 @@ export class GameScene extends Phaser.Scene {
             req2: `Chân: ${v.chan || 0}/4`,
             desc: 'Đạn xuyên thấu mọi mục tiêu, +50% sát thương lên Tin Giả.',
             x: width / 2 - 222,
-            y: eY - 22,
+            y: eY - 40,
           },
           {
             id: 'khienThongTin',
@@ -502,25 +504,34 @@ export class GameScene extends Phaser.Scene {
             req2: `Thiện: ${v.thien || 0}/4`,
             desc: '3 cổ vật quay quanh chắn đạn và gây sát thương va chạm liên tục.',
             x: width / 2 + 222,
-            y: eY - 22,
+            y: eY - 40,
           },
           {
             id: 'vanHoaUngXu',
             title: '🌿 Văn Hóa Ứng Xử (Đại Chúng + Thiện)',
             req1: `Đại Chúng: ${v.daiChung || 0}/4`,
             req2: `Thiện: ${v.thien || 0}/4`,
-            desc: 'Hào quang làm chậm quái 30%, hồi phục HP và phục hồi môi trường.',
+            desc: 'Hào quang làm chậm quái 35%, hồi phục HP và phục hồi môi trường.',
             x: width / 2 - 222,
-            y: eY + 40,
+            y: eY + 18,
           },
           {
             id: 'banSacSangTao',
             title: '🎨 Bản Sắc Sáng Tạo (Dân Tộc + Mỹ)',
             req1: `Dân Tộc: ${v.danToc || 0}/4`,
             req2: `Mỹ: ${v.my || 0}/4`,
-            desc: 'Sóng xung kích đẩy lùi định kỳ và tăng 25% sát thương gốc toàn diện.',
+            desc: 'Sóng xung kích đẩy lùi định kỳ và tăng 35% sát thương gốc toàn diện.',
             x: width / 2 + 222,
-            y: eY + 40,
+            y: eY + 18,
+          },
+          {
+            id: 'matTranVanHoa',
+            title: '⚔️ Mặt Trận Văn Hóa (Xây + Chống)',
+            req1: `Xây: ${v.build || 0}/3`,
+            req2: `Chống: ${v.fight || 0}/3`,
+            desc: 'Xây đi đôi với Chống: +30% sát thương, hồi 25% Môi Trường. “Văn hóa là một mặt trận.”',
+            x: width / 2,
+            y: eY + 76,
           },
         ];
 

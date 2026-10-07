@@ -200,7 +200,7 @@ export class ResultScene extends Phaser.Scene {
         resolution: 2,
       }).setOrigin(0.5);
     } else {
-      this.add.text(cx + 214, cardY + 12, 'Cần đạt cấp 4 ở cả 2 trụ cột liên kết để kích hoạt liên kết đặc biệt.', {
+      this.add.text(cx + 214, cardY + 12, 'Cần đạt cấp yêu cầu ở cả 2 trụ cột liên kết để kích hoạt cộng hưởng đặc biệt.', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '10.5px',
         color: '#6b7280',
@@ -264,22 +264,23 @@ export class ResultScene extends Phaser.Scene {
     const bp = this.resultData.buildPower ?? (v.build * 10);
     const fp = this.resultData.fightPower ?? (v.fight * 10);
 
+    // Core chips (Đề cương 1943) are tinted to stand apart from the supporting values
     const pillarChips = [
       // Row 1
-      { x: cx - 303, y: 340, title: `🇻🇳 Dân tộc: ${v.danToc}`, sub: `+${v.danToc * 25} Khiên chắn` },
-      { x: cx - 101, y: 340, title: `🔬 Khoa học: ${v.khoaHoc}`, sub: `+${v.khoaHoc * 15}% Tốc bắn` },
-      { x: cx + 101, y: 340, title: `👥 Đại chúng: ${v.daiChung}`, sub: `+${v.daiChung * 30} Tầm nhặt XP` },
-      { x: cx + 303, y: 340, title: `🎯 Chân: ${v.chan}`, sub: `+${v.chan * 20}% Sát thương` },
+      { x: cx - 303, y: 340, title: `🇻🇳 Dân tộc: ${v.danToc}`, sub: 'Giữ gốc bản sắc dân tộc', core: true },
+      { x: cx - 101, y: 340, title: `🔬 Khoa học: ${v.khoaHoc}`, sub: 'Chống giặc dốt, nâng dân trí', core: true },
+      { x: cx + 101, y: 340, title: `👥 Đại chúng: ${v.daiChung}`, sub: 'Vì quần chúng, phục vụ nhân dân', core: true },
+      { x: cx + 303, y: 340, title: `🎯 Chân: ${v.chan}`, sub: 'Tôn trọng sự thật', core: false },
       // Row 2
-      { x: cx - 303, y: 400, title: `❤️ Thiện: ${v.thien}`, sub: `+${v.thien * 2} HP hồi/5s` },
-      { x: cx - 101, y: 400, title: `🎨 Mỹ: ${v.my}`, sub: `+${v.my * 15}% Diện rộng` },
-      { x: cx + 101, y: 400, title: `🏗️ Xây: ${v.build}`, sub: `Sức mạnh: ${bp} điểm` },
-      { x: cx + 303, y: 400, title: `🛡️ Chống: ${v.fight}`, sub: `Sức mạnh: ${fp} điểm` },
+      { x: cx - 303, y: 400, title: `❤️ Thiện: ${v.thien}`, sub: 'Ứng xử nhân văn', core: false },
+      { x: cx - 101, y: 400, title: `🎨 Mỹ: ${v.my}`, sub: 'Sáng tạo cái đẹp', core: false },
+      { x: cx + 101, y: 400, title: `🏗️ Xây: ${v.build}`, sub: `Kiến tạo • ${bp} điểm`, core: false },
+      { x: cx + 303, y: 400, title: `🛡️ Chống: ${v.fight}`, sub: `Đấu tranh • ${fp} điểm`, core: false },
     ];
 
     pillarChips.forEach(chip => {
-      const pBg = this.add.rectangle(chip.x, chip.y, 192, 46, 0xf8fafc, 1);
-      pBg.setStrokeStyle(1, 0xe2e8f0);
+      const pBg = this.add.rectangle(chip.x, chip.y, 192, 46, chip.core ? 0xf0f9ff : 0xf8fafc, 1);
+      pBg.setStrokeStyle(1, chip.core ? 0x7dd3fc : 0xe2e8f0);
 
       this.add.text(chip.x, chip.y - 9, chip.title, {
         fontFamily: 'system-ui, sans-serif',
@@ -298,11 +299,21 @@ export class ResultScene extends Phaser.Scene {
     });
 
     // Summary bottom strip inside pillars box
-    const totalPillars = v.danToc + v.khoaHoc + v.daiChung + v.chan + v.thien + v.my + v.build + v.fight;
+    // GDD §8: the ending reflects a lopsided Xây/Chống build
+    let balanceText: string;
+    if (v.build === 0 && v.fight === 0) {
+      balanceText = '⚖️ Chưa phát triển Xây và Chống — hai mặt cần đi đôi với nhau';
+    } else if (Math.abs(v.build - v.fight) <= 1) {
+      balanceText = `⚖️ Xây (${v.build}) và Chống (${v.fight}) cân bằng — xây đi đôi với chống`;
+    } else if (v.build > v.fight) {
+      balanceText = `⚖️ Thiên về Xây (${v.build}) hơn Chống (${v.fight}) — kiến tạo cần đấu tranh song hành`;
+    } else {
+      balanceText = `⚖️ Thiên về Chống (${v.fight}) hơn Xây (${v.build}) — đấu tranh cần kiến tạo song hành`;
+    }
     const summaryStrip = this.add.rectangle(cx, 456, 804, 28, 0xf0fdf4, 1);
     summaryStrip.setStrokeStyle(1, 0xbbf7d0);
 
-    this.add.text(cx, 456, `✨ TỔNG HỢP: Sức mạnh Kiến tạo (Xây): ${bp} điểm  •  Sức mạnh Đấu tranh (Chống): ${fp} điểm  •  Tổng điểm giá trị: ${totalPillars}`, {
+    this.add.text(cx, 456, balanceText, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',

@@ -96,6 +96,14 @@ export class EvolutionManager {
       this.player.stats.damage *= combo.effects.damageMultiplier;
     }
 
+    // 5. Xây đi đôi với Chống: restore the shared environment and strengthen its purification
+    if (combo.effects.communityRestore) {
+      this.communityMeter.modify(combo.effects.communityRestore);
+    }
+    if (combo.effects.buildPowerAdd) {
+      this.player.stats.buildPower += combo.effects.buildPowerAdd;
+    }
+
     // Notify callback (for HUD and game updates)
     if (this.onComboUnlockedCallback) {
       this.onComboUnlockedCallback(combo);
@@ -111,7 +119,8 @@ export class EvolutionManager {
     banner.setDepth(130);
     banner.setScrollFactor(0); // PIN TO SCREEN
 
-    const bg = this.scene.add.rectangle(0, 0, 720, 68, 0xffffff, 0.98);
+    const bgH = combo.quote ? 86 : 68;
+    const bg = this.scene.add.rectangle(0, combo.quote ? 9 : 0, 720, bgH, 0xffffff, 0.98);
     bg.setStrokeStyle(2.5, 0x7c3aed);
 
     const pillBg = this.scene.add.rectangle(0, -22, 280, 20, 0xede9fe, 1);
@@ -140,6 +149,15 @@ export class EvolutionManager {
     }).setOrigin(0.5);
 
     banner.add([bg, pillBg, pillTxt, title, desc]);
+    if (combo.quote) {
+      banner.add(this.scene.add.text(0, 37, combo.quote, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '11px',
+        fontStyle: 'italic',
+        color: '#6d28d9',
+        resolution: 2,
+      }).setOrigin(0.5));
+    }
 
     // Particle flare burst on player
     for (let i = 0; i < 12; i++) {

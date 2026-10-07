@@ -3,7 +3,7 @@ import { Player } from '../entities/Player';
 import { UpgradeConfig } from '../types/data';
 import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
-import { TINH_HOA } from '../../data/lesson';
+import { TINH_HOA, PILLAR_MEANINGS } from '../../data/lesson';
 
 import { CommunityMeterManager } from './CommunityMeterManager';
 
@@ -170,7 +170,7 @@ export class UpgradeManager {
     } else if (upgrade.category === 'danToc') {
       dynamicDesc = '+15 Khiên chắn năng lượng, +10 Máu tối đa (HP)';
     } else if (upgrade.category === 'thien') {
-      dynamicDesc = `Hồi phục +1 HP mỗi 4 giây (Hiện tại: hồi ${this.player.healPerInterval} HP/4s)`;
+      dynamicDesc = `Hồi phục +1 HP mỗi 5 giây (Hiện tại: hồi ${this.player.healPerInterval} HP/5s)`;
     } else if (upgrade.category === 'my') {
       dynamicDesc = '+10% Sát thương diện rộng và mở rộng hào quang bảo vệ';
     } else if (upgrade.category === 'daiChung') {
@@ -253,6 +253,19 @@ export class UpgradeManager {
     });
 
     container.add([bg, badgeBg, catBadge, nameText, descText, btnBox, btnText]);
+
+    const meaning = !isTinhHoa && upgrade.id !== 'sustain_mastery' ? PILLAR_MEANINGS[upgrade.category] : undefined;
+    if (meaning) {
+      container.add(this.scene.add.text(0, -36, meaning, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '12px',
+        fontStyle: 'italic',
+        color: colorConfig.text,
+        align: 'center',
+        wordWrap: { width: w - 30 },
+        resolution: 2,
+      }).setOrigin(0.5));
+    }
 
     if (isTinhHoa) {
       const quote = this.scene.add.text(0, h / 2 - 90, `“${TINH_HOA.learnQuote}”\nnhưng lấy văn hóa dân tộc làm gốc`, {

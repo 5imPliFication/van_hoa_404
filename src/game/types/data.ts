@@ -205,7 +205,11 @@ export interface ComboConfig {
   formula: string;
   description: string;
   requirements: ComboRequirement[];
+  // Optional lecture quote shown when the combo unlocks
+  quote?: string;
   effects: {
+    communityRestore?: number;
+    buildPowerAdd?: number;
     orbitingShields?: boolean;
     shieldCount?: number;
     projectilePierce?: boolean;

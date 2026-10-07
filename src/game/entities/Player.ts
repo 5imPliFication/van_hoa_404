@@ -3,6 +3,7 @@ import { PlayerStats, CulturalValues, INITIAL_PLAYER_STATS, Pillar } from '../ty
 import { UpgradeConfig, CharacterClassConfig } from '../types/data';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
 import { TINH_HOA } from '../../data/lesson';
+import { isClassMode, CLASS_MODE_DAMAGE_MULTIPLIER } from '../settings';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   public stats: PlayerStats;
@@ -33,6 +34,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public communityMeter?: any;
   public manualAimAngle: number | null = null;
   public tinhHoaTaken: number = 0;
+  private classMode: boolean = isClassMode();
   public tinhHoaFull: number = 0;
 
   public getStatLevel(pillar: Pillar): number {
@@ -253,6 +255,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public takeDamage(amount: number, sourceName: string = 'Hiện tượng tiêu cực trên mạng'): boolean {
     if (!this.isAlive) return false;
     this.lastDamagedBy = sourceName;
+    if (this.classMode) amount = Math.max(1, Math.round(amount * CLASS_MODE_DAMAGE_MULTIPLIER));
 
     if (amount > 0) {
       DamageNumberSystem.showDamage(this.x, this.y - 14, amount, 'player');

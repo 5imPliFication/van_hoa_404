@@ -72,3 +72,38 @@ export const ARCHETYPE_QUOTES: Record<string, { quote: string; source: string }>
     source: 'Nghị quyết Trung ương 5 khóa VIII (1998), trích trong Giáo trình, tr.143',
   },
 };
+
+// One-line meaning shown on each pillar's upgrade card. Phrases in quotes come from the lecture.
+export const PILLAR_MEANINGS: Record<string, string> = {
+  danToc: '“Lấy văn hóa dân tộc làm gốc”',
+  khoaHoc: '“Chống giặc dốt, nâng cao dân trí”',
+  daiChung: '“Từ trong quần chúng ra, về sâu trong quần chúng”',
+  chan: 'Tôn trọng sự thật, kiểm chứng trước khi tin',
+  thien: 'Ứng xử tử tế, nhân văn với mọi người',
+  my: 'Sáng tạo cái đẹp, không chạy theo “phù hoa”',
+  build: 'Xây: vun đắp giá trị tích cực cho cộng đồng',
+  fight: 'Chống: “Văn hóa là một mặt trận”',
+};
+
+export const PILLAR_LABELS: Record<string, string> = {
+  danToc: '🇻🇳 Dân tộc',
+  khoaHoc: '🔬 Khoa học',
+  daiChung: '👥 Đại chúng',
+  chan: '⚖️ Chân',
+  thien: '❤️ Thiện',
+  my: '🎨 Mỹ',
+  build: '🏗️ Xây',
+  fight: '⚔️ Chống',
+};
+
+// Shown once per run, the first time each phenomenon appears. Describes what the enemy stands for.
+export const ENEMY_LESSONS: Record<string, string> = {
+  clickbait: 'Giật tít, hào nhoáng để câu view — kiểu “phù hoa” mà văn hóa phải sửa đổi',
+  tinGia: 'Thông tin sai lệch lan nhanh — “giặc dốt” thời số, đẩy lùi bằng hiểu biết',
+  tamLyDamDong: 'A dua theo đám đông, không tự suy xét đúng sai',
+  baoLucNgonTu: 'Lời lẽ miệt thị, công kích người khác trên mạng',
+  daoNhai: 'Sao chép máy móc, thiếu sáng tạo và bản sắc riêng',
+  xuyenTacVanHoa: 'Bóp méo, xuyên tạc giá trị văn hóa dân tộc',
+  cucDoanMang: 'Quan điểm cực đoan, kích động thù ghét và chia rẽ',
+  khungHoangTruyenThong: 'Khủng hoảng thông tin khiến cộng đồng hoang mang',
+};

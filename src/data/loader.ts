@@ -870,6 +870,22 @@ export const DEFAULT_MVP_COMBOS: ComboConfig[] = [
       damageMultiplier: 1.35,
     },
   },
+  {
+    id: 'matTranVanHoa',
+    name: 'Mặt Trận Văn Hóa',
+    formula: 'Xây (Cấp 3) + Chống (Cấp 3)',
+    description: 'Xây đi đôi với Chống: +30% sát thương, hồi ngay 25% Môi Trường và tăng sức thanh lọc môi trường.',
+    requirements: [
+      { pillar: 'build', level: 3 },
+      { pillar: 'fight', level: 3 },
+    ],
+    quote: '“Văn hóa là một mặt trận.” — Nghị quyết Trung ương 5 khóa VIII',
+    effects: {
+      damageMultiplier: 1.3,
+      communityRestore: 25,
+      buildPowerAdd: 10,
+    },
+  },
 ];
 
 export class DataLoader {

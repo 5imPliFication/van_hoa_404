@@ -46,7 +46,7 @@ Path aliases (`vite.config.ts` and `tsconfig.json`, keep both in sync): `@/` →
 
 ## Persistence
 
-Only `localStorage` key `vanhoa404_intro_done` (first-run intro guide in `GameScene`).
+`localStorage` keys: `vanhoa404_intro_done` (first-run intro guide in `GameScene`) and `vanhoa404_class_mode` (classroom mode toggle on the menu: player takes 50% damage; see `src/game/settings.ts`).
 
 ## Git
 

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { isClassMode, setClassMode } from '../settings';
 import { CORE_PILLAR_LESSONS, CORE_PRINCIPLE, LECTURE_SOURCE, SUMMARY_QUOTE } from '../../data/lesson';
 
 export class MenuScene extends Phaser.Scene {
@@ -173,6 +174,38 @@ export class MenuScene extends Phaser.Scene {
       btnBg.setScale(1.0);
       btnText.setScale(1.0);
     });
+
+    // Classroom mode toggle
+    const modeY = 612;
+    const modeBg = this.add.rectangle(width / 2, modeY, 470, 34, 0xffffff, 1);
+    modeBg.setInteractive({ useHandCursor: true });
+    const modeText = this.add.text(width / 2, modeY, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+      fontStyle: 'bold',
+      resolution: 2,
+    }).setOrigin(0.5);
+    const modeHint = this.add.text(width / 2, modeY + 30, 'Giảm 50% sát thương nhận vào để ai cũng trụ đủ lâu và gặp đủ các tình huống', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      color: '#64748b',
+      resolution: 2,
+    }).setOrigin(0.5);
+    const renderMode = () => {
+      const on = isClassMode();
+      modeText.setText(`🎓 Chế độ lớp học: ${on ? 'BẬT' : 'TẮT'}  (phím L)`);
+      modeText.setColor(on ? '#15803d' : '#475569');
+      modeBg.setFillStyle(on ? 0xdcfce7 : 0xffffff);
+      modeBg.setStrokeStyle(1.5, on ? 0x22c55e : 0xcbd5e1);
+      modeHint.setVisible(true);
+    };
+    const toggleMode = () => {
+      setClassMode(!isClassMode());
+      renderMode();
+    };
+    renderMode();
+    modeBg.on('pointerdown', toggleMode);
+    this.input.keyboard?.on('keydown-L', toggleMode);
 
     // Spacebar or Enter to quickly start
     this.input.keyboard?.once('keydown-SPACE', startGame);

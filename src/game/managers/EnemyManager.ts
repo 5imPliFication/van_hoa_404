@@ -8,6 +8,7 @@ import { DataLoader } from '../../data/loader';
 import { SoundSystem } from '../systems/SoundSystem';
 import { WeaponSystem } from './WeaponSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
+import { PhenomenonToast } from '../../ui/PhenomenonToast';
 
 export class EnemyManager {
   private scene: Phaser.Scene;
@@ -67,10 +68,12 @@ export class EnemyManager {
     }
 
     enemy.spawn(spawnX, spawnY, config);
+    this.phenomenonToast?.notifySpawn(config);
     return enemy;
   }
 
   public currentRunSeconds: number = 0;
+  public phenomenonToast?: PhenomenonToast;
 
   public getScaledEnemyDamage(baseDamage: number): number {
     const timeScaling = 1 + (this.currentRunSeconds / 60) * 0.05;
