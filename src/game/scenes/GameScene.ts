@@ -11,6 +11,7 @@ import { EvolutionManager } from '../managers/EvolutionManager';
 import { BossManager } from '../managers/BossManager';
 import { HUD } from '../../ui/HUD';
 import { PhenomenonToast } from '../../ui/PhenomenonToast';
+import { PauseMenu } from '../../ui/PauseMenu';
 import { Projectile } from '../entities/Projectile';
 import { SoundSystem } from '../systems/SoundSystem';
 import { DamageNumberSystem } from '../systems/DamageNumberSystem';
@@ -29,6 +30,7 @@ export class GameScene extends Phaser.Scene {
   private evolutionManager!: EvolutionManager;
   private bossManager!: BossManager;
   private hud!: HUD;
+  private pauseMenu!: PauseMenu;
   private classConfig!: CharacterClassConfig;
 
   public runSeconds: number = 0;
@@ -197,11 +199,20 @@ export class GameScene extends Phaser.Scene {
     // 5. Fixed HUD on camera
     this.hud = new HUD(this, this.player, this.communityMeter, () => {
       this.toggleGuide();
+    }, () => {
+      this.togglePause();
     });
 
     // Keyboard shortcut 'H' to toggle Help guide anytime
     this.input.keyboard?.on('keydown-H', () => {
       this.toggleGuide();
+    });
+
+    // ESC: pause screen with detailed stats. Registered before the opening guide so that, while the
+    // guide is open, this listener runs first and sees isIntroOpen (the guide's own ESC closes it).
+    this.pauseMenu = new PauseMenu(this, this.player, this.communityMeter, () => this.togglePause());
+    this.input.keyboard?.on('keydown-ESC', () => {
+      this.togglePause();
     });
 
     // 6. Virtual Joystick for Mobile/Touch
@@ -211,7 +222,31 @@ export class GameScene extends Phaser.Scene {
     this.checkOpeningIntro();
   }
 
+  public togglePause(): void {
+    if (this.pauseMenu.isOpen) {
+      this.pauseMenu.hide();
+      this.resumeCombat();
+      return;
+    }
+    // Only pause from live combat: not over the guide, a level-up, a scenario or the game-over fade
+    if (this.isPaused || this.isIntroOpen) return;
+    this.pauseCombat();
+    const wave = this.waveManager.getCurrentWave(this.runSeconds);
+    this.pauseMenu.show({
+      runSeconds: this.runSeconds,
+      kills: this.enemyManager.totalKills,
+      waveLabel: wave ? `Làn sóng ${wave.id.replace(/\D/g, '') || '?'}` : 'Làn sóng cuối',
+      comboNames: this.evolutionManager.getActiveComboList().map(c => c.name),
+      buffText: this.scenarioManager.activeBuffText,
+    });
+  }
+
   public toggleGuide(): void {
+    // Opening the guide from the pause screen swaps one overlay for the other
+    if (this.pauseMenu?.isOpen) {
+      this.pauseMenu.hide();
+      this.resumeCombat();
+    }
     if (this.isIntroOpen) {
       if (this.closeIntroCallback) this.closeIntroCallback();
     } else {

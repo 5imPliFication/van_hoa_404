@@ -123,7 +123,7 @@ export class MenuScene extends Phaser.Scene {
 
     // Quick controls
     this.add.text(width / 2, 462,
-      '🎮 WASD / kéo màn hình: di chuyển  •  Mũi tên: ngắm (thả tay = tự bắn)  •  Nhặt XP → chọn thẻ giá trị  •  Gặp tình huống → chọn cách ứng xử',
+      '🎮 WASD / kéo màn hình: di chuyển  •  Mũi tên: ngắm (thả tay = tự bắn)  •  ESC: tạm dừng & xem chỉ số  •  H: cẩm nang',
       {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '12.5px',

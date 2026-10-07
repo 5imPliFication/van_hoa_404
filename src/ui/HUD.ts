@@ -38,7 +38,8 @@ export class HUD {
     scene: Phaser.Scene,
     player: Player,
     communityMeter: CommunityMeterManager,
-    onOpenGuide?: () => void
+    onOpenGuide?: () => void,
+    onPause?: () => void
   ) {
     this.scene = scene;
     this.player = player;
@@ -197,6 +198,27 @@ export class HUD {
       scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
         if (Math.abs(pointer.x - helpX) < 54 && Math.abs(pointer.y - 24) < 16) {
           triggerOpen();
+        }
+      });
+    }
+
+    // Pause Button (detailed stats screen; ESC on keyboard, this button on touch screens)
+    const pauseX = helpX + 118;
+    const pauseBg = scene.add.rectangle(pauseX, 24, 118, 28, 0xf8fafc, 1);
+    pauseBg.setStrokeStyle(1.5, 0x94a3b8);
+    const pauseText = scene.add.text(pauseX, 24, '‖ Tạm dừng [ESC]', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#334155',
+      resolution: 2,
+    }).setOrigin(0.5);
+    this.container.add([pauseBg, pauseText]);
+
+    if (onPause) {
+      scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (Math.abs(pointer.x - pauseX) < 59 && Math.abs(pointer.y - 24) < 16) {
+          onPause();
         }
       });
     }
