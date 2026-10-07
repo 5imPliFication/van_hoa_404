@@ -408,21 +408,22 @@ export class GameScene extends Phaser.Scene {
         // Tab 2: Cẩm Nang Vai Trò, 8 Trụ Cột & 4 Cộng Hưởng Giá Trị (Live Status Tracker)
         // 1. Current Class Banner Card
         const classY = topY + 152;
-        const classBox = this.add.rectangle(width / 2, classY, winW - 60, 52, 0xffffff, 1);
+        const classBox = this.add.rectangle(width / 2, classY, winW - 60, 66, 0xffffff, 1);
         classBox.setStrokeStyle(1.5, this.classConfig.themeColor || 0x0284c7);
 
         const classIconCircle = this.add.circle(width / 2 - (winW - 60) / 2 + 32, classY, 18, this.classConfig.themeColor || 0x0284c7, 0.15);
         classIconCircle.setStrokeStyle(1.5, this.classConfig.themeColor || 0x0284c7);
         const classIconTxt = this.add.text(width / 2 - (winW - 60) / 2 + 32, classY, this.classConfig.badgeIcon || '🔍', { fontSize: '18px', resolution: 2 }).setOrigin(0.5);
 
-        const classTitleTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY - 10,
+        const classTitleTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY - 19,
           `🏛️ VAI TRÒ ĐANG CHỌN: ${this.classConfig.name.toUpperCase()} — ${this.classConfig.title.toUpperCase()}`,
           { fontFamily: 'system-ui, sans-serif', fontSize: '12px', fontStyle: 'bold', color: this.classConfig.themeHex || '#0284c7', resolution: 2 }
         ).setOrigin(0, 0.5);
 
-        const classSubTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY + 11,
+        // Passive descriptions are long: wrap inside the card instead of running past its edge
+        const classSubTxt = this.add.text(width / 2 - (winW - 60) / 2 + 60, classY + 8,
           `• Vũ khí: ${this.classConfig.startingWeaponName}  |  • Nội tại: ${this.classConfig.passive.name} (${this.classConfig.passive.description})`,
-          { fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#475569', resolution: 2 }
+          { fontFamily: 'system-ui, sans-serif', fontSize: '11px', color: '#475569', wordWrap: { width: winW - 60 - 80 }, lineSpacing: 2, resolution: 2 }
         ).setOrigin(0, 0.5);
 
         contentContainer.add([classBox, classIconCircle, classIconTxt, classTitleTxt, classSubTxt]);
