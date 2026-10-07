@@ -170,7 +170,7 @@ export interface BossConfig {
   textureKey?: string;
 }
 
-export type WeaponStyle = 'sniper' | 'pulse' | 'orbit';
+export type WeaponStyle = 'sniper' | 'pulse' | 'drum';
 
 export interface CharacterClassConfig {
   id: string;

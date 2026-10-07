@@ -8,19 +8,29 @@ import { WeaponStyle } from '../types/data';
 
 /**
  * What one extra "attack" from Chống (stats.projectileCount) means for each starting weapon:
- * sniper fires one more bullet, pulse adds one weaker echo wave, orbit adds one more relic.
+ * sniper fires one more bullet, pulse adds one weaker echo wave, drum adds one weaker follow-up beat.
  */
 export const EXTRA_ATTACK_LABEL: Record<WeaponStyle, string> = {
   sniper: 'tia đạn',
   pulse: 'đợt sóng',
-  orbit: 'mảnh ngọc',
+  drum: 'nhịp trống',
 };
 
-/** Người Gìn Giữ relic count = ORBIT_BASE_RELICS + projectileCount (3 at start). */
-export const ORBIT_BASE_RELICS = 2;
-/** Each echo wave after the main pulse: delay between waves and damage share. */
+/** Each echo wave / follow-up beat after the main attack: delay between them and damage share. */
 const PULSE_ECHO_DELAY_MS = 220;
 const PULSE_ECHO_MULTIPLIER = 0.6;
+const DRUM_FOLLOWUP_DELAY_MS = 260;
+const DRUM_FOLLOWUP_MULTIPLIER = 0.7;
+/** Drum beats are slower than bullets: cooldown = DRUM_COOLDOWN_SCALE / attackSpeed seconds. */
+export const DRUM_COOLDOWN_SCALE = 1.2;
+
+/** Người Gìn Giữ's Trống Đồng cone; reach and width grow with Dân tộc. */
+export function drumCone(danToc: number): { reach: number; halfAngle: number } {
+  return {
+    reach: 240 + danToc * 8,
+    halfAngle: Phaser.Math.DegToRad(35 + danToc * 2),
+  };
+}
 
 export interface TargetPoint {
   x: number;
@@ -35,7 +45,7 @@ export class WeaponSystem {
   private fireTimer: number = 0;
   private range: number = 440;
   private weaponStyle: WeaponStyle;
-  // Countdown (ms) for each pending pulse echo; ticked in update() so echoes freeze with pauseCombat()
+  // Countdown (ms) for each pending pulse echo / drum follow-up beat; ticked in update() so they freeze with pauseCombat()
   private pendingEchoes: number[] = [];
 
   // Evolution & Combo buffs
@@ -46,7 +56,7 @@ export class WeaponSystem {
   public hasShockwavePulse: boolean = false;
   private shockwaveTimer: number = 0;
 
-  // Orbiting relics / shields (Người Gìn Giữ & Khiên Thông Tin)
+  // Orbiting shields (Khiên Thông Tin combo)
   public orbitingRelics: Phaser.GameObjects.Image[] = [];
   private orbitAngle: number = 0;
   private relicContactTimer: number = 0;
@@ -71,21 +81,10 @@ export class WeaponSystem {
     } else if (this.weaponStyle === 'pulse') {
       this.range = 280;
     }
-
-    // Người Gìn Giữ: the relics ARE the weapon (no bullets)
-    this.syncOrbitingRelics();
-  }
-
-  /** Relics wanted right now: Gìn Giữ scales with Chống (+ Khiên Thông Tin combo), other classes get 3 from the combo. */
-  private targetRelicCount(): number {
-    if (this.weaponStyle === 'orbit') {
-      return ORBIT_BASE_RELICS + Math.max(1, this.player.stats.projectileCount) + (this.hasOrbitingShields ? 2 : 0);
-    }
-    return this.hasOrbitingShields ? 3 : 0;
   }
 
   private syncOrbitingRelics(): void {
-    const target = this.targetRelicCount();
+    const target = this.hasOrbitingShields ? 3 : 0;
     while (this.orbitingRelics.length < target) {
       const relic = this.scene.add.image(this.player.x, this.player.y, 'relic_orbit');
       relic.setDepth(14);
@@ -110,10 +109,10 @@ export class WeaponSystem {
   public update(dt: number, activeEnemies: Enemy[], bossTargets: TargetPoint[] = []): void {
     if (!this.player.isAlive) return;
 
-    // Add relics when Chống or the Khiên Thông Tin combo raised the count
+    // Add the shields once the Khiên Thông Tin combo unlocks
     this.syncOrbitingRelics();
 
-    // 1. Update Orbiting Relics (Người Gìn Giữ & Khiên Thông Tin combo)
+    // 1. Update Orbiting Shields (Khiên Thông Tin combo)
     if (this.orbitingRelics.length > 0) {
       this.updateOrbitingRelics(dt, activeEnemies);
     }
@@ -127,21 +126,23 @@ export class WeaponSystem {
       }
     }
 
-    // 3. Pending echo waves (Người Kiến Tạo + Chống)
+    // 3. Pending echo waves (Người Kiến Tạo) / follow-up drum beats (Người Gìn Giữ) from Chống
     if (this.pendingEchoes.length > 0) {
       this.pendingEchoes = this.pendingEchoes.map(t => t - dt);
       while (this.pendingEchoes.length > 0 && this.pendingEchoes[0] <= 0) {
         this.pendingEchoes.shift();
-        this.firePulseWave(activeEnemies, PULSE_ECHO_MULTIPLIER, 0x86efac);
+        if (this.weaponStyle === 'drum') {
+          this.fireDrumBeat(activeEnemies, bossTargets, DRUM_FOLLOWUP_MULTIPLIER);
+        } else {
+          this.firePulseWave(activeEnemies, PULSE_ECHO_MULTIPLIER, 0x86efac);
+        }
       }
     }
 
-    // Người Gìn Giữ has no primary shot: the relics deal all of its damage
-    if (this.weaponStyle === 'orbit') return;
-
     // 4. Primary Weapon Attack Timer
     this.fireTimer += dt;
-    const cooldownMs = 1000 / Math.max(0.2, this.player.stats.attackSpeed);
+    const cooldownScale = this.weaponStyle === 'drum' ? DRUM_COOLDOWN_SCALE : 1;
+    const cooldownMs = (1000 * cooldownScale) / Math.max(0.2, this.player.stats.attackSpeed);
 
     if (this.fireTimer >= cooldownMs) {
       this.fireTimer = 0;
@@ -153,8 +154,7 @@ export class WeaponSystem {
     const orbitSpeed = 3.6 * (this.player.stats.attackSpeed || 1.0);
     this.orbitAngle += (dt / 1000) * orbitSpeed;
 
-    // Người Gìn Giữ's ring widens with Dân tộc (+5 px per level, 110 px at level 5)
-    const orbitRadius = 85 + (this.weaponStyle === 'orbit' ? (this.player.values.danToc || 0) * 5 : 0);
+    const orbitRadius = 85;
     const count = this.orbitingRelics.length;
 
     for (let i = 0; i < count; i++) {
@@ -173,8 +173,7 @@ export class WeaponSystem {
     this.relicContactTimer += dt / 1000;
     if (this.relicContactTimer >= 0.28) {
       this.relicContactTimer = 0;
-      // Full damage when the relics are Gìn Giữ's only weapon, a lighter touch for the combo shields
-      const relicDmg = this.player.stats.damage * (this.weaponStyle === 'orbit' ? 1.0 : 0.75);
+      const relicDmg = this.player.stats.damage * 0.75;
       const relicCrit = Math.random() < this.player.stats.critChance;
 
       for (const relic of this.orbitingRelics) {
@@ -197,7 +196,7 @@ export class WeaponSystem {
       }
     }
 
-    // Block incoming enemy bullets; Người Gìn Giữ's relics send them straight back the way they came
+    // Block incoming enemy bullets
     const enemyBullets = this.enemyManager?.enemyProjectiles?.getChildren() as Phaser.Physics.Arcade.Image[] | undefined;
     if (enemyBullets) {
       for (const eb of enemyBullets) {
@@ -205,13 +204,8 @@ export class WeaponSystem {
         for (const relic of this.orbitingRelics) {
           const dist = Phaser.Math.Distance.Between(relic.x, relic.y, eb.x, eb.y);
           if (dist < 26) {
-            const reflect = this.weaponStyle === 'orbit';
-            if (reflect && eb.body) {
-              const v = (eb.body as Phaser.Physics.Arcade.Body).velocity;
-              this.reflectBullet(eb.x, eb.y, -v.x, -v.y);
-            }
             eb.setActive(false).setVisible(false).setVelocity(0, 0);
-            DamageNumberSystem.showDamage(relic.x, relic.y - 12, reflect ? 'PHẢN ĐÒN' : 'CHẶN ĐẠN', 'crit');
+            DamageNumberSystem.showDamage(relic.x, relic.y - 12, 'CHẶN ĐẠN', 'crit');
             SoundSystem.playHit();
             break;
           }
@@ -220,18 +214,16 @@ export class WeaponSystem {
     }
   }
 
-  /** Người Gìn Giữ: a blocked enemy bullet flies back along its path as a player bullet. */
-  private reflectBullet(x: number, y: number, vx: number, vy: number): void {
-    if (vx === 0 && vy === 0) return;
-    const bullet = this.projectiles.get() as Projectile;
-    if (!bullet) return;
-    const crit = Math.random() < this.player.stats.critChance;
-    const dmg = crit ? this.player.stats.damage * 2 : this.player.stats.damage;
-    bullet.fire(x, y, x + vx, y + vy, this.player.stats.projectileSpeed, dmg, crit, false);
-    bullet.setTint(0xf59e0b);
-  }
-
   private fireWeapon(activeEnemies: Enemy[], bossTargets: TargetPoint[]): void {
+    if (this.weaponStyle === 'drum') {
+      if (!this.fireDrumBeat(activeEnemies, bossTargets, 1.0)) return;
+      // Each extra attack from Chống becomes a weaker follow-up beat, re-aimed when it lands
+      for (let i = 1; i < Math.max(1, this.player.stats.projectileCount); i++) {
+        this.pendingEchoes.push(i * DRUM_FOLLOWUP_DELAY_MS);
+      }
+      return;
+    }
+
     if (this.weaponStyle === 'pulse') {
       this.firePulseWave(activeEnemies);
       // Each extra attack from Chống becomes a weaker echo wave right after the main one
@@ -332,6 +324,92 @@ export class WeaponSystem {
 
     // Damage boss + swarm minions in radius
     this.bossManager?.damageInRadius(this.player.x, this.player.y, baseRadius, finalDamage, critRoll);
+  }
+
+  /**
+   * Người Gìn Giữ (Trống Đồng): a sound-wave cone toward the nearest target. Damages and pushes back
+   * everything inside, and silences enemy bullets in its path. Returns false when nothing is in reach.
+   */
+  private fireDrumBeat(activeEnemies: Enemy[], bossTargets: TargetPoint[], multiplier: number): boolean {
+    const px = this.player.x;
+    const py = this.player.y;
+    const { reach, halfAngle } = drumCone(this.player.values.danToc || 0);
+
+    let aim = this.player.manualAimAngle;
+    if (aim === null) {
+      this.range = reach;
+      const target = this.findNearestTarget(activeEnemies, bossTargets);
+      if (!target) return false;
+      aim = Phaser.Math.Angle.Between(px, py, target.x, target.y);
+      if (this.player.body && (this.player.body as Phaser.Physics.Arcade.Body).velocity.lengthSq() < 1) {
+        this.player.setRotation(aim + Math.PI / 2);
+      }
+    }
+    const coneAim = aim;
+
+    // pad = target body radius, so big targets on the cone's edge still count
+    const inCone = (x: number, y: number, pad: number = 0): boolean => {
+      const d = Phaser.Math.Distance.Between(px, py, x, y);
+      if (d > reach + pad) return false;
+      if (d <= pad + 16) return true;
+      const off = Math.abs(Phaser.Math.Angle.Wrap(Phaser.Math.Angle.Between(px, py, x, y) - coneAim));
+      return off <= halfAngle + Math.atan2(pad, d);
+    };
+
+    SoundSystem.playDrum();
+    this.drawDrumCone(coneAim, reach, halfAngle, multiplier < 1);
+
+    const critRoll = Math.random() < this.player.stats.critChance;
+    const finalDamage = this.player.stats.damage * multiplier * (critRoll ? 2 : 1);
+    const kb = 28 + (this.player.stats.fightPower || 0) * 1.5;
+
+    for (const enemy of activeEnemies) {
+      if (!enemy.active || !inCone(enemy.x, enemy.y, 12)) continue;
+      const a = Phaser.Math.Angle.Between(px, py, enemy.x, enemy.y);
+      this.enemyManager?.damageEnemy(enemy, finalDamage, critRoll, Math.cos(a) * kb, Math.sin(a) * kb);
+    }
+
+    this.bossManager?.damageWhere(inCone, finalDamage, critRoll);
+
+    // The beat drowns out enemy bullets inside the cone
+    const enemyBullets = this.enemyManager?.enemyProjectiles?.getChildren() as Phaser.Physics.Arcade.Image[] | undefined;
+    let silenced = 0;
+    for (const eb of enemyBullets ?? []) {
+      if (eb.active && inCone(eb.x, eb.y)) {
+        eb.setActive(false).setVisible(false).setVelocity(0, 0);
+        silenced++;
+      }
+    }
+    if (silenced > 0) {
+      DamageNumberSystem.showDamage(px + Math.cos(coneAim) * 60, py + Math.sin(coneAim) * 60 - 12, 'DẬP TẮT', 'crit');
+    }
+    return true;
+  }
+
+  private drawDrumCone(aim: number, reach: number, halfAngle: number, isFollowUp: boolean): void {
+    const g = this.scene.add.graphics({ x: this.player.x, y: this.player.y });
+    g.setDepth(12);
+    g.fillStyle(0xf59e0b, isFollowUp ? 0.2 : 0.32);
+    g.slice(0, 0, reach, aim - halfAngle, aim + halfAngle, false);
+    g.fillPath();
+    // Three bronze sound-wave arcs, like rings spreading from a drum
+    g.lineStyle(isFollowUp ? 3 : 4, 0xb45309, 0.9);
+    for (const f of [0.45, 0.7, 0.95]) {
+      g.beginPath();
+      g.arc(0, 0, reach * f, aim - halfAngle * 0.9, aim + halfAngle * 0.9, false);
+      g.strokePath();
+    }
+    // Spread out at full strength, then fade, so the cone is readable
+    g.setScale(0.35);
+    this.scene.tweens.add({
+      targets: g,
+      scale: 1,
+      duration: 200,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.scene.tweens.add({ targets: g, alpha: 0, duration: 240, onComplete: () => g.destroy() });
+      },
+    });
   }
 
   private findNearestTarget(enemies: Enemy[], bossTargets: TargetPoint[]): TargetPoint | null {

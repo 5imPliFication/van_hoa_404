@@ -3,7 +3,7 @@ import { Player } from '../game/entities/Player';
 import { CommunityMeterManager } from '../game/managers/CommunityMeterManager';
 import { isClassMode } from '../game/settings';
 import { TINH_HOA } from '../data/lesson';
-import { EXTRA_ATTACK_LABEL, ORBIT_BASE_RELICS } from '../game/managers/WeaponSystem';
+import { EXTRA_ATTACK_LABEL, DRUM_COOLDOWN_SCALE, drumCone } from '../game/managers/WeaponSystem';
 
 export interface PauseSnapshot {
   runSeconds: number;
@@ -105,19 +105,22 @@ export class PauseMenu {
     const fightBonus = s.fightPower * 0.015;
     const heal = this.player.healPerInterval * (1 + s.buildPower * 0.02);
     const style = this.player.classConfig?.startingWeapon || 'sniper';
-    const attackCount = s.projectileCount + (style === 'orbit' ? ORBIT_BASE_RELICS : 0);
+    const cone = drumCone(this.player.values.danToc || 0);
     const rows: [string, string][] = [
       ['Máu', `${Math.ceil(s.hp)} / ${Math.round(s.maxHp)}`],
       ['Khiên', `${Math.round(s.shield)}`],
       ['Sát thương mỗi phát', `${s.damage.toFixed(1)}`],
       ['Sát thương thực tế (gồm Chống)', `${(s.damage * (1 + fightBonus)).toFixed(1)}`],
-      style === 'orbit'
-        ? ['Tốc độ xoay ngọc', `×${s.attackSpeed.toFixed(2)}`]
+      style === 'drum'
+        ? ['Nhịp trống', `${(s.attackSpeed / DRUM_COOLDOWN_SCALE).toFixed(2)} lần/giây`]
         : [style === 'pulse' ? 'Nhịp phát sóng' : 'Tốc độ bắn', `${s.attackSpeed.toFixed(2)} lần/giây`],
-      [`Số ${EXTRA_ATTACK_LABEL[style]}`, `${attackCount}`],
+      [`Số ${EXTRA_ATTACK_LABEL[style]}`, `${s.projectileCount}`],
       ['Tỉ lệ chí mạng', `${Math.round(s.critChance * 100)}% (×2 sát thương)`],
-      // Only the sniper fires bullets
+      // Only the sniper fires bullets; the drum shows its cone instead
       ...(style === 'sniper' ? [['Tốc độ đạn', `${Math.round(s.projectileSpeed)}`] as [string, string]] : []),
+      ...(style === 'drum'
+        ? [['Tầm sóng trống', `${cone.reach} px · ${Math.round(Phaser.Math.RadToDeg(cone.halfAngle * 2))}°`] as [string, string]]
+        : []),
       ['Tốc độ di chuyển', `${Math.round(s.moveSpeed)}`],
       ['Tầm hút XP', `${Math.round(s.pickupRadius)}`],
       ['Hồi máu', heal > 0 ? `${heal.toFixed(1)} HP / 5 giây` : 'Chưa có'],

@@ -820,16 +820,25 @@ export class BossManager {
   }
 
   /**
-   * Area / contact damage (Kiến Tạo pulse, Gìn Giữ relics) against swarm minions and the boss.
+   * Area / contact damage (Kiến Tạo pulse, combo shields) against swarm minions and the boss.
    * Phantom clones are decoys for bullets only and ignore it.
    */
   public damageInRadius(x: number, y: number, radius: number, damage: number, isCrit: boolean): void {
+    this.damageWhere(
+      (tx, ty, pad) => Phaser.Math.Distance.Between(x, y, tx, ty) < radius + pad,
+      damage,
+      isCrit
+    );
+  }
+
+  /** Same as damageInRadius for any area shape (e.g. the Trống Đồng cone); `pad` = the target's body radius. */
+  public damageWhere(isInside: (x: number, y: number, pad: number) => boolean, damage: number, isCrit: boolean): void {
     if (!this.isBossActive) return;
 
     const minions = this.tinySwarmGroup.getChildren() as Phaser.Physics.Arcade.Sprite[];
     for (const m of minions) {
       if (!m.active) continue;
-      if (Phaser.Math.Distance.Between(x, y, m.x, m.y) < radius + 6) {
+      if (isInside(m.x, m.y, 6)) {
         const hp = (m.getData('hp') ?? 16) - damage;
         m.setData('hp', hp);
         if (hp <= 0) {
@@ -841,7 +850,7 @@ export class BossManager {
 
     if (this.bossSprite?.active) {
       const bossRadius = this.currentBossConfig?.radius || 30;
-      if (Phaser.Math.Distance.Between(x, y, this.bossSprite.x, this.bossSprite.y) < radius + bossRadius) {
+      if (isInside(this.bossSprite.x, this.bossSprite.y, bossRadius)) {
         const dmg = damage * (1 + this.player.stats.fightPower * 0.015);
         this.takeDamage(dmg, isCrit);
         DamageNumberSystem.showDamage(this.bossSprite.x, this.bossSprite.y - 35, dmg, isCrit ? 'crit' : 'monster');

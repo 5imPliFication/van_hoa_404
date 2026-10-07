@@ -54,6 +54,33 @@ export class SoundSystem {
     }
   }
 
+  /** Low bronze-drum thump for Người Gìn Giữ's Trống Đồng beat. */
+  public static playDrum(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(130, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.25);
+
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch {
+      // Audio is optional
+    }
+  }
+
   public static playHit(): void {
     const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
     // Throttle hit sounds (minimum 75ms) to prevent loud clipping when piercing bullets hit clumps of enemies

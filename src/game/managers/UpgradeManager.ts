@@ -6,7 +6,7 @@ import { SoundSystem } from '../systems/SoundSystem';
 import { TINH_HOA, PILLAR_MEANINGS } from '../../data/lesson';
 
 import { CommunityMeterManager } from './CommunityMeterManager';
-import { EXTRA_ATTACK_LABEL, ORBIT_BASE_RELICS } from './WeaponSystem';
+import { EXTRA_ATTACK_LABEL } from './WeaponSystem';
 
 export class UpgradeManager {
   private scene: Phaser.Scene;
@@ -162,10 +162,12 @@ export class UpgradeManager {
       // The "+1" at levels 1/3/5 depends on the class weapon (bullet / echo wave / relic)
       const style = this.player.classConfig?.startingWeapon || 'sniper';
       const unit = EXTRA_ATTACK_LABEL[style];
-      const nextCount = this.player.stats.projectileCount + 1 + (style === 'orbit' ? ORBIT_BASE_RELICS : 0);
+      const nextCount = this.player.stats.projectileCount + 1;
       const extra = style === 'pulse'
         ? `+1 Sóng dư chấn 60% (${nextCount} ${unit})`
-        : `+1 ${unit.charAt(0).toUpperCase() + unit.slice(1)} (${nextCount} ${unit})`;
+        : style === 'drum'
+          ? `+1 Nhịp trống 70% (${nextCount} ${unit})`
+          : `+1 Tia đạn bổ sung (${nextCount} ${unit})`;
       if (nextLvl === 1) dynamicDesc = `${extra}, +2 Sát thương, +5 Sức mạnh Chống`;
       else if (nextLvl === 2) dynamicDesc = '+2 Sát thương chuẩn xác, +6 Sức mạnh Chống';
       else if (nextLvl === 3) dynamicDesc = `${extra}, +2 Sát thương, +7 Sức mạnh Chống`;
@@ -176,8 +178,8 @@ export class UpgradeManager {
     } else if (upgrade.category === 'khoaHoc') {
       dynamicDesc = '+8% Tốc độ bắn xả đạn, +4% Tỉ lệ đòn đánh bạo kích';
     } else if (upgrade.category === 'danToc') {
-      dynamicDesc = this.player.classConfig?.startingWeapon === 'orbit'
-        ? '+15 Khiên, +10 Máu tối đa, vòng xoay ngọc rộng thêm 5'
+      dynamicDesc = this.player.classConfig?.startingWeapon === 'drum'
+        ? '+15 Khiên, +10 Máu tối đa, sóng trống đồng xa và rộng hơn'
         : '+15 Khiên chắn năng lượng, +10 Máu tối đa (HP)';
     } else if (upgrade.category === 'thien') {
       dynamicDesc = `Hồi phục +1 HP mỗi 5 giây (Hiện tại: hồi ${this.player.healPerInterval} HP/5s)`;

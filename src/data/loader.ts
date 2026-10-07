@@ -252,7 +252,7 @@ const DEFAULT_MVP_UPGRADES: UpgradeConfig[] = [
     category: 'fight',
     level: 1,
     maxLevel: 5,
-    description: '+1 đòn đánh (tia đạn / sóng dư chấn / mảnh ngọc tùy vai trò), +10 Sức mạnh Chống',
+    description: '+1 đòn đánh (tia đạn / sóng dư chấn / nhịp trống tùy vai trò), +10 Sức mạnh Chống',
     effects: {
       projectileCountAdd: 1,
       damageAdd: 5,
@@ -964,10 +964,10 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     badgeIcon: '🛡️',
     themeColor: 0xd97706,
     themeHex: '#d97706',
-    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Không bắn đạn: các mảnh ngọc di sản xoay quanh nghiền nát kẻ địch áp sát và phản lại đạn của kẻ tấn công từ xa.',
-    startingWeapon: 'orbit',
-    startingWeaponName: 'Mảnh Ngọc Bản Sắc',
-    startingWeaponDesc: '3 mảnh ngọc quay quanh nhân vật, gây sát thương va chạm và phản đạn địch ngược về kẻ bắn. Chống thêm mảnh ngọc, Dân tộc mở rộng vòng xoay.',
+    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Sinh lực và khiên vượt trội, đáp trả bằng tiếng trống đồng: sóng âm vang xa, đẩy lùi kẻ địch và dập tắt lời xuyên tạc.',
+    startingWeapon: 'drum',
+    startingWeaponName: 'Trống Đồng Âm Vang',
+    startingWeaponDesc: 'Gõ trống đồng: sóng âm hình nón lan về phía kẻ địch gần nhất, gây sát thương, đẩy lùi và dập tắt đạn địch trên đường lan. Chống thêm nhịp trống, Dân tộc mở rộng sóng âm.',
     startingStats: {
       maxHp: 130,
       hp: 130,

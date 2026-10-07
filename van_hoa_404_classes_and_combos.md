@@ -189,7 +189,7 @@ Mỗi class cần có **cách tấn công nền tảng khác nhau**:
 
 - Người Kiểm Chứng → sniper projectile
 - Người Kiến Tạo → pulse area
-- Người Gìn Giữ → orbiting weapon
+- Người Gìn Giữ → cone AoE (Trống Đồng: sóng âm hình nón, dập tắt đạn địch)
 - Người Lan Tỏa → multishot
 - Người Phản Biện → heavy shot
 - Người Kết Nối → summon
