@@ -964,10 +964,10 @@ export const DEFAULT_MVP_CLASSES: CharacterClassConfig[] = [
     badgeIcon: '🛡️',
     themeColor: 0xd97706,
     themeHex: '#d97706',
-    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Không bắn đạn: lao vào giữa đám đông, để các mảnh ngọc di sản xoay quanh nghiền nát kẻ địch áp sát.',
+    roleDescription: 'Pháo đài bảo vệ di sản văn hóa. Không bắn đạn: các mảnh ngọc di sản xoay quanh nghiền nát kẻ địch áp sát và phản lại đạn của kẻ tấn công từ xa.',
     startingWeapon: 'orbit',
     startingWeaponName: 'Mảnh Ngọc Bản Sắc',
-    startingWeaponDesc: '3 mảnh ngọc di sản quay quanh nhân vật, gây sát thương va chạm và chặn đạn địch. Nâng Chống để thêm mảnh ngọc.',
+    startingWeaponDesc: '3 mảnh ngọc quay quanh nhân vật, gây sát thương va chạm và phản đạn địch ngược về kẻ bắn. Chống thêm mảnh ngọc, Dân tộc mở rộng vòng xoay.',
     startingStats: {
       maxHp: 130,
       hp: 130,

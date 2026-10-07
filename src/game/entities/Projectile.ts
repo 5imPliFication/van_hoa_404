@@ -37,6 +37,7 @@ export class Projectile extends Phaser.Physics.Arcade.Sprite {
     isPierce: boolean = false
   ): void {
     this.setPosition(x, y);
+    this.clearTint();
     this.setActive(true);
     this.setVisible(true);
 

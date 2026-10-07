@@ -176,7 +176,9 @@ export class UpgradeManager {
     } else if (upgrade.category === 'khoaHoc') {
       dynamicDesc = '+8% Tốc độ bắn xả đạn, +4% Tỉ lệ đòn đánh bạo kích';
     } else if (upgrade.category === 'danToc') {
-      dynamicDesc = '+15 Khiên chắn năng lượng, +10 Máu tối đa (HP)';
+      dynamicDesc = this.player.classConfig?.startingWeapon === 'orbit'
+        ? '+15 Khiên, +10 Máu tối đa, vòng xoay ngọc rộng thêm 5'
+        : '+15 Khiên chắn năng lượng, +10 Máu tối đa (HP)';
     } else if (upgrade.category === 'thien') {
       dynamicDesc = `Hồi phục +1 HP mỗi 5 giây (Hiện tại: hồi ${this.player.healPerInterval} HP/5s)`;
     } else if (upgrade.category === 'my') {

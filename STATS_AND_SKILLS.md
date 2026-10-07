@@ -68,7 +68,7 @@ Nếu người chơi tối đa hóa toàn bộ 8 trụ cột (tổng 40 cấp), 
   * **Cấp 4**: `+2 Sát thương chuẩn`, `+8 Sức mạnh Chống`
   * **Cấp 5 (Tối Đa)**: `+1 đòn đánh`, `+2 Sát thương`, `+9 Sức mạnh Chống`
 * **Ý nghĩa**: Khống chế số đòn đánh ở mức tối đa +3, ngăn chặn việc xả đạn vô tận làm mất cân bằng trận đấu. Thẻ nâng cấp hiển thị đúng loại đòn đánh theo vai trò đang chơi.
-* **Vũ khí theo vai trò**: Người Kiểm Chứng là vai trò duy nhất bắn đạn. Người Kiến Tạo chỉ phát sóng quanh thân. Người Gìn Giữ không bắn: các mảnh ngọc xoay quanh là vũ khí duy nhất (100% sát thương mỗi lần chạm, chặn đạn địch). Sóng và mảnh ngọc đều gây sát thương lên Trùm và bầy quái nhỏ của Trùm.
+* **Vũ khí theo vai trò**: Người Kiểm Chứng là vai trò duy nhất bắn đạn. Người Kiến Tạo chỉ phát sóng quanh thân. Người Gìn Giữ không bắn: các mảnh ngọc xoay quanh là vũ khí duy nhất (100% sát thương mỗi lần chạm). Mảnh ngọc chạm đạn địch (kể cả đạn Trùm) sẽ **phản đòn**: đạn bay ngược lại đúng đường cũ với 100% sát thương của người chơi, nên Gìn Giữ có cách đáp trả quái tầm xa mà không cần bắn. Vòng xoay rộng 85 px, +5 px mỗi cấp Dân tộc (110 px ở cấp 5). Với các vai trò khác, mảnh khiên từ combo Khiên Thông Tin chỉ chặn đạn, không phản. Sóng và mảnh ngọc đều gây sát thương lên Trùm và bầy quái nhỏ của Trùm.
 
 ### 8. Kiến Tạo Giá Trị Tích Cực (Xây: 1 → 5)
 * **Trụ cột**: `build` (+1 cấp, tối đa 5)

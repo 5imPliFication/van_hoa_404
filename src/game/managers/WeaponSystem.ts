@@ -153,7 +153,8 @@ export class WeaponSystem {
     const orbitSpeed = 3.6 * (this.player.stats.attackSpeed || 1.0);
     this.orbitAngle += (dt / 1000) * orbitSpeed;
 
-    const orbitRadius = 85;
+    // Người Gìn Giữ's ring widens with Dân tộc (+5 px per level, 110 px at level 5)
+    const orbitRadius = 85 + (this.weaponStyle === 'orbit' ? (this.player.values.danToc || 0) * 5 : 0);
     const count = this.orbitingRelics.length;
 
     for (let i = 0; i < count; i++) {
@@ -196,22 +197,38 @@ export class WeaponSystem {
       }
     }
 
-    // Deflect and destroy incoming enemy bullets within relic touch radius
-    const enemyBullets = this.enemyManager?.enemyBullets?.getChildren();
+    // Block incoming enemy bullets; Người Gìn Giữ's relics send them straight back the way they came
+    const enemyBullets = this.enemyManager?.enemyProjectiles?.getChildren() as Phaser.Physics.Arcade.Image[] | undefined;
     if (enemyBullets) {
       for (const eb of enemyBullets) {
         if (!eb.active) continue;
         for (const relic of this.orbitingRelics) {
           const dist = Phaser.Math.Distance.Between(relic.x, relic.y, eb.x, eb.y);
           if (dist < 26) {
+            const reflect = this.weaponStyle === 'orbit';
+            if (reflect && eb.body) {
+              const v = (eb.body as Phaser.Physics.Arcade.Body).velocity;
+              this.reflectBullet(eb.x, eb.y, -v.x, -v.y);
+            }
             eb.setActive(false).setVisible(false).setVelocity(0, 0);
-            DamageNumberSystem.showDamage(relic.x, relic.y - 12, 'CHẶN ĐẠN', 'crit');
+            DamageNumberSystem.showDamage(relic.x, relic.y - 12, reflect ? 'PHẢN ĐÒN' : 'CHẶN ĐẠN', 'crit');
             SoundSystem.playHit();
             break;
           }
         }
       }
     }
+  }
+
+  /** Người Gìn Giữ: a blocked enemy bullet flies back along its path as a player bullet. */
+  private reflectBullet(x: number, y: number, vx: number, vy: number): void {
+    if (vx === 0 && vy === 0) return;
+    const bullet = this.projectiles.get() as Projectile;
+    if (!bullet) return;
+    const crit = Math.random() < this.player.stats.critChance;
+    const dmg = crit ? this.player.stats.damage * 2 : this.player.stats.damage;
+    bullet.fire(x, y, x + vx, y + vy, this.player.stats.projectileSpeed, dmg, crit, false);
+    bullet.setTint(0xf59e0b);
   }
 
   private fireWeapon(activeEnemies: Enemy[], bossTargets: TargetPoint[]): void {
